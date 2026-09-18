@@ -1,0 +1,110 @@
+package cloud.dywy.application.guest
+
+import assertk.all
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import assertk.assertions.prop
+import io.mockk.every
+import io.mockk.mockk
+import cloud.dywy.application.guest.result.UpdateGuestResult
+import cloud.dywy.application.guest.command.UpdateGuestCommandFixtures.johnDoeUpdated as johnDoeUpdatedCommand
+import cloud.dywy.domain.guest.entity.Guest
+import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoeArchived
+import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
+import cloud.dywy.domain.guest.entity.GuestFixtures.oliverBennett
+import cloud.dywy.domain.guest.entity.Language
+import cloud.dywy.domain.guest.repository.Guests
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+
+class GuestUpdaterTest {
+
+    private lateinit var guests: Guests
+    private lateinit var guestUpdater: GuestUpdater
+
+    @BeforeTest
+    fun setUp() {
+        guests = mockk()
+        guestUpdater = GuestUpdater(guests)
+    }
+
+    @Test
+    fun `should update existing guest`() {
+        val guest = johnDoe
+        val command = johnDoeUpdatedCommand.copy(version = guest.version)
+        every { guests.findById(guest.id) } returns guest
+        every { guests.update(any(), guest.version) } answers { firstArg() }
+
+        val updatedGuest = (guestUpdater.update(command) as UpdateGuestResult.Updated).guest
+
+        assertThat(updatedGuest).all {
+            prop(Guest::id).isEqualTo(guest.id)
+            prop(Guest::version).isEqualTo(guest.version + 1)
+            prop(Guest::creationDate).isEqualTo(guest.creationDate)
+            prop(Guest::firstName).isEqualTo(command.firstName)
+            prop(Guest::lastName).isEqualTo(command.lastName)
+            prop(Guest::email).isEqualTo(command.email)
+        }
+    }
+
+    @Test
+    fun `should preserve the existing guest language when the command language is null`() {
+        val guest = oliverBennett
+        val command = johnDoeUpdatedCommand.copy(id = guest.id, version = guest.version, language = null)
+        every { guests.findById(guest.id) } returns guest
+        every { guests.update(any(), guest.version) } answers { firstArg() }
+
+        val updatedGuest = (guestUpdater.update(command) as UpdateGuestResult.Updated).guest
+
+        assertThat(updatedGuest.language).isEqualTo(Language.EN)
+    }
+
+    @Test
+    fun `should apply the command language when provided`() {
+        val guest = johnDoe
+        val command = johnDoeUpdatedCommand.copy(version = guest.version, language = Language.EN)
+        every { guests.findById(guest.id) } returns guest
+        every { guests.update(any(), guest.version) } answers { firstArg() }
+
+        val updatedGuest = (guestUpdater.update(command) as UpdateGuestResult.Updated).guest
+
+        assertThat(updatedGuest.language).isEqualTo(Language.EN)
+    }
+
+    @Test
+    fun `should return not found when updating non existing guest`() {
+        val guestId = johnDoe.id
+        val command = johnDoeUpdatedCommand.copy(version = 1L)
+        every { guests.findById(guestId) } returns null
+
+        assertThat(guestUpdater.update(command)).isEqualTo(UpdateGuestResult.NotFound)
+    }
+
+    @Test
+    fun `should return version conflict when expected version does not match current guest`() {
+        val guest = johnDoe
+        val command = johnDoeUpdatedCommand.copy(version = guest.version + 1)
+        every { guests.findById(guest.id) } returns guest
+
+        assertThat(guestUpdater.update(command)).isEqualTo(UpdateGuestResult.VersionConflict)
+    }
+
+    @Test
+    fun `should return version conflict when repository detects stale version`() {
+        val guest = johnDoe
+        val command = johnDoeUpdatedCommand.copy(version = guest.version)
+        every { guests.findById(guest.id) } returns guest
+        every { guests.update(any(), guest.version) } returns null
+
+        assertThat(guestUpdater.update(command)).isEqualTo(UpdateGuestResult.VersionConflict)
+    }
+
+    @Test
+    fun `should return not found when updating archived guest`() {
+        val command = johnDoeUpdatedCommand.copy(version = johnDoeArchived.version)
+        every { guests.findById(johnDoeArchived.id) } returns null
+
+        assertThat(guestUpdater.update(command)).isEqualTo(UpdateGuestResult.NotFound)
+    }
+}
+

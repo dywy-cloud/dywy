@@ -1,8 +1,8 @@
-name: Deploy to Render
+name: CI to build dywy on Render
 
 on:
   workflow_run:
-    workflows: ["The Wedding Plan CI"]
+    workflows: ["DYWY CI"]
     types: [completed]
     branches: [main]
 
@@ -58,5 +58,3 @@ jobs:
           curl --fail --show-error --silent \
             --request POST \
             "$RENDER_DEPLOY_HOOK_URL"
-
-

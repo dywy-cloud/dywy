@@ -1,7 +1,7 @@
-[![The Wedding Plan CI](https://github.com/GregoryBevan/the-wedding-plan/actions/workflows/ci.yml/badge.svg)](https://github.com/GregoryBevan/the-wedding-plan/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/GregoryBevan/the-wedding-plan/branch/main/graph/badge.svg?token=GTPKWW4VSO)](https://codecov.io/gh/GregoryBevan/the-wedding-plan)
+[![dywy CI](https://github.com/dywy-cloud/dywy/actions/workflows/ci.yml/badge.svg)](https://github.com/dywy-cloud/dywy/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/dywy-cloud/dywy/branch/main/graph/badge.svg?token=GTPKWW4VSO)](https://codecov.io/gh/dywy-cloud/dywy)
 
-# The Wedding Plan
+# dywy
 
 An iterative wedding planning tool: guests receive a personal invitation (QR code + magic-link
 sign-in) to RSVP, choose a meal, and pick a song for the wedding playlist, while the couple

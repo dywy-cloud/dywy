@@ -19,7 +19,7 @@ Render will build with Docker and run a single web service.
 
 This repository includes `.github/workflows/deploy.yml`.
 
-- It triggers only when `The Wedding Plan CI` workflow succeeds on `main`.
+- It triggers only when `CI to build dywy` workflow succeeds on `main`
 
 Add this GitHub Actions secret in repository settings:
 

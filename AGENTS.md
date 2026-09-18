@@ -1,5 +1,8 @@
 # Project Instructions
 
+Code only, no explanation
+Bullets over paragraphs. No explanations unless asked
+
 This is a fullstack project.
 
 ## General Guidelines

@@ -14,8 +14,8 @@ plugins {
 }
 
 
-group = "me.elgregoss"
-version = "0.0.58-SNAPSHOT"
+group = "cloud.dywy"
+version = "0.0.59-SNAPSHOT"
 
 java {
     toolchain {

@@ -1,0 +1,89 @@
+package cloud.dywy.api.rsvp
+
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import io.mockk.every
+import io.mockk.mockk
+import cloud.dywy.api.rsvp.request.SubmitRsvpRequest
+import cloud.dywy.application.rsvp.GuestRsvpSubmitter
+import cloud.dywy.application.rsvp.GuestRsvpGetter
+import cloud.dywy.application.rsvp.result.GetGuestRsvpResult
+import cloud.dywy.application.rsvp.result.SubmitGuestRsvpResult
+import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
+import cloud.dywy.domain.guest.entity.GuestSession
+import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
+import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvp
+import cloud.dywy.infrastructure.guest.security.GuestSessionAuthenticationToken
+import jakarta.validation.Validation
+import jakarta.validation.Validator
+import org.springframework.http.HttpStatus
+import org.springframework.web.servlet.function.ServerRequest
+import java.util.Optional
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+
+class GuestRsvpEndpointTest {
+
+    private val session = GuestSession(guestId = janeDoe.id, invitationId = bridesMaidInvitation.id)
+    private lateinit var validator: Validator
+
+    private lateinit var guestRsvpSubmitter: GuestRsvpSubmitter
+    private lateinit var guestRsvpGetter: GuestRsvpGetter
+    private lateinit var guestRsvpEndpoint: GuestRsvpEndpoint
+
+    @BeforeTest
+    fun setUp() {
+        guestRsvpSubmitter = mockk()
+        guestRsvpGetter = mockk()
+        validator = Validation.buildDefaultValidatorFactory().validator
+        guestRsvpEndpoint = GuestRsvpEndpoint(guestRsvpSubmitter, guestRsvpGetter, validator)
+    }
+
+    @Test
+    fun `should reject submission with an invalid attendance`() {
+        assertThat(guestRsvpEndpoint.submit(submitRequest("MAYBE")).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+    }
+
+    @Test
+    fun `should reject an attending submission without a meal`() {
+        assertThat(guestRsvpEndpoint.submit(submitRequest("ATTENDING")).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+    }
+
+    @Test
+    fun `should create the rsvp on first submission`() {
+        every { guestRsvpSubmitter.submit(any()) } returns SubmitGuestRsvpResult.Created(johnDoeRsvp)
+
+        assertThat(guestRsvpEndpoint.submit(submitRequest("ATTENDING", "MEAT")).statusCode()).isEqualTo(HttpStatus.CREATED)
+    }
+
+    @Test
+    fun `should return ok when updating an existing submission`() {
+        every { guestRsvpSubmitter.submit(any()) } returns SubmitGuestRsvpResult.Updated(johnDoeRsvp)
+
+        assertThat(guestRsvpEndpoint.submit(submitRequest("DECLINED")).statusCode()).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `should return the rsvp of the session guest`() {
+        every { guestRsvpGetter.get(janeDoe.id) } returns GetGuestRsvpResult.Submitted(johnDoeRsvp)
+
+        assertThat(guestRsvpEndpoint.fetch(authenticatedRequest()).statusCode()).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `should return no content when the session guest has no rsvp`() {
+        every { guestRsvpGetter.get(janeDoe.id) } returns GetGuestRsvpResult.NotSubmittedYet
+
+        assertThat(guestRsvpEndpoint.fetch(authenticatedRequest()).statusCode()).isEqualTo(HttpStatus.NO_CONTENT)
+    }
+
+    private fun submitRequest(attendance: String, meal: String? = null): ServerRequest = mockk {
+        every { principal() } returns Optional.of(GuestSessionAuthenticationToken.authenticated(session))
+        every { body(SubmitRsvpRequest::class.java) } returns SubmitRsvpRequest(attendance, meal)
+    }
+
+    private fun authenticatedRequest(): ServerRequest = mockk {
+        every { principal() } returns Optional.of(GuestSessionAuthenticationToken.authenticated(session))
+    }
+}
+

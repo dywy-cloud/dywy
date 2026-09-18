@@ -1,0 +1,10 @@
+package cloud.dywy.api.guest.request
+
+object UpdateGuestRequestFixtures {
+    val johnDoeUpdated = UpdateGuestRequest(
+        version = 1L,
+        firstName = "John Updated",
+        lastName = "Doe Updated",
+        email = "john.updated@example.com",
+    )
+}
