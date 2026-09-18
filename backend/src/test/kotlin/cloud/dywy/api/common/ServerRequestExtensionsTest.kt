@@ -1,0 +1,202 @@
+package cloud.dywy.api.common
+
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import io.mockk.every
+import io.mockk.mockk
+import cloud.dywy.domain.guest.entity.GuestStatus
+import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
+import cloud.dywy.domain.guest.entity.GuestId
+import cloud.dywy.domain.guest.entity.GuestSession
+import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
+import cloud.dywy.domain.invitation.entity.InvitationId
+import cloud.dywy.infrastructure.guest.security.GuestSessionAuthenticationToken
+import org.springframework.web.servlet.function.ServerRequest
+import java.net.InetSocketAddress
+import java.util.Optional
+import jakarta.servlet.http.HttpServletRequest
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import cloud.dywy.api.guest.request.AddGuestRequest
+import cloud.dywy.api.guest.request.AddGuestRequestFixtures.charlieDavis
+import jakarta.validation.Validation
+import jakarta.validation.Validator
+import org.springframework.http.HttpStatus
+import org.springframework.web.servlet.function.ServerResponse
+import kotlin.test.BeforeTest
+
+class ServerRequestExtensionsTest {
+
+    private lateinit var validator: Validator
+
+    @BeforeTest
+    fun setUp() {
+        validator = Validation.buildDefaultValidatorFactory().validator
+    }
+
+    @Test
+    fun `should return the guest session when the request is authenticated`() {
+        val session = GuestSession(guestId = janeDoe.id, invitationId = bridesMaidInvitation.id)
+        val request = mockk<ServerRequest> {
+            every { principal() } returns Optional.of(GuestSessionAuthenticationToken.authenticated(session))
+        }
+
+        assertThat(request.requireGuestSession()).isEqualTo(session)
+    }
+
+    @Test
+    fun `should fail to require a guest session when the request is not authenticated`() {
+        val request = mockk<ServerRequest> { every { principal() } returns Optional.empty() }
+
+        assertFailsWith<IllegalStateException> { request.requireGuestSession() }
+    }
+
+    @Test
+    fun `should return default int query param when value is missing`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("page") } returns Optional.empty()
+
+        assertThat(request.intQueryParam("page", default = 0)).isEqualTo(0)
+    }
+
+    @Test
+    fun `should return null when int query param is not numeric`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("size") } returns Optional.of("abc")
+
+        assertThat(request.intQueryParam("size", default = 20)).isEqualTo(null)
+    }
+
+    @Test
+    fun `should return null when int query param has surrounding spaces`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("size") } returns Optional.of(" 20 ")
+
+        assertThat(request.intQueryParam("size", default = 20)).isEqualTo(null)
+    }
+
+    @Test
+    fun `should return status archived when status is archived`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("status") } returns Optional.of("ARCHIVED")
+
+        assertThat(request.statusQueryParam()).isEqualTo(GuestStatus.ARCHIVED)
+    }
+
+    @Test
+    fun `should return null when explicit status is invalid`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("status") } returns Optional.of("unknown")
+
+        assertThat(request.statusQueryParam()).isEqualTo(null)
+    }
+
+    @Test
+    fun `should default status to active when status query param is missing`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("status") } returns Optional.empty()
+
+        assertThat(request.statusQueryParam()).isEqualTo(GuestStatus.ACTIVE)
+    }
+
+    @Test
+    fun `should parse guest id path param`() {
+        val request = mockk<ServerRequest>()
+        val guestId = GuestId.fromString("019f70eb-f060-7d9f-8dd8-f9caeca9d078")
+
+        every { request.pathVariable("id") } returns guestId.toString()
+
+        assertThat(request.guestIdPathParam()).isEqualTo(guestId)
+    }
+
+    @Test
+    fun `should parse guest id from custom path variable name`() {
+        val request = mockk<ServerRequest>()
+        val guestId = GuestId.fromString("019f70eb-f060-7d9f-8dd8-f9caeca9d078")
+
+        every { request.pathVariable("guestId") } returns guestId.toString()
+
+        assertThat(request.guestIdPathParam("guestId")).isEqualTo(guestId)
+    }
+
+    @Test
+    fun `should return null when guest id path param has surrounding spaces`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.pathVariable("id") } returns " 019f70eb-f060-7d9f-8dd8-f9caeca9d078 "
+
+        assertThat(request.guestIdPathParam()).isEqualTo(null)
+    }
+
+    @Test
+    fun `should parse invitation id path param`() {
+        val request = mockk<ServerRequest>()
+        val invitationId = InvitationId.fromString("019f2282-7971-77e6-8d25-7568739fca0f")
+
+        every { request.pathVariable("id") } returns invitationId.toString()
+
+        assertThat(request.invitationIdPathParam()).isEqualTo(invitationId)
+    }
+
+    @Test
+    fun `should resolve client address from server request remote address`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.remoteAddress() } returns Optional.of(InetSocketAddress("203.0.113.11", 443))
+
+        assertThat(request.clientAddress()).isEqualTo("203.0.113.11")
+    }
+
+    @Test
+    fun `should fallback to servlet remote addr when server request remote address is missing`() {
+        val request = mockk<ServerRequest>()
+        val servletRequest = mockk<HttpServletRequest>()
+
+        every { request.remoteAddress() } returns Optional.empty()
+        every { request.servletRequest() } returns servletRequest
+        every { servletRequest.remoteAddr } returns "198.51.100.77"
+
+        assertThat(request.clientAddress()).isEqualTo("198.51.100.77")
+    }
+
+    @Test
+    fun `should fallback to unknown when no address can be resolved`() {
+        val request = mockk<ServerRequest>()
+        val servletRequest = mockk<HttpServletRequest>()
+
+        every { request.remoteAddress() } returns Optional.empty()
+        every { request.servletRequest() } returns servletRequest
+        every { servletRequest.remoteAddr } returns null
+
+        assertThat(request.clientAddress()).isEqualTo("unknown")
+    }
+
+    @Test
+    fun `should return success response when body is valid`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.body(AddGuestRequest::class.java) } returns charlieDavis
+
+        val response = request.bindOrBadRequest<AddGuestRequest>(validator) { ServerResponse.ok().build() }
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `should return bad request with field errors when body fails validation`() {
+        val request = mockk<ServerRequest>()
+        val invalidRequest = AddGuestRequest(firstName = "", lastName = "Doe", email = "valid@example.com")
+
+        every { request.body(AddGuestRequest::class.java) } returns invalidRequest
+
+        val response = request.bindOrBadRequest<AddGuestRequest>(validator) { ServerResponse.ok().build() }
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+    }
+}

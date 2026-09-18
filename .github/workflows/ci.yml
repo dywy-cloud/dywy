@@ -1,4 +1,4 @@
-name: The Wedding Plan CI
+name: CI to build dywy
 
 on:
   push:

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: the-wedding-plan
+    name: dywy
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile

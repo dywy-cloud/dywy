@@ -1,0 +1,25 @@
+package cloud.dywy.api.guest
+
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.servlet.function.router
+
+@Configuration
+class GuestAccessRouter(
+    private val guestAccessMagicLinkEndpoint: GuestAccessMagicLinkEndpoint,
+) {
+
+    @Bean
+    fun guestAccessRoute() = router {
+        "/api/guest-access/magic-links".nest {
+            GET("/{token}", guestAccessMagicLinkEndpoint::verifyMagicLink)
+        }
+
+        POST("/api/guest-access/invitations/{token}/guests/{guestId}/magic-link-requests", guestAccessMagicLinkEndpoint::requestMagicLink)
+    }
+}
+
+
+
+
+

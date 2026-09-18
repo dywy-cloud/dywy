@@ -1,0 +1,26 @@
+package cloud.dywy.application.rsvp.command
+
+import assertk.all
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import assertk.assertions.prop
+import cloud.dywy.application.rsvp.command.SubmitGuestRsvpCommandFixtures.johnDoeAttending
+import cloud.dywy.domain.rsvp.entity.GuestRsvp
+import kotlin.test.Test
+
+class SubmitGuestRsvpCommandTest {
+
+    @Test
+    fun `should convert the command to a new rsvp keeping guest attendance and answers`() {
+        val rsvp = johnDoeAttending.toGuestRsvp()
+
+        assertThat(rsvp).all {
+            prop(GuestRsvp::guestId).isEqualTo(johnDoeAttending.guestId)
+            prop(GuestRsvp::attendance).isEqualTo(johnDoeAttending.attendance)
+            prop(GuestRsvp::answers).isEqualTo(johnDoeAttending.answers)
+            prop(GuestRsvp::version).isEqualTo(1L)
+        }
+    }
+}
+
+
