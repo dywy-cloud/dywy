@@ -1,5 +1,5 @@
-This project is licensed under the MIT License, subject to the Commons
-Clause Condition below.
+This project is licensed under the MIT License, subject to the Commons Clause
+Condition below.
 
 -----------------------------------------------------------------------------
 Commons Clause Condition v1.0
@@ -19,16 +19,16 @@ consulting/support services related to the Software), a product or service
 whose value derives, entirely or substantially, from the functionality of the
 Software.
 
-Because Dywy is the Licensor and copyright holder of the Software, this
-condition does not restrict Dywy's own use of the Software, including
+Because dywy.cloud is the Licensor and copyright holder of the Software, this
+condition does not restrict dywy.cloud's own use of the Software, including
 operating dywy.cloud as a paid, hosted, commercial service. Everyone else
 receiving the Software under this License may use, modify, and self-host it
 (including a single self-hosted instance for their own private/internal
 use), but may not Sell it as described above.
 
-Software: the-wedding-plan
+Software: dywy
 License:  MIT
-Licensor: Dywy
+Licensor: dywy.cloud
 
 -----------------------------------------------------------------------------
 MIT License

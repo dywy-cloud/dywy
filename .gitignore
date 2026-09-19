@@ -32,3 +32,4 @@ frontend/.playwright/
 
 # Database persistence
 /postgres_data/
+/opencode.json

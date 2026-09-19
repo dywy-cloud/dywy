@@ -1,70 +1,63 @@
-# Project Instructions
+# dywy
 
-Code only, no explanation
-Bullets over paragraphs. No explanations unless asked
+## Project goal
+An iterative wedding planning tool: guests receive a personal invitation (QR code + magic-link sign-in) to RSVP, choose a meal, and pick a song for the wedding playlist, while the couple manages everything from a Google-authenticated backoffice.
+And many other features to come
 
-This is a fullstack project.
+## Project structure
+- `backend/`: Kotlin + Spring Boot API (DDD/Clean Architecture: `api`, `application`, `domain`, `infrastructure` packages)
+- `frontend/`: Vue 3 + TypeScript, two Vite apps (`frontend/public` guest-facing app, `frontend/backoffice` staff app)
+- `docs/`: dedicated documentation (deployment, integrations, security models)
 
-## General Guidelines
+## Development setup
+- Prerequisites: JDK 25, Node.js and pnpm, Docker
+- Start local dependencies: `docker compose up -d db mailpit`
+- Backend: `./gradlew bootRun` from `backend/` directory
+- Frontend: `pnpm install` then `pnpm run dev:public` or `pnpm run dev:backoffice` from `frontend/` directory
 
-- **Project Goal**: The application is an iterative wedding planning tool designed to help manage wedding preparations,
-  starting with guest management. Note: This goal is evolving as we work iteratively.
-- **Workflow**: After any code modification, ensure you stage the affected files using `git add`. When starting to work on a new issue you should update the main branch and create a new branch for your work. You should never commit or push work.
-- **Branch naming convention**: Use the format `feat/#<issue-number><short-description>` for new features and `fix/#<issue-number><short-description>` for bug fixes.
-- **Versioning rule**: For every issue (frontend, backend, or fullstack), bump and keep aligned both application versions before staging changes: `frontend/package.json` and `backend/build.gradle.kts`.
-- **GitHub access**: You may read GitHub via `curl` against the public REST API (anonymous, no token) to fetch issue/PR details, e.g. `curl -s https://api.github.com/repos/GregoryBevan/the-wedding-plan/issues/<number>`.
-- **Craft principles**:
-  - **KISS**: prefer the simplest implementation that satisfies the scope; avoid unnecessary abstraction, indirection, or overly clever code.
-  - **YAGNI**: implement only what is required by the current issue scope; do not add speculative features, extension points, or premature generalization.
+## Workflow
+1. Update `main` and create a new branch for your work.
+2. **Branch naming**: `feat/#<issue-number><short-description>` for features, `fix/#<issue-number><short-description>` for bug fixes (use a similarly descriptive prefix, e.g. `chore/#<issue-number><short-description>`, for other changes).
+3. Make your changes, following the coding conventions below.
+4. Stage the affected files with `git add` after each change.
+5. Do not commit or push — leave that to the maintainer.
 
+## Craft principles
+- **KISS**: prefer the simplest implementation that satisfies the scope; avoid unnecessary abstraction, indirection, or overly clever code.
+- **YAGNI**: implement only what is required by the current issue scope; do not add speculative features, extension points, or premature generalization.
 
-## Backend
-- If java is not found (JDK is managed via SDKMAN on this machine):
-  - `export JAVA_HOME="$HOME/.sdkman/candidates/java/current"`
-  - `export PATH="$JAVA_HOME/bin:/opt/homebrew/bin:$PATH"`
-  - Fallback if a system JDK is installed instead: `export JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home"`
-- All backend code is located in the `backend` directory.
-- **Architecture**: Follows a DDD/Clean Architecture pattern with `api`, `application`, `domain`, and `infrastructure`
-  packages. The `api` layer uses functional routing (Kotlin DSL).
-  - Current API modules include guest endpoints in `backend/src/main/kotlin/me/elgregos/theweddingplan/api/guest` and auth endpoints in `backend/src/main/kotlin/me/elgregos/theweddingplan/api/auth`.
-- **Technologies**: Kotlin, Spring Boot, Gradle, Exposed (for SQL), Liquibase (for DB migrations), and PostgreSQL.
-- **Build & Test Commands**:
-  - Run unit tests: `./gradlew test`
-  - Run integration tests: `./gradlew integrationTest`
-  - Run full verification (includes integration tests): `./gradlew check`
-- **Testing**:
-  - JUnit 5, AssertK, MockK, and Testcontainers for integration tests.
-  - Use class fixtures from the dedicated `testFixtures` source set (organized by layer: domain, API, infrastructure).
-  - Use `lateinit var` for top-level test variables and initialize them in a `@BeforeTest` function.
-  - Structure test methods into three distinct blocks (Given, When, Then) separated by blank lines, without explicit
-    comments.
-  - Try to make only one assertion per test method, unless multiple assertions are logically related.
-  - Use static imports for assertions, fixtures, and common utilities to improve code readability.
-  - Integration tests should extend `AbstractIntegrationTest` or `AbstractEndpointIntegrationTest` (located in `backend/src/integrationTest/kotlin/me/elgregos/theweddingplan/`) to inherit Testcontainers PostgreSQL setup with reusable containers.
-- **Coding Style**: For Kotlin development, adopt idiomatic Kotlin best practices: use concise syntax, favor functional
-  style, and avoid verbose Java-like patterns. Specifically, use one-line functions with `=` whenever possible. The build enforces strict null-safety with the `-Xjsr305=strict` compiler option.
+## Testing
+- Backend: 
+  - Unit tests: `./gradlew test`
+  - Integration tests: `./gradlew integrationTest`
+  - Full verification: `./gradlew check`
+- Frontend: `pnpm run test` (watch mode: `pnpm run test:watch`, coverage: `pnpm run test:coverage`)
 
-### Fixture usage (project convention)
+## Versioning
+For every issue, bump and keep aligned both application versions:
+- `frontend/package.json` (run `pnpm run version:issue`)
+- `backend/build.gradle.kts` (`version = "..."`)
 
-- Prefer using shared fixtures from the `testFixtures` source set instead of creating test data inline in tests. This keeps tests consistent and simplifies updates to test data.
-- Use static imports for fixtures (e.g. `import me.elgregos.theweddingplan.domain.guest.GuestFixtures.janeDoe`) so test code reads clearly.
-- When you need new test data, add it to the appropriate fixtures file (domain, API, infrastructure) and update tests to reuse it.
+## Key commands
+- Run backend tests: `./gradlew test` or `./gradlew check`
+- Run frontend tests: `pnpm run test`
+- Start local dependencies: `docker compose up -d db mailpit`
 
+## Environment variables
+Frontend apps require `.env.development` files:
+- `frontend/backoffice/.env.development`:
+  ```
+  VITE_API_BASE_URL=http://localhost:8080
+  VITE_ROUTER_BASE=/
+  ```
 
-## Frontend
-
-- All frontend code is located in the `frontend` directory.
-- Frontend contains two Vite apps with separate HTML entries: `frontend/public/index.html` and `frontend/backoffice/index.html`.
-- **Technologies**: Vue 3, TypeScript, Vite, Vitest, Tailwind CSS (with Vite plugin), Vue Test Utils.
-- **Build & Test Commands**:
-  - Install dependencies: `/opt/homebrew/bin/pnpm install`
-  - Run public app in development: `/opt/homebrew/bin/pnpm run dev:public`
-  - Run backoffice app in development: `/opt/homebrew/bin/pnpm run dev:backoffice`
-  - For each frontend issue, bump the app version before staging changes: `/opt/homebrew/bin/pnpm run version:issue`
-  - Run tests: `/opt/homebrew/bin/pnpm run test`
-  - Run tests in watch mode: `/opt/homebrew/bin/pnpm run test:watch`
-  - Run tests with coverage: `/opt/homebrew/bin/pnpm run test:coverage`
-  - Vitest currently includes `backoffice/src/**/*.spec.ts` (see `frontend/vite.config.ts`).
-- if pnpm or node is not found :
-  - Use `pnpm` from this absolute path: `/opt/homebrew/bin/pnpm`.
-  - Use `node` from this absolute path: `/Users/grego/.local/state/fnm_multishells/4700_1781734884722/bin/node`
+## Important notes
+- Guest magic-link flow requires specific request order in Bruno collection for CSRF protection
+- Backend uses Testcontainers for integration tests
+- Backend uses Exposed with Liquibase for database operations
+- Frontend uses Vite with Vue 3 and TypeScript
+- Backend environment variables: 
+  - `APP_MAIL_PROVIDER=smtp` (for local development with Mailpit)
+  - `spring.datasource.url=jdbc:postgresql://localhost:5432/dywy_db`
+  - `spring.datasource.username=admin`
+  - `spring.datasource.password=<REPLACE_WITH_LOCAL_PASSWORD>` (set locally via env/secret config)
