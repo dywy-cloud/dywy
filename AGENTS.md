@@ -21,6 +21,7 @@ And many other features to come
 3. Make your changes, following the coding conventions below.
 4. Stage the affected files with `git add` after each change.
 5. Do not commit or push — leave that to the maintainer.
+6. If you are an automated agent, you must never run `git commit`, `git merge`, `git rebase`, or `git push` in this repository. Leave all changes as uncommitted working tree and/or staged changes for the maintainer to review.
 
 ## Craft principles
 - **KISS**: prefer the simplest implementation that satisfies the scope; avoid unnecessary abstraction, indirection, or overly clever code.
@@ -63,4 +64,6 @@ Frontend apps require `.env.development` files:
   - `spring.datasource.password=<REPLACE_WITH_LOCAL_PASSWORD>` (set locally via env/secret config)
 
 ## Important constraints
-- You are not allowed to commit code directly - all changes must be submitted through pull requests
+- Never create local commits in this repository, whether you are a human contributor or an automated agent.
+- Automated agents must stop before any history-changing Git action (`git commit`, `git merge`, `git rebase`, `git push`, `git cherry-pick`, `git reset` that would discard user work) unless the user explicitly asks for that exact Git operation.
+- All code changes must be left as working tree and/or staged changes for the maintainer to review and commit manually through the normal pull-request flow.

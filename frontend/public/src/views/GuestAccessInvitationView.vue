@@ -3,10 +3,10 @@
     <section class="envelope-stage">
       <div class="envelope-stage__header">
         <div class="flex items-center justify-between gap-2">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#A88277]">{{ t('common.appName') }}</p>
+          <img src="/icon.svg" alt="dywy.cloud" class="h-10 w-10 shrink-0" />
           <LanguageSwitcher />
         </div>
-        <h1 class="mt-2 page-title font-semibold text-[#093D57]">{{ t('invitation.title') }}</h1>
+        <h1 class="mt-4 page-title font-semibold text-[#093D57]">{{ t('invitation.title') }}</h1>
 
         <Transition name="fade">
           <div v-if="instructionsVisible" class="mt-[3.75rem]">

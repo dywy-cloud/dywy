@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 150" role="img" aria-label="dywy.cloud">
+  <defs>
+    <linearGradient id="stBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#788f9c" />
+      <stop offset="1" stop-color="#37474f" />
+    </linearGradient>
+    <linearGradient id="stRose" x1="0" y1="20" x2="0" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e79aae" />
+      <stop offset="1" stop-color="#cf6f88" />
+    </linearGradient>
+    <clipPath id="stRingTop"><rect x="29.5" y="45" width="5" height="5" /></clipPath>
+  </defs>
+
+  <g transform="translate(48 16)">
+    <rect width="64" height="64" rx="15" fill="url(#stBg)" />
+    <g font-family="'Poppins','Segoe UI',system-ui,-apple-system,sans-serif" font-size="22" font-weight="700" letter-spacing="-2" text-anchor="middle">
+      <text x="32" y="34"><tspan fill="#f4f5f5">d</tspan><tspan fill="none">y</tspan><tspan fill="#f4f5f5">w</tspan><tspan fill="none">y</tspan></text>
+      <text x="32" y="34"><tspan fill="none">d</tspan><tspan fill="url(#stRose)">y</tspan><tspan fill="none">w</tspan><tspan fill="url(#stRose)">y</tspan></text>
+    </g>
+    <g fill="none" stroke-width="2.4" stroke-linecap="round">
+      <circle cx="29" cy="49" r="4.6" stroke="#f4f5f5" />
+      <circle cx="35" cy="49" r="4.6" stroke="url(#stRose)" />
+      <g clip-path="url(#stRingTop)"><circle cx="29" cy="49" r="4.6" stroke="#f4f5f5" /></g>
+    </g>
+  </g>
+
+  <text x="80" y="120" text-anchor="middle" font-family="'Poppins','Segoe UI',system-ui,-apple-system,sans-serif" font-size="26" font-weight="700" letter-spacing="-0.5">
+    <tspan fill="#37474f">dywy</tspan><tspan fill="#cf6f88" font-weight="500">.cloud</tspan>
+  </text>
+</svg>
+
+
