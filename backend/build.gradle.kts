@@ -15,7 +15,7 @@ plugins {
 
 
 group = "cloud.dywy"
-version = "0.0.59-SNAPSHOT"
+version = "0.0.60-SNAPSHOT"
 
 java {
     toolchain {

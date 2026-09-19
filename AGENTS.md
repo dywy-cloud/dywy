@@ -61,3 +61,6 @@ Frontend apps require `.env.development` files:
   - `spring.datasource.url=jdbc:postgresql://localhost:5432/dywy_db`
   - `spring.datasource.username=admin`
   - `spring.datasource.password=<REPLACE_WITH_LOCAL_PASSWORD>` (set locally via env/secret config)
+
+## Important constraints
+- You are not allowed to commit code directly - all changes must be submitted through pull requests

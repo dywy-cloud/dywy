@@ -2,7 +2,7 @@ name: CI to build dywy on Render
 
 on:
   workflow_run:
-    workflows: ["DYWY CI"]
+    workflows: ["CI to build dywy"]
     types: [completed]
     branches: [main]
 
