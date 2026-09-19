@@ -1,7 +1,7 @@
 import type { LocaleMessages } from './types';
 
 export const fr: LocaleMessages = {
-  'common.appName': 'Wedding Plan',
+  'common.appName': 'dywy.cloud',
   'common.retry': 'Réessayer',
   'landing.title': 'Invitation privée',
   'landing.description': 'Scanne le QR code présent sur ton invitation pour ouvrir ta page d\'accès.',

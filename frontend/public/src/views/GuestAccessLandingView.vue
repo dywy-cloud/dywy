@@ -2,7 +2,7 @@
   <main class="mx-auto flex min-h-dvh w-full max-w-md items-center px-4 py-8">
     <section class="w-full rounded-2xl bg-white/90 p-6 text-center shadow-xl ring-1 ring-[#093D57]/20">
       <div class="flex items-center justify-between gap-2">
-        <p class="text-xs font-semibold uppercase tracking-[0.25em] text-[#093D57]">{{ t('common.appName') }}</p>
+        <img src="/icon.svg" alt="dywy.cloud" class="h-10 w-10 shrink-0" />
         <LanguageSwitcher />
       </div>
 

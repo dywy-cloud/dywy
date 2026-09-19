@@ -1,6 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Wedding Plan">
-  <rect width="64" height="64" rx="14" fill="#f4f5f5" />
-  <rect x="2" y="2" width="60" height="60" rx="12" fill="none" stroke="#788f9c" stroke-width="4" />
-  <path d="M32 48c-5-4-15-11-15-20a8 8 0 0 1 15-4 8 8 0 0 1 15 4c0 9-10 16-15 20Z" fill="#37474f" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="dywy.cloud">
+  <defs>
+    <linearGradient id="favRBg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#788f9c" />
+      <stop offset="1" stop-color="#37474f" />
+    </linearGradient>
+    <linearGradient id="favRRose" x1="0" y1="18" x2="0" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e79aae" />
+      <stop offset="1" stop-color="#cf6f88" />
+    </linearGradient>
+    <!-- weave window at the TOP crossing, square and proportional to R (matches icon.svg / avatar-social.svg ratio) -->
+    <clipPath id="favRTopCross"><rect x="25.5" y="21.6" width="13" height="13" /></clipPath>
+  </defs>
+
+  <rect width="64" height="64" rx="15" fill="url(#favRBg)" />
+
+  <g fill="none" stroke-width="6.3" stroke-linecap="round">
+    <circle cx="24.2" cy="32" r="12" stroke="#f4f5f5" />
+    <circle cx="39.8" cy="32" r="12" stroke="url(#favRRose)" />
+    <g clip-path="url(#favRTopCross)"><circle cx="24.2" cy="32" r="12" stroke="#f4f5f5" /></g>
+  </g>
 </svg>
+
 

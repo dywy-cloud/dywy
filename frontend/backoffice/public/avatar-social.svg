@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="dywy.cloud">
+  <defs>
+    <linearGradient id="avBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#788f9c" />
+      <stop offset="1" stop-color="#37474f" />
+    </linearGradient>
+    <linearGradient id="avRose" x1="0" y1="150" x2="0" y2="410" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e79aae" />
+      <stop offset="1" stop-color="#cf6f88" />
+    </linearGradient>
+    <clipPath id="avRingTop"><rect x="236" y="360" width="40" height="40" /></clipPath>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#avBg)" />
+
+  <g font-family="'Poppins','Segoe UI',system-ui,-apple-system,sans-serif" font-size="176" font-weight="700" letter-spacing="-16" text-anchor="middle">
+    <text x="256" y="272"><tspan fill="#f4f5f5">d</tspan><tspan fill="none">y</tspan><tspan fill="#f4f5f5">w</tspan><tspan fill="none">y</tspan></text>
+    <text x="256" y="272"><tspan fill="none">d</tspan><tspan fill="url(#avRose)">y</tspan><tspan fill="none">w</tspan><tspan fill="url(#avRose)">y</tspan></text>
+  </g>
+
+  <g fill="none" stroke-width="19" stroke-linecap="round">
+    <circle cx="232" cy="392" r="37" stroke="#f4f5f5" />
+    <circle cx="280" cy="392" r="37" stroke="url(#avRose)" />
+    <g clip-path="url(#avRingTop)"><circle cx="232" cy="392" r="37" stroke="#f4f5f5" /></g>
+  </g>
+</svg>
+

@@ -1,19 +1,15 @@
 <template>
-  <div class="flex h-screen flex-col overflow-hidden bg-background p-8 font-serif" data-test="backoffice-shell">
-    <header class="relative z-30 mb-5 flex shrink-0 items-center justify-center border-b border-secondary pb-3">
-      <div class="flex items-center space-x-3">
-        <img src="./assets/logo.svg" alt="Wedding Logo" class="w-14 h-14" />
-        <h1 class="text-3xl font-light tracking-wide text-text">Wedding Plan</h1>
-      </div>
-
-      <div v-if="isProtectedRoute" class="absolute right-1 top-1/2 z-40 -translate-y-[70%]">
-        <UserMenu
-          :user-email="connectedUserEmail"
-          :is-logging-out="isLoggingOut"
-          :logout-error-message="logoutErrorMessage"
-          @logout="handleLogout"
-        />
-      </div>
+  <div class="flex h-screen flex-col overflow-hidden bg-background px-8 pb-8 pt-0 font-serif" data-test="backoffice-shell">
+    <header class="relative z-30 mb-5 flex shrink-0 items-center justify-between gap-4 border-b border-secondary py-1">
+      <img src="/icon.svg" alt="dywy.cloud" class="block h-12 w-12 shrink-0 self-center" />
+      <UserMenu
+        v-if="isProtectedRoute"
+        class="self-center"
+        :user-email="connectedUserEmail"
+        :is-logging-out="isLoggingOut"
+        :logout-error-message="logoutErrorMessage"
+        @logout="handleLogout"
+      />
     </header>
     <div class="mx-auto flex min-h-0 w-full max-w-6xl flex-1 items-stretch gap-6" data-test="backoffice-content-shell">
       <aside
@@ -35,6 +31,7 @@
     <ToastContainer />
   </div>
 </template>
+
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
