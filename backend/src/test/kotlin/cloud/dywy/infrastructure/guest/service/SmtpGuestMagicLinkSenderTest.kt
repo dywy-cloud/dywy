@@ -40,8 +40,8 @@ class SmtpGuestMagicLinkSenderTest {
         }
         smtpGuestMagicLinkSender = SmtpGuestMagicLinkSender(
             javaMailSender = javaMailSender,
-            guestAccessProperties = testGuestAccessProperties.copy(baseUrl = "https://public.theweddingplan.app"),
-            mailProperties = MailProperties(from = "no-reply@theweddingplan.app", coupleDisplayName = "Thecla & Grégory"),
+            guestAccessProperties = testGuestAccessProperties.copy(baseUrl = "https://test.dywy.cloud"),
+            mailProperties = MailProperties(from = "no-reply@test.dywy.cloud", coupleDisplayName = "Thecla & Grégory"),
             guestMagicLinkEmailTemplate = GuestMagicLinkEmailTemplate(messageSource),
         )
     }
@@ -59,14 +59,14 @@ class SmtpGuestMagicLinkSenderTest {
         val bodyContent = flattenMimeContent(sentMessage.content)
 
         verify(exactly = 1) { javaMailSender.send(any<MimeMessage>()) }
-        assertThat(sentMessage.from.map { it.toString() }).isEqualTo(listOf("no-reply@theweddingplan.app"))
+        assertThat(sentMessage.from.map { it.toString() }).isEqualTo(listOf("no-reply@test.dywy.cloud"))
         assertThat(sentMessage.getRecipients(Message.RecipientType.TO).map { it.toString() })
             .isEqualTo(listOf(janeDoe.email))
         assertThat(sentMessage.subject).isEqualTo("dywy : Votre invitation au mariage de Thecla & Grégory")
         assertThat(bodyContent)
             .contains("Bonjour Jane")
         assertThat(bodyContent)
-            .contains("https://public.theweddingplan.app/api/guest-access/magic-links/53c2efcd-b4fc-42f3-a73b-fadf3725af3f")
+            .contains("https://test.dywy.cloud/api/guest-access/magic-links/53c2efcd-b4fc-42f3-a73b-fadf3725af3f")
         assertThat(bodyContent)
             .contains("Accéder à mon invitation")
         assertThat(findBodyPartByContentId(sentMessage, GuestMagicLinkEmailTemplate.ICON_CONTENT_ID)?.contentType.orEmpty())

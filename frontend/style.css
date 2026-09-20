@@ -2,20 +2,28 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #788f9c;
-  --color-secondary: #bac2bd;
-  --color-accent: #cf6f88;
-  --color-accent-light: #e79aae;
-  --color-accent-dark: #b25f78;
-  --color-background: #f4f5f5;
-  --color-text: #37474f;
+  --color-slate: #788f9c;
+  --color-charcoal: #37474f;
+  --color-rose-light: #e79aae;
+  --color-rose: #cf6f88;
+  --color-rose-deep: #b25f78;
+  --color-sage: #bac2bd;
+  --color-cloud: #f4f5f5;
+
+  --color-primary: var(--color-slate);
+  --color-secondary: var(--color-sage);
+  --color-accent: var(--color-rose);
+  --color-accent-light: var(--color-rose-light);
+  --color-accent-dark: var(--color-rose-deep);
+  --color-background: var(--color-cloud);
+  --color-text: var(--color-charcoal);
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-heading: Poppins, sans-serif;
 
-  --bg-badge-gradient: linear-gradient(135deg, #788f9c 0%, #37474f 100%);
-  --bg-accent-gradient: linear-gradient(135deg, #e79aae 0%, #cf6f88 100%);
+  --bg-badge-gradient: linear-gradient(135deg, var(--color-slate) 0%, var(--color-charcoal) 100%);
+  --bg-accent-gradient: linear-gradient(135deg, var(--color-rose-light) 0%, var(--color-rose) 100%);
 }
 
 @layer base {
@@ -34,7 +42,7 @@
   }
 
   * {
-    scrollbar-color: #788f9c #e5e7eb;
+    scrollbar-color: var(--color-primary) var(--color-background);
     scrollbar-width: thin;
   }
 
@@ -44,17 +52,27 @@
   }
 
   *::-webkit-scrollbar-track {
-    background: #e5e7eb;
+    background: var(--color-background);
   }
 
   *::-webkit-scrollbar-thumb {
-    background: #788f9c;
+    background: var(--color-primary);
     border-radius: 9999px;
-    border: 2px solid #e5e7eb;
+    border: 2px solid var(--color-background);
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: #627783;
+    background: var(--color-text);
+  }
+}
+
+@layer utilities {
+  .bg-badge-gradient {
+    background-image: var(--bg-badge-gradient);
+  }
+
+  .bg-accent-gradient {
+    background-image: var(--bg-accent-gradient);
   }
 }
 
