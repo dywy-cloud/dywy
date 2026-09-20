@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mb-6 flex items-center justify-center">
-      <h2 class="text-3xl font-light tracking-wide">Add a New Guest</h2>
+      <h2 class="page-title">Add a New Guest</h2>
     </div>
     <GuestForm
       :is-submitting="isSubmitting"

@@ -1,6 +1,6 @@
 <template>
   <button
-    class="guest-button rounded-xl bg-[#093D57] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+    class="guest-button rounded-xl bg-badge-gradient font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
     type="button"
     :disabled="isSending"
     :aria-label="`${t('invitation.magicLink.requestFor')} ${fullName}`"

@@ -29,32 +29,30 @@
       required
     />
     <div>
-      <label for="language" class="block text-sm font-medium uppercase tracking-wider">Language</label>
+      <label for="language" class="form-label">Language</label>
       <select
         id="language"
         v-model="form.language"
         name="language"
-        class="mt-2 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+        class="form-input"
       >
         <option value="FR">Français</option>
         <option value="EN">English</option>
       </select>
     </div>
-    <div v-if="props.showCancelButton" class="flex gap-3 pt-2">
-      <button
-        type="button"
-        @click="handleCancel"
-        class="flex-1 rounded border border-secondary px-4 py-3 text-sm hover:bg-secondary/20 transition"
-      >
+    <div v-if="props.showCancelButton" class="flex justify-center gap-3 pt-2">
+      <BaseButton type="button" @click="handleCancel" variant="solid">
         Cancel
-      </button>
-      <BaseButton type="submit" :disabled="props.isSubmitting" class="flex-1">
+      </BaseButton>
+      <BaseButton type="submit" :disabled="props.isSubmitting">
         {{ props.isSubmitting ? props.submittingLabel : props.submitLabel }}
       </BaseButton>
     </div>
-    <BaseButton v-else type="submit" :disabled="props.isSubmitting">
-      {{ props.isSubmitting ? props.submittingLabel : props.submitLabel }}
-    </BaseButton>
+    <div v-else class="flex justify-center pt-2">
+      <BaseButton type="submit" :disabled="props.isSubmitting">
+        {{ props.isSubmitting ? props.submittingLabel : props.submitLabel }}
+      </BaseButton>
+    </div>
   </form>
 </template>
 

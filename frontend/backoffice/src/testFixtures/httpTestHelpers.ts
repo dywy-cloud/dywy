@@ -1,6 +1,9 @@
 import { expect, vi } from 'vitest';
+import { getApiBaseUrl } from '../services/http';
 
 export const defaultCsrfToken = 'test-csrf-token';
+export const backofficeOrigin = getApiBaseUrl();
+export const backofficeApiBaseUrl = getApiBaseUrl({ includeApiPath: true });
 
 type MockFetchResponseArgs = {
   ok: boolean;

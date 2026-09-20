@@ -45,10 +45,10 @@ describe('BackofficeSidebar', () => {
 
     const links = wrapper.findAll('a');
 
-    expect(links[0].classes()).toContain('bg-primary');
+    expect(links[0].classes()).toContain('bg-badge-gradient');
     expect(links[0].classes()).toContain('text-white');
     expect(links[0].attributes('aria-current')).toBe('page');
-    expect(links[1].classes()).not.toContain('bg-primary');
+    expect(links[1].classes()).not.toContain('bg-badge-gradient');
     expect(links[1].attributes('aria-current')).toBeUndefined();
   });
 
@@ -57,10 +57,10 @@ describe('BackofficeSidebar', () => {
 
     const links = wrapper.findAll('a');
 
-    expect(links[1].classes()).toContain('bg-primary');
+    expect(links[1].classes()).toContain('bg-badge-gradient');
     expect(links[1].classes()).toContain('text-white');
     expect(links[1].attributes('aria-current')).toBe('page');
-    expect(links[0].classes()).not.toContain('bg-primary');
+    expect(links[0].classes()).not.toContain('bg-badge-gradient');
     expect(links[0].attributes('aria-current')).toBeUndefined();
   });
 
@@ -69,10 +69,10 @@ describe('BackofficeSidebar', () => {
 
     const links = wrapper.findAll('a');
 
-    expect(links[0].classes()).toContain('bg-primary');
+    expect(links[0].classes()).toContain('bg-badge-gradient');
     expect(links[0].classes()).toContain('text-white');
     expect(links[0].attributes('aria-current')).toBe('page');
-    expect(links[1].classes()).not.toContain('bg-primary');
+    expect(links[1].classes()).not.toContain('bg-badge-gradient');
     expect(links[1].attributes('aria-current')).toBeUndefined();
   });
 
@@ -81,10 +81,10 @@ describe('BackofficeSidebar', () => {
 
     const links = wrapper.findAll('a');
 
-    expect(links[1].classes()).toContain('bg-primary');
+    expect(links[1].classes()).toContain('bg-badge-gradient');
     expect(links[1].classes()).toContain('text-white');
     expect(links[1].attributes('aria-current')).toBe('page');
-    expect(links[0].classes()).not.toContain('bg-primary');
+    expect(links[0].classes()).not.toContain('bg-badge-gradient');
     expect(links[0].attributes('aria-current')).toBeUndefined();
   });
 });

@@ -1,13 +1,13 @@
 <template>
   <section class="mt-3">
-    <p v-if="loadState === 'loading'" class="text-sm leading-6 text-[#093D57]/80" role="status">
+    <p v-if="loadState === 'loading'" class="text-sm leading-6 text-text/80" role="status">
       {{ t('rsvp.loading') }}
     </p>
 
-    <div v-else-if="loadState === 'error'" class="rounded-xl bg-[#BEC6C2]/25 p-4">
-      <p class="text-sm leading-6 text-[#093D57]/80" role="alert">{{ t('rsvp.loadError') }}</p>
+    <div v-else-if="loadState === 'error'" class="rounded-xl bg-secondary/25 p-4">
+      <p class="text-sm leading-6 text-text/80" role="alert">{{ t('rsvp.loadError') }}</p>
       <button
-        class="mt-3 w-full rounded-xl bg-[#093D57] px-4 py-2 text-sm font-semibold text-white"
+        class="mt-3 w-full rounded-xl bg-badge-gradient px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
         type="button"
         @click="load"
       >
@@ -17,18 +17,18 @@
 
     <form v-else class="rsvp-form flex min-h-0 flex-1 flex-col gap-3" @submit.prevent="submit">
       <fieldset class="flex flex-col gap-2">
-        <legend class="rsvp-legend mb-2 font-semibold text-[#093D57]">
+        <legend class="rsvp-legend mb-2 font-semibold text-text">
           {{ t('rsvp.question') }}<span class="rsvp-required" :aria-label="t('rsvp.required')">*</span>
         </legend>
 
         <label
           v-for="choice in choices"
           :key="choice"
-          class="rsvp-option flex cursor-pointer items-center gap-3 rounded-xl border border-[#d9c8c2] text-[#093D57]"
-          :class="{ 'border-[#093D57] bg-[#093D57]/5 font-semibold': selected === choice }"
+          class="rsvp-option flex cursor-pointer items-center gap-3 rounded-xl border border-secondary text-text"
+          :class="{ 'border-primary bg-primary/5 font-semibold': selected === choice }"
         >
           <input
-            class="h-4 w-4 accent-[#093D57]"
+            class="h-4 w-4 accent-primary"
             type="radio"
             name="attendance"
             :value="choice"
@@ -40,18 +40,18 @@
       </fieldset>
 
       <fieldset v-if="selected === 'ATTENDING'" class="flex flex-col gap-2">
-        <legend class="rsvp-legend mb-2 font-semibold text-[#093D57]">
+        <legend class="rsvp-legend mb-2 font-semibold text-text">
           {{ t('rsvp.meal.question') }}<span class="rsvp-required" :aria-label="t('rsvp.required')">*</span>
         </legend>
 
         <label
           v-for="meal in meals"
           :key="meal"
-          class="rsvp-option flex cursor-pointer items-center gap-3 rounded-xl border border-[#d9c8c2] text-[#093D57]"
-          :class="{ 'border-[#093D57] bg-[#093D57]/5 font-semibold': selectedMeal === meal }"
+          class="rsvp-option flex cursor-pointer items-center gap-3 rounded-xl border border-secondary text-text"
+          :class="{ 'border-primary bg-primary/5 font-semibold': selectedMeal === meal }"
         >
           <input
-            class="h-4 w-4 accent-[#093D57]"
+            class="h-4 w-4 accent-primary"
             type="radio"
             name="meal"
             :value="meal"
@@ -63,22 +63,22 @@
       </fieldset>
 
       <fieldset v-if="selected === 'ATTENDING'" class="flex flex-col gap-2">
-        <legend class="rsvp-legend mb-2 font-semibold text-[#093D57]">
+        <legend class="rsvp-legend mb-2 font-semibold text-text">
           {{ t('rsvp.song.label') }}<span class="rsvp-optional-hint">({{ t('rsvp.optional') }})</span>
         </legend>
 
         <div
           v-if="selectedSong"
-          class="song-control flex flex-wrap items-center gap-2 rounded-lg border border-[#093D57] bg-[#093D57]/5 text-[#093D57]"
+          class="song-control flex flex-wrap items-center gap-2 rounded-lg border border-primary bg-primary/5 text-text"
         >
           <div class="flex min-w-0 flex-1 flex-col">
             <span class="truncate font-semibold">{{ selectedSong.title }}</span>
-            <span class="truncate text-[#093D57]/60">{{ selectedSong.artist }}</span>
+            <span class="truncate text-text/60">{{ selectedSong.artist }}</span>
           </div>
           <button
             v-if="selectedSong.preview"
             type="button"
-            class="song-icon flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#093D57]/40 text-[#093D57]"
+            class="song-icon flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-primary/40 text-primary transition hover:bg-primary/5"
             :aria-label="t('rsvp.song.preview')"
             :aria-pressed="playingSongId === selectedSong.deezerId"
             @click="togglePreview(selectedSong)"
@@ -87,7 +87,7 @@
           </button>
           <button
             type="button"
-            class="song-icon flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#a3352b]/40 text-[#a3352b]"
+            class="song-icon flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-red-600/40 text-red-600 transition hover:bg-red-50"
             :aria-label="t('rsvp.song.clear')"
             :title="t('rsvp.song.clear')"
             @click="clearSong"
@@ -102,18 +102,18 @@
             type="search"
             name="song"
             autocomplete="off"
-            class="song-control w-full rounded-xl border border-[#d9c8c2] text-[#093D57]"
+            class="song-control w-full rounded-xl border border-secondary text-text placeholder:text-text/40 focus:border-primary focus:outline-none"
             :placeholder="t('rsvp.song.placeholder')"
             :aria-label="t('rsvp.song.label')"
           />
 
-          <p v-if="songState === 'searching'" class="song-status text-[#093D57]/70" role="status">
+          <p v-if="songState === 'searching'" class="song-status text-text/70" role="status">
             {{ t('rsvp.song.searching') }}
           </p>
-          <p v-else-if="songState === 'error'" class="song-status text-[#a3352b]" role="alert">
+          <p v-else-if="songState === 'error'" class="song-status text-red-600" role="alert">
             {{ t('rsvp.song.error') }}
           </p>
-          <p v-else-if="songState === 'no-results'" class="song-status text-[#093D57]/70" role="status">
+          <p v-else-if="songState === 'no-results'" class="song-status text-text/70" role="status">
             {{ t('rsvp.song.noResults') }}
           </p>
 
@@ -121,24 +121,24 @@
             <li
               v-for="suggestion in songSuggestions"
               :key="suggestion.deezerId"
-              class="song-control flex items-center gap-2 rounded-lg border border-[#d9c8c2] transition-colors hover:border-[#093D57] hover:bg-[#093D57]/5"
+              class="song-control flex items-center gap-2 rounded-lg border border-secondary transition-colors hover:border-primary hover:bg-primary/5"
             >
               <button
                 type="button"
-                class="song-select flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left text-[#093D57]"
+                class="song-select flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left text-text"
                 @click="selectSong(suggestion)"
               >
                 <span
                   aria-hidden="true"
-                  class="song-add flex shrink-0 items-center justify-center rounded-full bg-[#093D57] font-semibold text-white"
+                  class="song-add flex shrink-0 items-center justify-center rounded-full bg-accent-gradient font-semibold text-white"
                 >＋</span>
                 <span class="min-w-0 flex-1 truncate font-medium">{{ suggestion.title }}</span>
-                <span class="min-w-0 max-w-[40%] truncate text-[#093D57]/60">{{ suggestion.artist }}</span>
+                <span class="min-w-0 max-w-[40%] truncate text-text/60">{{ suggestion.artist }}</span>
               </button>
               <button
                 v-if="suggestion.preview"
                 type="button"
-                class="song-icon flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#093D57]/40 text-[#093D57]"
+                class="song-icon flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-primary/40 text-primary transition hover:bg-primary/5"
                 :aria-label="t('rsvp.song.preview')"
                 :aria-pressed="playingSongId === suggestion.deezerId"
                 @click="togglePreview(suggestion)"
@@ -152,17 +152,17 @@
 
       <div class="rsvp-footer sticky bottom-0 -mx-6 -mb-6 mt-auto bg-white px-6 pb-3 pt-2">
         <button
-          class="rsvp-submit w-full rounded-xl bg-[#093D57] font-semibold text-white disabled:opacity-50"
+          class="rsvp-submit w-full rounded-xl bg-badge-gradient font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
           type="submit"
           :disabled="!canSubmit"
         >
           {{ submitState === 'submitting' ? t('rsvp.submitting') : t('rsvp.submit') }}
         </button>
 
-        <p v-if="submitState === 'success'" class="mt-2 text-sm font-semibold text-[#093D57]" role="status">
+        <p v-if="submitState === 'success'" class="mt-2 text-sm font-semibold text-text" role="status">
           {{ t('rsvp.saved') }}
         </p>
-        <p v-else-if="submitState === 'error'" class="mt-2 text-sm text-[#a3352b]" role="alert">
+        <p v-else-if="submitState === 'error'" class="mt-2 text-sm text-red-600" role="alert">
           {{ t('rsvp.submitError') }}
         </p>
       </div>
@@ -496,7 +496,7 @@ onBeforeUnmount(() => {
   margin-left: 0.35rem;
   font-size: var(--rsvp-hint-size);
   font-weight: 400;
-  color: rgba(9, 61, 87, 0.55);
+  color: rgba(55, 71, 79, 0.55);
 }
 
 /* Attendance and meal choices. */

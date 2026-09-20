@@ -1,13 +1,13 @@
 <template>
   <div>
-    <label v-if="label" :for="inputId" class="block text-sm font-medium uppercase tracking-wider">{{ label }}</label>
+    <label v-if="label" :for="inputId" class="form-label">{{ label }}</label>
     <input
       :id="inputId"
       :name="name"
       :type="type"
       :value="modelValue"
       @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-      class="mt-2 block w-full rounded border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+      class="form-input"
       v-bind="$attrs"
     />
   </div>

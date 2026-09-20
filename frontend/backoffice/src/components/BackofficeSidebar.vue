@@ -40,7 +40,7 @@ import menuInvitationIcon from '../assets/icons/menu-invitations.svg?raw';
 
 const route = useRoute();
 const baseLinkClasses = 'flex items-center gap-2 rounded-md px-3 py-2 transition-colors';
-const activeLinkClasses = 'bg-primary text-white';
+const activeLinkClasses = 'bg-badge-gradient text-white shadow';
 const inactiveLinkClasses = 'text-text/90 hover:bg-background';
 
 const isRouteActive = (linkPath: string) => route.path === linkPath || route.path.startsWith(`${linkPath}/`);

@@ -3,17 +3,17 @@
     <button
       type="button"
       data-test="user-menu-toggle" aria-label="Open user menu" aria-haspopup="menu" :aria-expanded="isOpen"
-      class="flex items-center rounded-full border border-secondary/50 bg-white p-1.5 hover:bg-secondary/10"
+      class="flex items-center rounded-full bg-accent-light p-1.5 hover:bg-accent"
       :disabled="props.isLoggingOut"
       @click="toggleMenu"
     >
-      <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm text-white">{{ avatarInitial }}</span>
+      <span class="flex h-9 w-9 items-center justify-center rounded-full bg-badge-gradient text-sm text-white">{{ avatarInitial }}</span>
     </button>
 
     <div
       v-if="isOpen"
       role="menu"
-      class="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-secondary/40 bg-white p-4 shadow-lg"
+      class="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg bg-white p-4 shadow-lg"
     >
       <p class="text-xs uppercase tracking-wide text-text/70">Signed in as</p>
       <p class="mt-1 truncate text-sm font-medium">{{ userLabel }}</p>
@@ -22,7 +22,7 @@
         type="button"
         role="menuitem"
         data-test="user-menu-logout"
-        class="mt-4 w-full rounded-md bg-primary px-4 py-2 text-sm font-normal text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        class="mt-4 w-full rounded-md bg-badge-gradient px-4 py-2 text-sm font-normal text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         :disabled="props.isLoggingOut"
         @click="handleLogout"
       >

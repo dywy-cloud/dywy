@@ -3,7 +3,7 @@
     <div class="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
       <span class="justify-self-start h-6" aria-hidden="true"></span>
 
-      <h2 class="justify-self-center text-3xl font-light tracking-wide">{{ isArchivedView ? 'Archived Guests' : 'Guests' }}</h2>
+      <h2 class="page-title justify-self-center">{{ isArchivedView ? 'Archived Guests' : 'Guests' }}</h2>
 
       <WriteOnly v-if="!isArchivedView">
         <RouterLink
@@ -16,7 +16,7 @@
           }"
           data-test="add-guest-shortcut"
           aria-label="Add a new guest"
-          class="justify-self-end flex h-10 w-10 items-center justify-center rounded-full border border-primary bg-primary text-2xl leading-none text-white hover:opacity-90"
+          class="justify-self-end flex h-10 w-10 items-center justify-center rounded-full bg-accent-gradient text-2xl leading-none text-white shadow transition hover:scale-105 hover:opacity-90"
         >
           <img :src="addGuestIcon" alt="" aria-hidden="true" class="h-5 w-5 brightness-0 invert" />
         </RouterLink>
@@ -28,7 +28,7 @@
       <p>{{ guestCountSummary }}</p>
 
       <div v-if="toggleRoute" class="flex items-center">
-        <RouterLink :to="toggleRoute" class="text-primary underline">
+        <RouterLink :to="toggleRoute" class="font-medium text-text transition hover:underline hover:text-text/80">
           {{ isArchivedView ? 'Switch to active' : 'Switch to archive' }}
         </RouterLink>
       </div>
@@ -39,7 +39,7 @@
     <div v-else-if="errorMessage" class="space-y-3 py-8 text-center">
       <p class="text-sm text-red-700">{{ errorMessage }}</p>
       <button
-        class="rounded-md bg-primary px-4 py-2 text-white hover:opacity-90"
+        class="rounded-md bg-accent-gradient px-4 py-2 text-white shadow transition hover:opacity-90"
         @click="loadGuests(currentPage, guestPage.size)"
       >
         Try again
@@ -50,10 +50,10 @@
       No guests found.
     </p>
 
-    <div v-else class="overflow-x-auto">
+    <div v-else class="overflow-x-auto rounded-xl border border-secondary/20 bg-white shadow-sm">
       <table class="min-w-full border-collapse text-left text-sm">
         <thead>
-          <tr class="border-b border-secondary/40 text-text/90">
+          <tr class="border-b border-secondary/40 bg-background/60 text-text/90">
             <th class="px-3 py-2 font-semibold">Name</th>
             <th class="px-3 py-2 font-semibold">Email</th>
             <th class="px-3 py-2 font-semibold">Created</th>
@@ -64,7 +64,7 @@
           <tr
             v-for="guest in guestPage.items"
             :key="guest.id"
-            class="border-b border-secondary/20"
+            class="border-b border-secondary/20 bg-white"
           >
             <td class="px-3 py-2">{{ guest.firstName }} {{ guest.lastName }}</td>
             <td class="px-3 py-2">{{ guest.email }}</td>
@@ -82,7 +82,7 @@
                   }"
                   :data-test="`view-guest-${guest.id}`"
                   aria-label="View guest"
-                  class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-lg leading-none text-white hover:opacity-90"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-badge-gradient text-lg leading-none text-white shadow-sm transition hover:scale-110 hover:opacity-90"
                 >
                   <img :src="viewIcon" alt="" aria-hidden="true" class="h-4 w-4 brightness-0 invert" />
                 </RouterLink>
@@ -99,7 +99,7 @@
                     }"
                     :data-test="`edit-guest-${guest.id}`"
                     aria-label="Edit guest"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-lg leading-none text-white hover:opacity-90"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-gradient text-lg leading-none text-white shadow-sm transition hover:scale-110 hover:opacity-90"
                   >
                     <img :src="editIcon" alt="" aria-hidden="true" class="h-4 w-4 brightness-0 invert" />
                   </RouterLink>
@@ -109,7 +109,7 @@
                   <button
                     :data-test="`archive-guest-${guest.id}`"
                     aria-label="Archive guest"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm leading-none text-white hover:opacity-90"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-badge-gradient text-sm leading-none text-white shadow-sm transition hover:scale-110 hover:opacity-90"
                     @click="archiveGuestById(guest.id)"
                   >
                     <img :src="archiveIcon" alt="" aria-hidden="true" class="h-[18px] w-[18px] brightness-0 invert" />
@@ -120,7 +120,7 @@
                   <button
                     :data-test="`restore-guest-${guest.id}`"
                     aria-label="Restore guest"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm leading-none text-white hover:opacity-90"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-gradient text-sm leading-none text-white shadow-sm transition hover:scale-110 hover:opacity-90"
                     @click="restoreGuestById(guest.id)"
                   >
                     <img :src="restoreIcon" alt="" aria-hidden="true" class="h-4 w-4 brightness-0 invert" />
@@ -135,11 +135,16 @@
 
     <div class="mt-6 flex items-center justify-between">
       <button
-        class="rounded-md border border-secondary px-4 py-2 hover:bg-secondary/20 disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="Previous page"
+        title="Previous"
+        data-test="pagination-previous"
+        class="flex h-10 w-10 items-center justify-center rounded-full bg-badge-gradient text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
         :disabled="isLoading || currentPage <= 0"
         @click="updatePaginationQuery(currentPage - 1, guestPage.size)"
       >
-        Previous
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+        </svg>
       </button>
 
       <p class="text-sm text-text/80">
@@ -147,11 +152,16 @@
       </p>
 
       <button
-        class="rounded-md border border-secondary px-4 py-2 hover:bg-secondary/20 disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="Next page"
+        title="Next"
+        data-test="pagination-next"
+        class="flex h-10 w-10 items-center justify-center rounded-full bg-badge-gradient text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
         :disabled="isLoading || guestPage.page + 1 >= guestPage.totalPages"
         @click="updatePaginationQuery(currentPage + 1, guestPage.size)"
       >
-        Next
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+        </svg>
       </button>
     </div>
   </section>

@@ -1,6 +1,6 @@
 <template>
   <teleport to="body">
-    <div class="pointer-events-none fixed bottom-4 right-4 z-50 flex max-w-xs flex-col gap-2 font-serif">
+    <div class="pointer-events-none fixed bottom-4 right-4 z-50 flex max-w-xs flex-col gap-2">
       <div
         v-for="toast in toasts"
         :key="toast.id"

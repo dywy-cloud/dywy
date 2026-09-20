@@ -6,12 +6,12 @@
           <img src="/icon.svg" alt="dywy.cloud" class="h-10 w-10 shrink-0" />
           <LanguageSwitcher />
         </div>
-        <h1 class="mt-4 page-title font-semibold text-[#093D57]">{{ t('invitation.title') }}</h1>
+        <h1 class="mt-4 page-title font-semibold text-text">{{ t('invitation.title') }}</h1>
 
         <Transition name="fade">
           <div v-if="instructionsVisible" class="mt-[3.75rem]">
-            <h2 class="intro-title font-semibold text-[#093D57]">{{ t('invitation.chooseName') }}</h2>
-            <p class="mx-auto mt-2 max-w-xs intro-text italic text-[#093D57]/75">{{ t('invitation.instructions') }}</p>
+            <h2 class="intro-title font-semibold text-text">{{ t('invitation.chooseName') }}</h2>
+            <p class="mx-auto mt-2 max-w-xs intro-text italic text-text/75">{{ t('invitation.instructions') }}</p>
           </div>
         </Transition>
       </div>
@@ -21,14 +21,14 @@
 
         <article class="invitation-sheet" :class="{ 'invitation-sheet--visible': invitationVisible }" @transitionend="onSheetTransitionEnd">
         <div class="invitation-sheet__scroll">
-        <p v-if="isLoading" class="text-center text-sm text-[#093D57]/80">
+        <p v-if="isLoading" class="text-center text-sm text-text/80">
         <br>
         </p>
 
-        <div v-else-if="errorMessage" class="rounded-2xl bg-[#E7D4CD]/55 p-4 text-sm text-[#093D57]">
+        <div v-else-if="errorMessage" class="rounded-2xl bg-background/40 p-4 text-sm text-text">
           <p>{{ errorMessage }}</p>
           <button
-            class="mt-3 w-full rounded-xl bg-[#093D57] px-4 py-2 text-sm font-semibold text-white"
+            class="mt-3 w-full rounded-xl bg-badge-gradient px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
             type="button"
             @click="loadInvitation"
           >
@@ -37,27 +37,27 @@
         </div>
 
         <section v-else-if="invitation">
-          <div v-if="magicLinkResult" class="magic-link-confirmation text-center">
-            <p v-if="magicLinkResult.status === 'sent'" class="confirmation-title font-semibold text-[#093D57]">
-              {{ t('invitation.magicLink.sentTitle') }}
-            </p>
-            <p class="confirmation-message mt-2 text-[#093D57]/85">{{ messageForStatus(magicLinkResult.status) }}</p>
-            <button
-              class="confirmation-back mt-5 rounded-xl bg-[#093D57] font-semibold text-white"
-              type="button"
-              @click="magicLinkResult = null"
-            >
-              {{ t('invitation.magicLink.back') }}
-            </button>
-          </div>
+           <div v-if="magicLinkResult" class="magic-link-confirmation text-center">
+             <p v-if="magicLinkResult.status === 'sent'" class="confirmation-title font-semibold text-text">
+               {{ t('invitation.magicLink.sentTitle') }}
+             </p>
+             <p class="confirmation-message mt-2 text-text/85">{{ messageForStatus(magicLinkResult.status) }}</p>
+             <button
+               class="confirmation-back mt-5 rounded-xl bg-badge-gradient font-semibold text-white transition hover:opacity-90"
+               type="button"
+               @click="magicLinkResult = null"
+             >
+               {{ t('invitation.magicLink.back') }}
+             </button>
+           </div>
 
-          <template v-else>
-            <h2 class="card-label font-semibold text-[#093D57]">{{ invitation.label }}</h2>
-            <p class="mt-2 card-text text-[#093D57]/85">{{ invitation.description }}</p>
+           <template v-else>
+             <h2 class="card-label font-semibold text-text">{{ invitation.label }}</h2>
+             <p class="mt-2 card-text text-text/85">{{ invitation.description }}</p>
 
-            <div class="guest-list-stage mt-4">
-              <p class="guest-count text-xs font-semibold uppercase tracking-[0.2em] text-[#738F9D]">
-                {{ guestCountLabel(invitation.guestCount) }}
+             <div class="guest-list-stage mt-4">
+               <p class="guest-count text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
+                 {{ guestCountLabel(invitation.guestCount) }}
               </p>
 
               <ul class="guest-list mt-3 space-y-2" :class="{ 'guest-list--revealed': showGuestList }">
@@ -223,7 +223,7 @@ watch(normalizedToken, () => {
 
 <style scoped>
 .guest-access-page {
-  background: linear-gradient(160deg, #e7d4cd 0%, #f7f4f2 38%, #bec6c2 100%);
+  background: linear-gradient(135deg, #f4f5f5 0%, #e79aae 100%);
 }
 
 /* Fluid typography so the content scales smoothly across screen sizes
@@ -346,16 +346,16 @@ watch(normalizedToken, () => {
 }
 
 .envelope__back {
-  position: absolute;
-  top: 36%;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 0 0 14px 14px;
-  background: linear-gradient(160deg, #7b97a6, #28536b);
-  box-shadow: 0 20px 45px rgba(9, 61, 87, 0.28);
-  z-index: 1;
-}
+   position: absolute;
+   top: 36%;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   border-radius: 0 0 14px 14px;
+   background: linear-gradient(160deg, #788f9c, #37474f);
+   box-shadow: 0 20px 45px rgba(55, 71, 79, 0.28);
+   z-index: 1;
+ }
 
 /* Letter: sits ABOVE the back but BELOW the front, so its lower part stays
    tucked behind the pocket while its top emerges above the pocket edge. */
@@ -377,7 +377,7 @@ watch(normalizedToken, () => {
   box-sizing: border-box;
   /* Thinner fixed bottom line than the top/side border. */
   padding: 0.85rem 0.85rem 0.35rem;
-  box-shadow: 0 16px 32px rgba(9, 61, 87, 0.18);
+   box-shadow: 0 16px 32px rgba(55, 71, 79, 0.18);
   /* Anchored by its top so the card's head always sits inside the front's
      notch (independent of content height): once the flap opens you see the
      top of the card in the notch, then it slides up out of the opening. */
@@ -399,45 +399,45 @@ watch(normalizedToken, () => {
 }
 
 /* Front pocket: covers the lower part of the envelope with a V-notch top
-   edge so the letter peeks out through the centre as it slides up. */
-.envelope__front {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 64%;
-  background: linear-gradient(165deg, #0c4663, #093d57);
-  clip-path: polygon(0 0, 50% 34%, 100% 0, 100% 100%, 0 100%);
-  border-radius: 0 0 14px 14px;
-  box-shadow: inset 0 8px 18px rgba(9, 61, 87, 0.35);
-  z-index: 5;
-}
+    edge so the letter peeks out through the centre as it slides up. */
+ .envelope__front {
+   position: absolute;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   height: 64%;
+   background: linear-gradient(165deg, #4a6575, #37474f);
+   clip-path: polygon(0 0, 50% 34%, 100% 0, 100% 100%, 0 100%);
+   border-radius: 0 0 14px 14px;
+   box-shadow: inset 0 8px 18px rgba(55, 71, 79, 0.35);
+   z-index: 5;
+ }
 
 /* Flap: triangle covering the top opening, hinged at the top. When open it
-   rotates upward and drops behind the invitation card (but above the back). */
-.envelope__flap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 36%;
-  height: 28%;
-  background: linear-gradient(165deg, #15597d, #0b435f);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  transform-origin: top center;
-  transform: rotateX(0deg);
-  /* Keep the flap above the card while it is still rotating; only drop its
-     z-index once the 1s rotation is finished, so the card's head never
-     flashes over the flap mid-animation. */
-  transition: transform 1s ease, z-index 0s linear 1s;
-  /* Layered drop-shadows follow the clipped triangle: a tight, near-opaque rim
-     reads as a fine border, and a softer, offset one adds depth. */
-  filter:
-    drop-shadow(0 0 0.5px rgba(231, 212, 205, 1))
-    drop-shadow(0 0 1px rgba(231, 212, 205, 0.95))
-    drop-shadow(0 1px 1px rgba(9, 61, 87, 0.45))
-    drop-shadow(0 6px 10px rgba(9, 61, 87, 0.3));
-  z-index: 6;
-}
+    rotates upward and drops behind the invitation card (but above the back). */
+ .envelope__flap {
+   position: absolute;
+   left: 0;
+   right: 0;
+   top: 36%;
+   height: 28%;
+   background: linear-gradient(165deg, #627783, #2d3a40);
+   clip-path: polygon(0 0, 100% 0, 50% 100%);
+   transform-origin: top center;
+   transform: rotateX(0deg);
+   /* Keep the flap above the card while it is still rotating; only drop its
+      z-index once the 1s rotation is finished, so the card's head never
+      flashes over the flap mid-animation. */
+   transition: transform 1s ease, z-index 0s linear 1s;
+   /* Layered drop-shadows follow the clipped triangle: a tight, near-opaque rim
+      reads as a fine border, and a softer, offset one adds depth. */
+   filter:
+     drop-shadow(0 0 0.5px rgba(231, 154, 174, 1))
+     drop-shadow(0 0 1px rgba(231, 154, 174, 0.95))
+     drop-shadow(0 1px 1px rgba(55, 71, 79, 0.45))
+     drop-shadow(0 6px 10px rgba(55, 71, 79, 0.3));
+   z-index: 6;
+ }
 
 .envelope--opened .envelope__flap {
   transform: rotateX(-162deg);

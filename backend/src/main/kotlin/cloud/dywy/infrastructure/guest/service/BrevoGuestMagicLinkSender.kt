@@ -37,8 +37,14 @@ class BrevoGuestMagicLinkSender(
         val request = BrevoSendEmailRequest(
             sender = BrevoContact(email = mailProperties.from, name = brevoProperties.senderName),
             to = listOf(BrevoContact(email = guest.email, name = guest.firstName)),
-            subject = guestMagicLinkEmailTemplate.subject(guest.language),
-            htmlContent = guestMagicLinkEmailTemplate.htmlBody(guest.firstName, magicLinkUrl, guest.language),
+            subject = guestMagicLinkEmailTemplate.subject(guest.language, mailProperties.coupleDisplayName),
+            htmlContent = guestMagicLinkEmailTemplate.htmlBody(
+                guestFirstName = guest.firstName,
+                magicLinkUrl = magicLinkUrl,
+                language = guest.language,
+                coupleDisplayName = mailProperties.coupleDisplayName,
+                iconSrc = GuestMagicLinkEmailAssets.iconDataUri(),
+            ),
             textContent = guestMagicLinkEmailTemplate.textBody(guest.firstName, magicLinkUrl, guest.language),
         )
 

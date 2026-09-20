@@ -36,7 +36,7 @@ const localeValue = computed(() => locale.value);
   align-items: center;
   gap: 0.2rem;
   border-radius: 999px;
-  border: 1px solid rgba(9, 61, 87, 0.2);
+  border: 1px solid rgba(55, 71, 79, 0.2);
   background: rgba(255, 255, 255, 0.65);
   padding: 0.15rem;
 }
@@ -50,11 +50,11 @@ const localeValue = computed(() => locale.value);
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: rgba(9, 61, 87, 0.75);
+  color: rgba(55, 71, 79, 0.75);
 }
 
 .language-switcher__button--active {
-  background: #093d57;
+  background: #37474f;
   color: #ffffff;
 }
 </style>

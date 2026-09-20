@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-dvh bg-[linear-gradient(160deg,_#e7d4cd_0%,_#f7f4f2_35%,_#bec6c2_100%)]">
+  <div class="min-h-dvh bg-[linear-gradient(135deg,_var(--color-background)_0%,_var(--color-accent-light)_100%)]">
     <RouterView />
   </div>
 </template>

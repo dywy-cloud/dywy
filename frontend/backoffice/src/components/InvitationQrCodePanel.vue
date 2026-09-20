@@ -64,7 +64,7 @@
       v-if="guestAccessUrl"
       :href="guestAccessUrl"
       :title="guestAccessUrl"
-      class="block w-full break-all text-center text-xs text-primary underline"
+      class="block w-full break-all text-center text-xs font-medium text-text transition hover:underline hover:text-text/80"
       data-test="invitation-qr-url"
       rel="noopener noreferrer"
       target="_blank"

@@ -63,7 +63,7 @@ class GuestAccessMagicLinkEndpointIT : AbstractEndpointIntegrationTest() {
 
         assertThat(payload).contains(janeDoe.email)
         assertThat(Regex("/api/guest-access/magic-links/[0-9a-fA-F-]{36}").find(payload)).isNotNull()
-        assertThat(payload).contains("Thecla")
+        assertThat(payload).contains(janeDoe.firstName)
     }
 
     @Test
