@@ -70,23 +70,31 @@ Used for accent elements and interactive highlights.
 
 ### Tailwind CSS v4 Theme Source
 
-In this Tailwind v4 CSS-first setup, the authoritative theme tokens live in `style.css` under the `@theme` block. Those tokens generate the Tailwind utilities used across both apps and are also available as CSS custom properties:
+In this Tailwind v4 CSS-first setup, the authoritative theme tokens live in `style.css` under the `@theme` block. The theme exposes the full named brand palette first, then maps the semantic UI tokens used across both apps onto those palette values. Those tokens generate the Tailwind utilities used across the apps and are also available as CSS custom properties:
 
 ```css
---color-primary: #788f9c;
---color-secondary: #bac2bd;
---color-accent: #cf6f88;
---color-accent-light: #e79aae;
---color-accent-dark: #b25f78;
---color-background: #f4f5f5;
---color-text: #37474f;
+--color-slate: #788f9c;
+--color-charcoal: #37474f;
+--color-rose-light: #e79aae;
+--color-rose: #cf6f88;
+--color-rose-deep: #b25f78;
+--color-sage: #bac2bd;
+--color-cloud: #f4f5f5;
+
+--color-primary: var(--color-slate);
+--color-secondary: var(--color-sage);
+--color-accent: var(--color-rose);
+--color-accent-light: var(--color-rose-light);
+--color-accent-dark: var(--color-rose-deep);
+--color-background: var(--color-cloud);
+--color-text: var(--color-charcoal);
 
 --font-sans: ...;
 --font-serif: ...;
 --font-heading: Poppins, sans-serif;
 
---bg-badge-gradient: linear-gradient(135deg, #788f9c 0%, #37474f 100%);
---bg-accent-gradient: linear-gradient(135deg, #e79aae 0%, #cf6f88 100%);
+--bg-badge-gradient: linear-gradient(135deg, var(--color-slate) 0%, var(--color-charcoal) 100%);
+--bg-accent-gradient: linear-gradient(135deg, var(--color-rose-light) 0%, var(--color-rose) 100%);
 ```
 
 The legacy `tailwind.config.js` is kept minimal for optional compatibility only and is not the source of truth for these tokens.

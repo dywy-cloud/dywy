@@ -32,8 +32,8 @@ class BrevoGuestMagicLinkSenderTest {
         }
         brevoGuestMagicLinkSender = BrevoGuestMagicLinkSender(
             brevoApi = brevoApi,
-            guestAccessProperties = testGuestAccessProperties.copy(baseUrl = "https://public.theweddingplan.app"),
-            mailProperties = MailProperties(from = "no-reply@theweddingplan.app", provider = "brevo", coupleDisplayName = "Thecla & Grégory"),
+            guestAccessProperties = testGuestAccessProperties.copy(baseUrl = "https://test.dywy.cloud"),
+            mailProperties = MailProperties(from = "no-reply@test.dywy.cloud", provider = "brevo", coupleDisplayName = "Thecla & Grégory"),
             brevoProperties = BrevoProperties(apiKey = "test-key", senderName = "Wedding Plan"),
             guestMagicLinkEmailTemplate = GuestMagicLinkEmailTemplate(messageSource),
         )
@@ -47,14 +47,16 @@ class BrevoGuestMagicLinkSenderTest {
         brevoGuestMagicLinkSender.send(bridesMaidToJane, janeDoe)
 
         val request = requestSlot.captured
-        assertThat(request.sender.email).isEqualTo("no-reply@theweddingplan.app")
+        assertThat(request.sender.email).isEqualTo("no-reply@test.dywy.cloud")
         assertThat(request.to.map { it.email }).isEqualTo(listOf(janeDoe.email))
         assertThat(request.subject).contains("Votre invitation")
         assertThat(request.textContent).contains("Bonjour Jane")
         assertThat(request.htmlContent)
             .contains("data:${GuestMagicLinkEmailAssets.ICON_CONTENT_TYPE};base64,")
         assertThat(request.htmlContent)
-            .contains("https://public.theweddingplan.app/api/guest-access/magic-links/53c2efcd-b4fc-42f3-a73b-fadf3725af3f")
+            .contains("data:${GuestMagicLinkEmailAssets.ICON_CONTENT_TYPE};base64,")
+        assertThat(request.htmlContent)
+            .contains("https://test.dywy.cloud/api/guest-access/magic-links/53c2efcd-b4fc-42f3-a73b-fadf3725af3f")
     }
 
     @Test

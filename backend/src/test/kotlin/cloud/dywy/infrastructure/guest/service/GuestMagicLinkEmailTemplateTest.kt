@@ -29,7 +29,7 @@ class GuestMagicLinkEmailTemplateTest {
 
     @Test
     fun `should render a user friendly text body`() {
-        val magicLinkUrl = "https://public.theweddingplan.app${bridesMaidToJane.guestAccessPath()}"
+        val magicLinkUrl = "https://test.dywy.cloud${bridesMaidToJane.guestAccessPath()}"
 
         val textBody = guestMagicLinkEmailTemplate.textBody(janeDoe.firstName, magicLinkUrl, Language.FR)
 
@@ -43,7 +43,7 @@ class GuestMagicLinkEmailTemplateTest {
 
     @Test
     fun `should render html body with cta and fallback link`() {
-        val magicLinkUrl = "https://public.theweddingplan.app${bridesMaidToJane.guestAccessPath()}"
+        val magicLinkUrl = "https://test.dywy.cloud${bridesMaidToJane.guestAccessPath()}"
 
         val htmlBody = guestMagicLinkEmailTemplate.htmlBody(janeDoe.firstName, magicLinkUrl, Language.FR, coupleDisplayName)
 
@@ -60,7 +60,7 @@ class GuestMagicLinkEmailTemplateTest {
 
     @Test
     fun `should render an english text body when guest language is EN`() {
-        val magicLinkUrl = "https://public.theweddingplan.app${bridesMaidToJane.guestAccessPath()}"
+        val magicLinkUrl = "https://test.dywy.cloud${bridesMaidToJane.guestAccessPath()}"
 
         val textBody = guestMagicLinkEmailTemplate.textBody(oliverBennett.firstName, magicLinkUrl, Language.EN)
 
@@ -73,7 +73,7 @@ class GuestMagicLinkEmailTemplateTest {
 
     @Test
     fun `should render an english html body when guest language is EN`() {
-        val magicLinkUrl = "https://public.theweddingplan.app${bridesMaidToJane.guestAccessPath()}"
+        val magicLinkUrl = "https://test.dywy.cloud${bridesMaidToJane.guestAccessPath()}"
 
         val htmlBody = guestMagicLinkEmailTemplate.htmlBody(oliverBennett.firstName, magicLinkUrl, Language.EN, coupleDisplayName)
 
