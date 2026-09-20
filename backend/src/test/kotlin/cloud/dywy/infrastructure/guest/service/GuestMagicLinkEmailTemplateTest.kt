@@ -13,6 +13,8 @@ import kotlin.test.Test
 
 class GuestMagicLinkEmailTemplateTest {
 
+    private val coupleDisplayName = "Thecla & Grégory"
+
     private lateinit var guestMagicLinkEmailTemplate: GuestMagicLinkEmailTemplate
 
     @BeforeTest
@@ -34,7 +36,7 @@ class GuestMagicLinkEmailTemplateTest {
         assertThat(textBody).all {
             contains("Bonjour ${janeDoe.firstName}")
             contains("lien sécurisé")
-            contains("heureux de vous inviter")
+            contains("Nous sommes ravis de vous accueillir")
             contains(magicLinkUrl)
         }
     }
@@ -43,13 +45,14 @@ class GuestMagicLinkEmailTemplateTest {
     fun `should render html body with cta and fallback link`() {
         val magicLinkUrl = "https://public.theweddingplan.app${bridesMaidToJane.guestAccessPath()}"
 
-        val htmlBody = guestMagicLinkEmailTemplate.htmlBody(janeDoe.firstName, magicLinkUrl, Language.FR)
+        val htmlBody = guestMagicLinkEmailTemplate.htmlBody(janeDoe.firstName, magicLinkUrl, Language.FR, coupleDisplayName)
 
         assertThat(htmlBody).all {
             contains("<html lang=\"fr\">")
-            contains("Thecla & Grégory")
+            contains("Thecla &amp; Gr&eacute;gory")
             contains("Bonjour ${janeDoe.firstName}")
             contains("Accéder à mon invitation")
+            contains("cid:${GuestMagicLinkEmailTemplate.ICON_CONTENT_ID}")
             contains(magicLinkUrl)
         }
 
@@ -72,7 +75,7 @@ class GuestMagicLinkEmailTemplateTest {
     fun `should render an english html body when guest language is EN`() {
         val magicLinkUrl = "https://public.theweddingplan.app${bridesMaidToJane.guestAccessPath()}"
 
-        val htmlBody = guestMagicLinkEmailTemplate.htmlBody(oliverBennett.firstName, magicLinkUrl, Language.EN)
+        val htmlBody = guestMagicLinkEmailTemplate.htmlBody(oliverBennett.firstName, magicLinkUrl, Language.EN, coupleDisplayName)
 
         assertThat(htmlBody).all {
             contains("<html lang=\"en\">")
@@ -80,6 +83,12 @@ class GuestMagicLinkEmailTemplateTest {
             contains("Access my invitation")
             contains(magicLinkUrl)
         }
+    }
+
+    @Test
+    fun `should render a subject with the configured couple display name`() {
+        assertThat(guestMagicLinkEmailTemplate.subject(Language.FR, coupleDisplayName))
+            .contains(coupleDisplayName)
     }
 }
 

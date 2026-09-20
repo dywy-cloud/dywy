@@ -3,7 +3,7 @@
     <header class="relative mb-6 flex items-center justify-center">
       <button
         aria-label="Back to guests"
-        class="absolute left-0 inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        class="absolute left-0 inline-flex h-10 w-10 items-center justify-center rounded-full bg-badge-gradient text-white shadow transition hover:scale-105 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         data-test="back-guest-details"
         type="button"
         title="Back"
@@ -11,7 +11,7 @@
       >
         <img :src="backIcon" alt="" aria-hidden="true" class="h-4 w-4 brightness-0 invert" />
       </button>
-      <h2 class="text-center text-3xl font-light tracking-wide text-text">Guest details</h2>
+      <h2 class="page-title text-center">Guest details</h2>
     </header>
 
     <p v-if="isLoading" class="py-8 text-center text-sm" aria-live="polite">Loading guest details...</p>
@@ -19,7 +19,7 @@
     <div v-else-if="errorMessage" class="space-y-3 py-8 text-center">
       <p class="text-sm text-red-700" data-test="guest-details-error" role="alert">{{ errorMessage }}</p>
       <button
-        class="rounded-md bg-primary px-4 py-2 text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        class="rounded-md bg-accent-gradient px-4 py-2 text-white shadow transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         type="button"
         @click="loadGuest"
       >
@@ -49,16 +49,15 @@
         </div>
       </dl>
 
-      <div class="mt-6 flex gap-3">
+      <div class="mt-6 flex justify-center gap-3">
         <WriteOnly>
-          <RouterLink
+          <BaseButton
             :to="{ name: BACKOFFICE_ROUTE_NAMES.guestEdit, params: { id: guest.id }, query: { page: route.query.page, size: route.query.size } }"
             aria-label="Edit guest"
-            class="flex-1 rounded bg-primary px-4 py-2 text-center text-sm text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             data-test="edit-guest-link"
           >
             Edit
-          </RouterLink>
+          </BaseButton>
         </WriteOnly>
       </div>
     </article>
@@ -68,6 +67,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import BaseButton from '../components/ui/BaseButton.vue';
 import WriteOnly from '../components/ui/WriteOnly.vue';
 import backIcon from '../assets/icons/back.svg';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';

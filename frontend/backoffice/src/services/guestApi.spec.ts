@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { addGuest, archiveGuest, getGuestById, listGuests, restoreGuest, updateGuest } from './guestApi';
 import { createGuestPage, createGuestPayload, createGuestResponse } from '../testFixtures/guestFixtures';
-import { clearCsrfCookie, expectCsrfHeader, getFirstRequest, mockFetchResponse, setCsrfCookie } from '../testFixtures/httpTestHelpers';
+import { backofficeApiBaseUrl, clearCsrfCookie, expectCsrfHeader, getFirstRequest, mockFetchResponse, setCsrfCookie } from '../testFixtures/httpTestHelpers';
 
 const guestNotFoundMessage = 'Guest not found.';
 
@@ -26,7 +26,7 @@ describe('guestApi', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, options] = getFirstRequest(fetchMock);
 
-    expect(url).toBe('http://localhost:8080/api/guests?page=0&size=20&status=active&availability=all');
+    expect(url).toBe(`${backofficeApiBaseUrl}/guests?page=0&size=20&status=active&availability=all`);
     expect(options).toMatchObject({
       method: 'GET',
       credentials: 'include'
@@ -45,7 +45,7 @@ describe('guestApi', () => {
     await listGuests({ page: 1, size: 50, status: 'archived' });
 
     const [url] = getFirstRequest(fetchMock);
-    expect(url).toBe('http://localhost:8080/api/guests?page=1&size=50&status=archived&availability=all');
+    expect(url).toBe(`${backofficeApiBaseUrl}/guests?page=1&size=50&status=archived&availability=all`);
   });
 
   it('calls backend list endpoint with search query', async () => {
@@ -54,7 +54,7 @@ describe('guestApi', () => {
     await listGuests({ page: 0, size: 20, status: 'active', search: 'john doe' });
 
     const [url] = getFirstRequest(fetchMock);
-    expect(url).toBe('http://localhost:8080/api/guests?page=0&size=20&status=active&availability=all&search=john+doe');
+    expect(url).toBe(`${backofficeApiBaseUrl}/guests?page=0&size=20&status=active&availability=all&search=john+doe`);
   });
 
   it('calls backend list endpoint with unassigned availability filter', async () => {
@@ -63,7 +63,7 @@ describe('guestApi', () => {
     await listGuests({ page: 0, size: 20, status: 'active', availability: 'unassigned' });
 
     const [url] = getFirstRequest(fetchMock);
-    expect(url).toBe('http://localhost:8080/api/guests?page=0&size=20&status=active&availability=unassigned');
+    expect(url).toBe(`${backofficeApiBaseUrl}/guests?page=0&size=20&status=active&availability=unassigned`);
   });
 
   it('calls backend create endpoint with expected payload', async () => {
@@ -78,7 +78,7 @@ describe('guestApi', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, options] = getFirstRequest(fetchMock);
 
-    expect(url).toBe('http://localhost:8080/api/guests');
+    expect(url).toBe(`${backofficeApiBaseUrl}/guests`);
     expect(options).toMatchObject({
       method: 'POST',
       credentials: 'include',
@@ -104,7 +104,7 @@ describe('guestApi', () => {
 
     const result = await getGuestById('abc-123');
 
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8080/api/guests/abc-123', {
+    expect(fetchMock).toHaveBeenCalledWith(`${backofficeApiBaseUrl}/guests/abc-123`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -134,7 +134,7 @@ describe('guestApi', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, options] = getFirstRequest(fetchMock);
-    expect(url).toBe('http://localhost:8080/api/guests/guest-1');
+    expect(url).toBe(`${backofficeApiBaseUrl}/guests/guest-1`);
     expect(options).toMatchObject({
       method: 'PUT',
       credentials: 'include',
@@ -166,7 +166,7 @@ describe('guestApi', () => {
     await archiveGuest('guest-1');
 
     const [url, options] = getFirstRequest(fetchMock);
-    expect(url).toBe('http://localhost:8080/api/guests/guest-1');
+    expect(url).toBe(`${backofficeApiBaseUrl}/guests/guest-1`);
     expect(options).toMatchObject({
       method: 'DELETE',
       credentials: 'include'
@@ -192,7 +192,7 @@ describe('guestApi', () => {
     await restoreGuest('guest-1');
 
     const [url, options] = getFirstRequest(fetchMock);
-    expect(url).toBe('http://localhost:8080/api/guests/guest-1/restoration');
+    expect(url).toBe(`${backofficeApiBaseUrl}/guests/guest-1/restoration`);
     expect(options).toMatchObject({
       method: 'POST',
       credentials: 'include'

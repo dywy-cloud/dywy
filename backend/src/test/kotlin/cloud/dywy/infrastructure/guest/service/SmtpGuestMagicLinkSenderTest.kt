@@ -7,8 +7,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import jakarta.mail.BodyPart
 import jakarta.mail.Message
+import jakarta.mail.Part
 import jakarta.mail.Session
+import jakarta.mail.internet.MimeBodyPart
 import jakarta.mail.internet.MimeMessage
 import jakarta.mail.internet.MimeMultipart
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
@@ -38,7 +41,7 @@ class SmtpGuestMagicLinkSenderTest {
         smtpGuestMagicLinkSender = SmtpGuestMagicLinkSender(
             javaMailSender = javaMailSender,
             guestAccessProperties = testGuestAccessProperties.copy(baseUrl = "https://public.theweddingplan.app"),
-            mailProperties = MailProperties(from = "no-reply@theweddingplan.app"),
+            mailProperties = MailProperties(from = "no-reply@theweddingplan.app", coupleDisplayName = "Thecla & Grégory"),
             guestMagicLinkEmailTemplate = GuestMagicLinkEmailTemplate(messageSource),
         )
     }
@@ -52,19 +55,22 @@ class SmtpGuestMagicLinkSenderTest {
         smtpGuestMagicLinkSender.send(bridesMaidToJane, janeDoe)
 
         val sentMessage = messageSlot.captured
+        sentMessage.saveChanges()
         val bodyContent = flattenMimeContent(sentMessage.content)
 
         verify(exactly = 1) { javaMailSender.send(any<MimeMessage>()) }
         assertThat(sentMessage.from.map { it.toString() }).isEqualTo(listOf("no-reply@theweddingplan.app"))
         assertThat(sentMessage.getRecipients(Message.RecipientType.TO).map { it.toString() })
             .isEqualTo(listOf(janeDoe.email))
-        assertThat(sentMessage.subject).isEqualTo("Thecla & Grégory - Votre invitation")
+        assertThat(sentMessage.subject).isEqualTo("dywy : Votre invitation au mariage de Thecla & Grégory")
         assertThat(bodyContent)
             .contains("Bonjour Jane")
         assertThat(bodyContent)
             .contains("https://public.theweddingplan.app/api/guest-access/magic-links/53c2efcd-b4fc-42f3-a73b-fadf3725af3f")
         assertThat(bodyContent)
             .contains("Accéder à mon invitation")
+        assertThat(findBodyPartByContentId(sentMessage, GuestMagicLinkEmailTemplate.ICON_CONTENT_ID)?.contentType.orEmpty())
+            .contains(GuestMagicLinkEmailAssets.ICON_CONTENT_TYPE)
     }
 
     @Test
@@ -82,5 +88,23 @@ class SmtpGuestMagicLinkSenderTest {
         is MimeMultipart -> (0 until content.count)
             .joinToString("\n") { index -> flattenMimeContent(content.getBodyPart(index).content) }
         else -> content.toString()
+    }
+
+    private fun findBodyPartByContentId(part: Part, contentId: String): BodyPart? {
+        val content = part.content
+        if (content !is MimeMultipart) {
+            return null
+        }
+
+        for (index in 0 until content.count) {
+            val bodyPart = content.getBodyPart(index)
+            if ((bodyPart as? MimeBodyPart)?.contentID?.trim('<', '>') == contentId) {
+                return bodyPart
+            }
+
+            findBodyPartByContentId(bodyPart, contentId)?.let { return it }
+        }
+
+        return null
     }
 }

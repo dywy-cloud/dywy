@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-3xl font-light tracking-wide">Edit Guest</h2>
+    <div class="mb-6 flex items-center justify-center">
+      <h2 class="page-title">Edit Guest</h2>
     </div>
 
     <p v-if="isLoadingGuest" class="py-8 text-center text-sm">Loading guest...</p>

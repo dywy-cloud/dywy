@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen flex-col overflow-hidden bg-background px-8 pb-8 pt-0 font-serif" data-test="backoffice-shell">
+  <div class="flex h-screen flex-col overflow-hidden bg-background px-8 pb-8 pt-0" data-test="backoffice-shell">
     <header class="relative z-30 mb-5 flex shrink-0 items-center justify-between gap-4 border-b border-secondary py-1">
       <img src="/icon.svg" alt="dywy.cloud" class="block h-12 w-12 shrink-0 self-center" />
       <UserMenu

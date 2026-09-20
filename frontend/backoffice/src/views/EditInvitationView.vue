@@ -1,17 +1,7 @@
 <template>
   <section class="mx-auto max-w-3xl">
-    <header class="relative mb-6 flex items-center justify-center">
-      <button
-        aria-label="Back to invitation details"
-        class="absolute left-0 inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        data-test="back-edit-invitation"
-        type="button"
-        title="Back"
-        @click="navigateBack"
-      >
-        <img :src="backIcon" alt="" aria-hidden="true" class="h-4 w-4 brightness-0 invert" />
-      </button>
-      <h2 class="text-center text-3xl font-light tracking-wide text-text">Edit invitation</h2>
+    <header class="mb-6 flex items-center justify-center">
+      <h2 class="page-title text-center">Edit invitation</h2>
     </header>
 
     <p v-if="isLoadingInvitation" class="py-8 text-center text-sm" aria-live="polite">Loading invitation...</p>
@@ -19,7 +9,7 @@
     <div v-else-if="loadInvitationErrorMessage" class="space-y-3 py-8 text-center">
       <p class="text-sm text-red-700" data-test="invitation-load-error" role="alert">{{ loadInvitationErrorMessage }}</p>
       <button
-        class="rounded-md bg-primary px-4 py-2 text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        class="rounded-md bg-accent-gradient px-4 py-2 text-white shadow transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         type="button"
         @click="loadInvitation"
       >
@@ -29,11 +19,11 @@
 
     <form v-else class="space-y-5" @submit.prevent="handleSubmit">
       <div>
-        <label class="mb-1 block text-sm font-medium text-text" for="invitation-label">Label</label>
+        <label class="form-label" for="invitation-label">Label</label>
         <input
           id="invitation-label"
           v-model="label"
-          class="w-full rounded-md border border-secondary/50 px-3 py-2 text-sm"
+          class="form-input"
           data-test="invitation-label-input"
           required
           type="text"
@@ -41,11 +31,11 @@
       </div>
 
       <div>
-        <label class="mb-1 block text-sm font-medium text-text" for="invitation-description">Description</label>
+        <label class="form-label" for="invitation-description">Description</label>
         <textarea
           id="invitation-description"
           v-model="description"
-          class="min-h-24 w-full rounded-md border border-secondary/50 px-3 py-2 text-sm"
+          class="form-input min-h-24"
           data-test="invitation-description-input"
         />
       </div>
@@ -57,7 +47,7 @@
             id="guest-search"
             v-model="searchQuery"
             aria-label="Search guests"
-            class="w-56 rounded-md border border-secondary/50 px-3 py-2 text-sm"
+            class="form-input w-56"
             data-test="guest-search-input"
             placeholder="Search guest"
             type="search"
@@ -93,7 +83,7 @@
             <RouterLink
               :to="{ name: BACKOFFICE_ROUTE_NAMES.guestAdd }"
               aria-label="Create guest"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-gradient text-white shadow-sm transition hover:scale-110 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               data-test="create-guest-link"
               title="Create guest"
             >
@@ -121,23 +111,22 @@
         {{ submitErrorMessage }}
       </p>
 
-      <div class="flex gap-3 pt-2">
-        <button
-          class="flex-1 rounded border border-secondary px-4 py-3 text-center text-sm transition hover:bg-secondary/20"
+      <div class="flex justify-center gap-3 pt-2">
+        <BaseButton
+          variant="solid"
           data-test="cancel-edit-invitation"
           type="button"
           @click="navigateBack"
         >
           Cancel
-        </button>
-        <button
+        </BaseButton>
+        <BaseButton
           :disabled="isSubmitDisabled"
-          class="flex-1 rounded bg-primary px-4 py-3 text-sm text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           data-test="update-invitation-submit"
           type="submit"
         >
           {{ isSubmitting ? 'Updating invitation...' : 'Update invitation' }}
-        </button>
+        </BaseButton>
       </div>
     </form>
   </section>
@@ -146,8 +135,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import BaseButton from '../components/ui/BaseButton.vue';
 import addGuestIcon from '../assets/icons/add-guest.svg';
-import backIcon from '../assets/icons/back.svg';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { listGuests, type GuestResponse } from '../services/guestApi';
 import { getInvitationById, updateInvitation, type InvitationGuestResponse } from '../services/invitationApi';

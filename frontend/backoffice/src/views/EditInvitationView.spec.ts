@@ -86,32 +86,6 @@ describe('EditInvitationView', () => {
     return { wrapper, router };
   };
 
-  it('navigates back in history when clicking back button', async () => {
-    getInvitationByIdMock.mockResolvedValue({
-      id: 'inv-1',
-      version: 1,
-      creationDate: '2026-07-03T10:00:00Z',
-      updateDate: '2026-07-03T10:00:00Z',
-      label: 'Family table',
-      description: 'Main family table',
-      guests: [],
-      guestCount: 0
-    });
-    listGuestsMock.mockResolvedValue({
-      items: [],
-      page: 0,
-      size: 10,
-      totalItems: 0,
-      totalPages: 0
-    });
-
-    const { wrapper, router } = await mountView({ previousPath: '/invitations/inv-1' });
-
-    await wrapper.get('[data-test="back-edit-invitation"]').trigger('click');
-    await flushPromises();
-
-    expect(router.currentRoute.value.path).toBe('/invitations/inv-1');
-  });
 
   it('navigates back in history when clicking cancel button', async () => {
     getInvitationByIdMock.mockResolvedValue({

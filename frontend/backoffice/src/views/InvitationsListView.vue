@@ -3,13 +3,13 @@
     <header class="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
       <span class="h-6 justify-self-start" aria-hidden="true"></span>
 
-      <h2 class="justify-self-center text-3xl font-light tracking-wide text-text">Invitations</h2>
+      <h2 class="page-title justify-self-center">Invitations</h2>
 
       <WriteOnly>
         <RouterLink
           :to="{ name: BACKOFFICE_ROUTE_NAMES.invitationAdd }"
           aria-label="Create invitation"
-          class="justify-self-end inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary bg-primary text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          class="justify-self-end inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-gradient text-white shadow transition hover:scale-105 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           data-test="create-invitation-cta"
           title="Create invitation"
         >
@@ -23,7 +23,7 @@
     <div v-else-if="errorMessage" class="space-y-3 py-8 text-center">
       <p class="text-sm text-red-700" role="alert">{{ errorMessage }}</p>
       <button
-        class="rounded-md bg-primary px-4 py-2 text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        class="rounded-md bg-accent-gradient px-4 py-2 text-white shadow transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         type="button"
         @click="loadData"
       >
@@ -40,7 +40,7 @@
       <WriteOnly>
         <RouterLink
           :to="{ name: BACKOFFICE_ROUTE_NAMES.guestAdd }"
-          class="inline-flex rounded-md bg-primary px-4 py-2 text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          class="inline-flex rounded-md bg-accent-gradient px-4 py-2 text-white shadow transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           data-test="create-first-guest-cta"
         >
           Create your first guest
@@ -56,14 +56,19 @@
       No invitations yet.
     </p>
 
-    <div v-else class="grid gap-4 md:grid-cols-2" data-test="invitation-card-list">
-      <article
-        v-for="invitation in invitationPage.items"
+    <template v-else>
+      <div class="mb-4 flex items-center justify-between text-sm text-text/80">
+        <p>Showing {{ invitationPage.items.length }} of {{ invitationPage.totalItems }} invitations</p>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2" data-test="invitation-card-list">
+        <article
+          v-for="invitation in invitationPage.items"
         :key="invitation.id"
-        class="flex h-full min-w-0 flex-col rounded-xl border border-secondary/30 bg-white p-4 shadow-sm"
+        class="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-secondary/30 bg-white p-4 shadow-sm"
         data-test="invitation-card"
       >
-        <h3 class="mb-3 text-lg font-medium text-text" data-test="invitation-card-label">{{ invitation.label }}</h3>
+        <h3 class="-mx-4 -mt-4 mb-3 rounded-t-xl border-b border-secondary/40 bg-background/60 px-4 py-2 text-lg font-medium text-text" data-test="invitation-card-label">{{ invitation.label }}</h3>
 
         <p class="mb-1 text-xs text-text/60" data-test="invitation-card-guest-count">{{ invitation.guestCount }} guests</p>
 
@@ -87,7 +92,7 @@
             <RouterLink
               :to="{ name: BACKOFFICE_ROUTE_NAMES.invitationDetails, params: { id: invitation.id } }"
               aria-label="View invitation"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-badge-gradient text-white shadow-sm transition hover:scale-110 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               title="View"
             >
               <img :src="viewInvitationIcon" alt="" aria-hidden="true" class="h-4 w-4 brightness-0 invert" />
@@ -96,7 +101,7 @@
               <RouterLink
                 :to="{ name: BACKOFFICE_ROUTE_NAMES.invitationEdit, params: { id: invitation.id } }"
                 aria-label="Edit invitation"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-gradient text-white shadow-sm transition hover:scale-110 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 title="Edit"
               >
                 <img :src="editInvitationIcon" alt="" aria-hidden="true" class="h-4 w-4 brightness-0 invert" />
@@ -105,7 +110,8 @@
           </div>
         </div>
       </article>
-    </div>
+      </div>
+    </template>
   </section>
 </template>
 

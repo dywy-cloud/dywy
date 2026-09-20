@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import { defineComponent } from 'vue';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import GuestList from '../views/GuestListView.vue';
+import GuestList from './GuestListView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { createGuestPage, createGuestResponse } from '../testFixtures/guestFixtures';
 import { applyCapabilities, resetCapabilities } from '../composables/useCapabilities';
@@ -155,7 +155,7 @@ describe('GuestList', () => {
 
     const { wrapper } = await mountGuestList();
 
-    const nextButton = wrapper.findAll('button').find((button) => button.text().includes('Next'));
+    const nextButton = wrapper.find('[data-test="pagination-next"]');
     expect(nextButton).toBeDefined();
     await nextButton!.trigger('click');
     await flushPromises();
@@ -189,7 +189,7 @@ describe('GuestList', () => {
 
     const { wrapper } = await mountGuestList('/?page=1&size=10');
 
-    const previousButton = wrapper.findAll('button').find((button) => button.text().includes('Previous'));
+    const previousButton = wrapper.find('[data-test="pagination-previous"]');
     expect(previousButton).toBeDefined();
     await previousButton!.trigger('click');
     await flushPromises();
@@ -221,16 +221,16 @@ describe('GuestList', () => {
 
     const { wrapper } = await mountGuestList();
 
-    const previousButtonOnFirstPage = wrapper.findAll('button').find((button) => button.text().includes('Previous'));
+    const previousButtonOnFirstPage = wrapper.find('[data-test="pagination-previous"]');
     expect(previousButtonOnFirstPage).toBeDefined();
     expect(previousButtonOnFirstPage!.attributes('disabled')).toBeDefined();
 
-    const nextButton = wrapper.findAll('button').find((button) => button.text().includes('Next'));
+    const nextButton = wrapper.find('[data-test="pagination-next"]');
     expect(nextButton).toBeDefined();
     await nextButton!.trigger('click');
     await flushPromises();
 
-    const previousButtonOnSecondPage = wrapper.findAll('button').find((button) => button.text().includes('Previous'));
+    const previousButtonOnSecondPage = wrapper.find('[data-test="pagination-previous"]');
     expect(previousButtonOnSecondPage).toBeDefined();
     expect(previousButtonOnSecondPage!.attributes('disabled')).toBeUndefined();
   });

@@ -3,7 +3,7 @@
     <p>Your account is not authorized to access this backoffice.</p>
     <button
       :disabled="isLoggingOut"
-      class="inline-block rounded-md bg-primary px-5 py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      class="inline-block rounded-md bg-badge-gradient px-5 py-2 text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       @click="handleLogout"
     >
       {{ isLoggingOut ? 'Signing out…' : 'Logout' }}

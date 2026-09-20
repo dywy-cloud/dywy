@@ -1,5 +1,5 @@
 <template>
-  <main class="guest-access-page flex h-dvh flex-col px-4 py-6 text-[#093D57]">
+  <main class="guest-access-page flex h-dvh flex-col px-4 py-6 text-text">
     <div class="mx-auto flex w-full max-w-xl items-center justify-between gap-3">
       <img src="/icon.svg" alt="dywy.cloud" class="h-10 w-10 shrink-0" />
       <div class="shrink-0">
@@ -7,14 +7,14 @@
       </div>
     </div>
 
-    <section class="mx-auto mt-4 flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-[#d9c8c2]">
+    <section class="mx-auto mt-4 flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-secondary">
       <div class="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
-        <p v-if="state === 'loading'" class="text-sm leading-6 text-[#093D57]/80" role="status">
+        <p v-if="state === 'loading'" class="text-sm leading-6 text-text/80" role="status">
           {{ t('securedArea.loading') }}
         </p>
 
         <section v-else-if="state === 'verified'" class="flex min-h-0 flex-1 flex-col">
-          <p v-if="session" class="text-base font-semibold text-[#093D57]">
+          <p v-if="session" class="text-base font-semibold text-text">
             {{ t('securedArea.greeting') }} {{ session.firstName }}
           </p>
           <GuestRsvpForm class="flex min-h-0 flex-1 flex-col" />
@@ -24,12 +24,12 @@
           <h2 class="text-base font-semibold">
             {{ state === 'error' ? t('securedArea.errorTitle') : t('securedArea.unverifiedTitle') }}
           </h2>
-          <p class="mt-2 text-sm leading-6 text-[#093D57]/80">
+          <p class="mt-2 text-sm leading-6 text-text/80">
             {{ state === 'error' ? t('securedArea.error') : t('securedArea.unverified') }}
           </p>
           <button
             v-if="state === 'error'"
-            class="mt-4 w-full rounded-xl bg-[#093D57] px-4 py-2 text-sm font-semibold text-white"
+            class="mt-4 w-full rounded-xl bg-badge-gradient px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
             type="button"
             @click="loadSession"
           >
@@ -37,7 +37,7 @@
           </button>
           <RouterLink
             v-else
-            class="mt-4 block w-full rounded-xl bg-[#093D57] px-4 py-2 text-center text-sm font-semibold text-white"
+            class="mt-4 block w-full rounded-xl bg-badge-gradient px-4 py-2 text-center text-sm font-semibold text-white transition hover:opacity-90"
             :to="{ name: 'guest-access-home' }"
           >
             {{ t('securedArea.restart') }}
@@ -97,8 +97,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Same warm gradient as the invitation view, so the guest journey stays visually consistent. */
+/* Gradient from light background to pink accent, top left to bottom right */
 .guest-access-page {
-  background: linear-gradient(160deg, #e7d4cd 0%, #f7f4f2 38%, #bec6c2 100%);
+  background: linear-gradient(135deg, #f4f5f5 0%, #e79aae 100%);
 }
 </style>

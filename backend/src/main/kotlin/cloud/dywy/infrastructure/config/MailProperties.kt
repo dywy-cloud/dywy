@@ -6,4 +6,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class MailProperties(
     val from: String = "no-reply@localhost",
     val provider: String = "smtp",
+    val coupleDisplayName: String = "Thecla & Grégory",
 )

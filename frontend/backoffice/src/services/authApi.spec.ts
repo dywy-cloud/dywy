@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getAuthStatus, getGoogleLoginUrl, logout } from './authApi';
-import { clearCsrfCookie, getFirstRequest, mockFetchResponse, setCsrfCookie } from '../testFixtures/httpTestHelpers';
+import { backofficeOrigin, clearCsrfCookie, getFirstRequest, mockFetchResponse, setCsrfCookie } from '../testFixtures/httpTestHelpers';
 
 describe('authApi', () => {
   afterEach(() => {
@@ -21,7 +21,7 @@ describe('authApi', () => {
 
     const result = await getAuthStatus();
 
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8080/auth/me', {
+    expect(fetchMock).toHaveBeenCalledWith(`${backofficeOrigin}/auth/me`, {
       credentials: 'include'
     });
     expect(result).toEqual({
@@ -75,7 +75,7 @@ describe('authApi', () => {
   });
 
   it('returns backend google oauth2 login url', () => {
-    expect(getGoogleLoginUrl()).toBe('http://localhost:8080/oauth2/authorization/google');
+    expect(getGoogleLoginUrl()).toBe(`${backofficeOrigin}/oauth2/authorization/google`);
   });
 
   it('calls backend logout endpoint', async () => {
@@ -87,7 +87,7 @@ describe('authApi', () => {
 
     const [url, options] = getFirstRequest(fetchMock);
 
-    expect(url).toBe('http://localhost:8080/auth/logout');
+    expect(url).toBe(`${backofficeOrigin}/auth/logout`);
     expect(options.method).toBe('POST');
     expect(options.credentials).toBe('include');
 

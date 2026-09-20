@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createInvitation, getInvitationById, listInvitations, updateInvitation } from './invitationApi';
-import { clearCsrfCookie, expectCsrfHeader, getFirstRequest, mockFetchResponse, setCsrfCookie } from '../testFixtures/httpTestHelpers';
+import { backofficeApiBaseUrl, clearCsrfCookie, expectCsrfHeader, getFirstRequest, mockFetchResponse, setCsrfCookie } from '../testFixtures/httpTestHelpers';
 
 const invitationNotFoundMessage = 'Invitation not found.';
 const invitationConflictMessage = 'Some guests are already assigned to another invitation. Please refresh and try again.';
@@ -62,7 +62,7 @@ describe('invitationApi', () => {
 
     const [url, options] = getFirstRequest(fetchMock);
 
-    expect(url).toBe('http://localhost:8080/api/invitations?page=1&size=10');
+    expect(url).toBe(`${backofficeApiBaseUrl}/invitations?page=1&size=10`);
     expect(options).toMatchObject({
       method: 'GET',
       credentials: 'include'
@@ -86,7 +86,7 @@ describe('invitationApi', () => {
 
     const [url, options] = getFirstRequest(fetchMock);
 
-    expect(url).toBe('http://localhost:8080/api/invitations/inv-1');
+    expect(url).toBe(`${backofficeApiBaseUrl}/invitations/inv-1`);
     expect(options).toMatchObject({
       method: 'GET',
       credentials: 'include'
@@ -140,7 +140,7 @@ describe('invitationApi', () => {
 
     const [url, options] = getFirstRequest(fetchMock);
 
-    expect(url).toBe('http://localhost:8080/api/invitations');
+    expect(url).toBe(`${backofficeApiBaseUrl}/invitations`);
     expect(options).toMatchObject({
       method: 'POST',
       credentials: 'include',
@@ -184,7 +184,7 @@ describe('invitationApi', () => {
 
     const [url, options] = getFirstRequest(fetchMock);
 
-    expect(url).toBe('http://localhost:8080/api/invitations/inv-1');
+    expect(url).toBe(`${backofficeApiBaseUrl}/invitations/inv-1`);
     expect(options).toMatchObject({
       method: 'PUT',
       credentials: 'include',

@@ -22,8 +22,6 @@ spring:
     fallback-to-system-locale: false
   task:
     execution:
-      # Let in-flight @Async tasks (the best-effort playlist sync) drain on shutdown so a normal
-      # redeploy doesn't drop one. Anything not drained in time stays pending for the daily reconciler.
       shutdown:
         await-termination: true
         await-termination-period: 20s
@@ -63,8 +61,8 @@ app:
       window-seconds: ${APP_AUTH_RATE_LIMIT_WINDOW_SECONDS:60}
   mail:
     from: ${APP_MAIL_FROM:no-reply@localhost}
-    # Magic-link email transport: smtp (local/Mailpit), brevo (prod — Render blocks outbound SMTP), or noop.
     provider: ${APP_MAIL_PROVIDER:smtp}
+    couple-display-name: ${APP_MAIL_COUPLE_DISPLAY_NAME:Thecla & Grégory}
   brevo:
     api-key: ${BREVO_API_KEY:}
     base-url: ${BREVO_BASE_URL:https://api.brevo.com}

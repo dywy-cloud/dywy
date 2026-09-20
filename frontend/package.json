@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "type": "module",
   "packageManager": "pnpm@11.20.0",
   "scripts": {
@@ -27,7 +27,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@vitejs/plugin-vue": "^6.0.8",
-    "@vitest/coverage-v8": "4.1.9",
+    "@vitest/coverage-v8": "4.1.10",
     "@vue/test-utils": "^2.4.11",
     "autoprefixer": "^10.5.4",
     "jsdom": "^29.1.1",
