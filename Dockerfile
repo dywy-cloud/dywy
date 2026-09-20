@@ -14,13 +14,13 @@ COPY backend/ ./
 COPY --from=frontend-build /workspace/frontend/dist/ ./src/main/resources/static/
 RUN chmod +x ./gradlew
 RUN ./gradlew clean bootJar --no-daemon
+RUN cp "$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' | head -n 1)" build/app.jar
 
 FROM eclipse-temurin:25-jre-alpine AS runtime
 WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
-COPY --from=backend-build /workspace/backend/build/libs/*.jar /app/app.jar
+COPY --from=backend-build /workspace/backend/build/app.jar /app/app.jar
 USER spring:spring
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
-
 
