@@ -1,7 +1,7 @@
 FROM node:24-alpine AS frontend-build
 WORKDIR /workspace/frontend
 ENV VITE_ROUTER_BASE=/backoffice/
-ENV VITE_API_BASE_URL=
+ENV VITE_API_BASE_URL=""
 COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
 RUN corepack enable
 RUN pnpm install --frozen-lockfile
@@ -18,7 +18,7 @@ RUN ./gradlew clean bootJar --no-daemon
 FROM eclipse-temurin:25-jre-alpine AS runtime
 WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
-COPY --from=backend-build /workspace/backend/build/libs/*-SNAPSHOT.jar /app/app.jar
+COPY --from=backend-build /workspace/backend/build/libs/*.jar /app/app.jar
 USER spring:spring
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
