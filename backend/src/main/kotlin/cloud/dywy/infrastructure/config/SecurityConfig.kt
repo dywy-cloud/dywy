@@ -99,21 +99,7 @@ class SecurityConfig(
 
                         AuthorizationDecision(backofficeAuthorization.hasCapability(email, requiredCapabilityFor(context.request.method)))
                     }
-                    .requestMatchers(
-                        "/",
-                        "/assets/**",
-                        "/backoffice/**",
-                        "/public/**",
-                        "/guest-access/**",
-                        "/*.html",
-                        "/favicon.ico",
-                        "/favicon.svg",
-                        "/oauth2/**",
-                        "/login/**",
-                        "/auth/me",
-                        "/auth/logout",
-                        "/error"
-                    ).permitAll()
+                    .requestMatchers(*publicRequestMatchers()).permitAll()
                     .anyRequest().authenticated()
             }
             .oauth2Login { oauth2 ->
@@ -165,6 +151,23 @@ class SecurityConfig(
     internal fun requiredCapabilityFor(method: String?): BackofficeCapability =
         if (method in READ_METHODS) BackofficeCapability.READ
         else BackofficeCapability.WRITE
+
+    internal fun publicRequestMatchers(): Array<String> = arrayOf(
+        "/",
+        "/assets/**",
+        "/backoffice/**",
+        "/public/**",
+        "/guest-access/**",
+        "/*.html",
+        "/icon.svg",
+        "/favicon.ico",
+        "/favicon.svg",
+        "/oauth2/**",
+        "/login/**",
+        "/auth/me",
+        "/auth/logout",
+        "/error",
+    )
 
     private companion object {
         val READ_METHODS = setOf(HttpMethod.GET.name(), HttpMethod.HEAD.name())
