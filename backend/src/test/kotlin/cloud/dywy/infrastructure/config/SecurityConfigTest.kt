@@ -41,6 +41,30 @@ class SecurityConfigTest {
     }
 
     @Test
+    fun `should allow the backoffice logo asset used by the unauthenticated shell`() {
+        val config = securityConfig(successRedirectUrl = "/backoffice")
+
+        assertThat(config.publicRequestMatchers().toList()).isEqualTo(
+            listOf(
+                "/",
+                "/assets/**",
+                "/backoffice/**",
+                "/public/**",
+                "/guest-access/**",
+                "/*.html",
+                "/icon.svg",
+                "/favicon.ico",
+                "/favicon.svg",
+                "/oauth2/**",
+                "/login/**",
+                "/auth/me",
+                "/auth/logout",
+                "/error",
+            )
+        )
+    }
+
+    @Test
     fun `should require read capability for safe methods`() {
         val config = securityConfig(successRedirectUrl = "/backoffice")
 
