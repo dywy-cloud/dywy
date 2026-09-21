@@ -53,6 +53,7 @@ class SecurityConfigTest {
                 "/guest-access/**",
                 "/*.html",
                 "/icon.svg",
+                "/dywy-icon.png",
                 "/favicon.ico",
                 "/favicon.svg",
                 "/oauth2/**",

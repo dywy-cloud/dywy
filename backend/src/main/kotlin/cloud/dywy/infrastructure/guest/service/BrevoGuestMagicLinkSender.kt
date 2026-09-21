@@ -33,6 +33,7 @@ class BrevoGuestMagicLinkSender(
     override fun send(guestMagicLink: GuestMagicLink, guest: Guest) {
         val baseUrl = guestAccessProperties.baseUrl.trim().removeSuffix("/")
         val magicLinkUrl = "$baseUrl${guestMagicLink.guestAccessPath()}"
+        val iconUrl = GuestMagicLinkEmailAssets.publicIconUrl(baseUrl)
 
         val request = BrevoSendEmailRequest(
             sender = BrevoContact(email = mailProperties.from, name = brevoProperties.senderName),
@@ -43,7 +44,7 @@ class BrevoGuestMagicLinkSender(
                 magicLinkUrl = magicLinkUrl,
                 language = guest.language,
                 coupleDisplayName = mailProperties.coupleDisplayName,
-                iconSrc = GuestMagicLinkEmailAssets.iconDataUri(),
+                iconSrc = iconUrl,
             ),
             textContent = guestMagicLinkEmailTemplate.textBody(guest.firstName, magicLinkUrl, guest.language),
         )

@@ -43,7 +43,7 @@ class SmtpGuestMagicLinkSender(
                 ),
             )
             addInline(
-                GuestMagicLinkEmailTemplate.ICON_CONTENT_ID,
+                GuestMagicLinkEmailAssets.ICON_CONTENT_ID,
                 GuestMagicLinkEmailAssets.iconResource(),
                 GuestMagicLinkEmailAssets.ICON_CONTENT_TYPE,
             )

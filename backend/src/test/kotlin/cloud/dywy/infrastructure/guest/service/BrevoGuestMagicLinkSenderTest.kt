@@ -3,6 +3,7 @@ package cloud.dywy.infrastructure.guest.service
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -52,9 +53,9 @@ class BrevoGuestMagicLinkSenderTest {
         assertThat(request.subject).contains("Votre invitation")
         assertThat(request.textContent).contains("Bonjour Jane")
         assertThat(request.htmlContent)
-            .contains("data:${GuestMagicLinkEmailAssets.ICON_CONTENT_TYPE};base64,")
-        assertThat(request.htmlContent)
-            .contains("data:${GuestMagicLinkEmailAssets.ICON_CONTENT_TYPE};base64,")
+            .contains("https://test.dywy.cloud${GuestMagicLinkEmailAssets.PUBLIC_ICON_PATH}")
+        assertThat(request.htmlContent.contains("data:")).isFalse()
+        assertThat(request.htmlContent.contains(".svg")).isFalse()
         assertThat(request.htmlContent)
             .contains("https://test.dywy.cloud/api/guest-access/magic-links/53c2efcd-b4fc-42f3-a73b-fadf3725af3f")
     }

@@ -2,11 +2,11 @@ package cloud.dywy.infrastructure.guest.service
 
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.ClassPathResource
-import java.util.Base64
 
 object GuestMagicLinkEmailAssets {
     const val ICON_CONTENT_ID = "dywy-icon.png"
     const val ICON_CONTENT_TYPE = "image/png"
+    const val PUBLIC_ICON_PATH = "/dywy-icon.png"
 
     private const val ICON_RESOURCE_PATH = "static/dywy-icon.png"
 
@@ -16,8 +16,6 @@ object GuestMagicLinkEmailAssets {
 
     fun iconResource() = ByteArrayResource(iconBytes)
 
-    fun iconBase64Content(): String = Base64.getEncoder().encodeToString(iconBytes)
-
-    fun iconDataUri(): String = "data:$ICON_CONTENT_TYPE;base64,${iconBase64Content()}"
+    fun publicIconUrl(baseUrl: String): String = "${baseUrl.trim().removeSuffix("/")}$PUBLIC_ICON_PATH"
 }
 
