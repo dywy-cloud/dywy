@@ -6,15 +6,13 @@ import org.springframework.stereotype.Component
 import org.springframework.web.util.HtmlUtils.htmlEscape
 import java.util.Locale
 
+private const val ICON_CID_SRC = "cid:${GuestMagicLinkEmailAssets.ICON_CONTENT_ID}"
+
 @Component
 class GuestMagicLinkEmailTemplate(
     private val messages: MessageSource,
 ) {
 
-    companion object {
-        const val ICON_CONTENT_ID = GuestMagicLinkEmailAssets.ICON_CONTENT_ID
-        const val ICON_CID_SRC = "cid:$ICON_CONTENT_ID"
-    }
 
     fun subject(language: Language, coupleDisplayName: String) =
         message("email.magic-link.subject", language.toLocale(), coupleDisplayName)

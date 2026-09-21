@@ -69,7 +69,7 @@ class SmtpGuestMagicLinkSenderTest {
             .contains("https://test.dywy.cloud/api/guest-access/magic-links/53c2efcd-b4fc-42f3-a73b-fadf3725af3f")
         assertThat(bodyContent)
             .contains("Accéder à mon invitation")
-        assertThat(findBodyPartByContentId(sentMessage, GuestMagicLinkEmailTemplate.ICON_CONTENT_ID)?.contentType.orEmpty())
+        assertThat(findBodyPartByContentId(sentMessage, GuestMagicLinkEmailAssets.ICON_CONTENT_ID)?.contentType.orEmpty())
             .contains(GuestMagicLinkEmailAssets.ICON_CONTENT_TYPE)
     }
 
