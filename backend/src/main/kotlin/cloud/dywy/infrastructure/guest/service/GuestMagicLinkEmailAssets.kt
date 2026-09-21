@@ -5,10 +5,10 @@ import org.springframework.core.io.ClassPathResource
 import java.util.Base64
 
 object GuestMagicLinkEmailAssets {
-    const val ICON_CONTENT_ID = "dywy-icon.svg"
-    const val ICON_CONTENT_TYPE = "image/svg+xml"
+    const val ICON_CONTENT_ID = "dywy-icon.png"
+    const val ICON_CONTENT_TYPE = "image/png"
 
-    private const val ICON_RESOURCE_PATH = "mail/dywy-icon.svg"
+    private const val ICON_RESOURCE_PATH = "static/dywy-icon.png"
 
     private val iconBytes: ByteArray by lazy {
         ClassPathResource(ICON_RESOURCE_PATH).inputStream.use { it.readBytes() }
