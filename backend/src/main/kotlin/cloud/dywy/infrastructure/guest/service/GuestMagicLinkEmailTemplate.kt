@@ -75,13 +75,12 @@ class GuestMagicLinkEmailTemplate(
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px;">
               <tr>
                 <td align="center">
-                  <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background:#ffffff;border-radius:10px;padding:24px;box-shadow:0 2px 8px rgba(55,71,79,0.1);">
+                  <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background:#ffffff;border-radius:10px;padding:16px 24px 24px;box-shadow:0 2px 8px rgba(55,71,79,0.1);">
                     <tr>
-                      <td align="center" style="padding-bottom:16px;">
-                        <img src="$iconSrc" alt="dywy" width="40" height="40" style="display:block;height:40px;width:40px;" />
+                      <td align="left" style="padding-bottom:8px;">
+                        <img src="$iconSrc" alt="dywy" width="40" height="40" style="display:block;height:40px;width:40px;border-radius:10px;" />
                       </td>
                     </tr>
-                    <tr><td style="height:8px;"></td></tr>
                     <tr>
                       <td style="border-top:1px solid #e79aae;"></td>
                     </tr>
