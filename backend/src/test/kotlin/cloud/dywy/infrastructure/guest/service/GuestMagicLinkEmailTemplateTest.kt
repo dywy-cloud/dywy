@@ -52,7 +52,9 @@ class GuestMagicLinkEmailTemplateTest {
             contains("Thecla &amp; Gr&eacute;gory")
             contains("Bonjour ${janeDoe.firstName}")
             contains("Accéder à mon invitation")
-            contains("cid:${GuestMagicLinkEmailAssets.ICON_CONTENT_ID}")
+            contains("<img src=\"cid:${GuestMagicLinkEmailAssets.ICON_CONTENT_ID}\" alt=\"dywy\" width=\"40\" height=\"40\" style=\"display:block;height:40px;width:40px;border-radius:10px;\" />")
+            contains("align=\"left\" style=\"padding-bottom:8px;\"")
+            contains("padding:16px 24px 24px")
             contains(magicLinkUrl)
         }
 
