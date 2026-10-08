@@ -9,8 +9,7 @@ import cloud.dywy.domain.guest.entity.GuestPage
 import cloud.dywy.domain.guest.entity.Language
 import cloud.dywy.domain.guest.repository.Guests
 import cloud.dywy.infrastructure.config.GuestProperties
-import cloud.dywy.infrastructure.invitation.repository.InvitationGuestTable
-import org.jetbrains.exposed.v1.core.JoinType
+import cloud.dywy.infrastructure.invitation.repository.guestIsNotAssigned
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.Op
@@ -101,7 +100,7 @@ class GuestExposedRepository(
 
     @Transactional(readOnly = true)
     override fun list(criteria: GuestListCriteria): GuestPage {
-        val totalItems = listQuery(criteria).applyFilters(criteria).count()
+        val totalItems = GuestTable.selectAll().applyFilters(criteria).count()
         val totalPages = if (totalItems == 0L) 0 else ((totalItems - 1) / criteria.size + 1).toInt()
         val offset = criteria.page.toLong() * criteria.size
 
@@ -129,21 +128,12 @@ class GuestExposedRepository(
     private fun selectGuests(
         criteria: GuestListCriteria,
         offset: Long
-    ): List<Guest> = listQuery(criteria)
+    ): List<Guest> = GuestTable.selectAll()
         .applyFilters(criteria)
         .orderBy(*listOrder)
         .limit(criteria.size)
         .offset(offset)
         .map { it.toGuest() }
-
-    private fun listQuery(criteria: GuestListCriteria): Query =
-        if (criteria.availability == GuestAvailability.UNASSIGNED) {
-            GuestTable
-                .join(InvitationGuestTable, JoinType.LEFT, GuestTable.id, InvitationGuestTable.guestId)
-                .selectAll()
-        } else {
-            GuestTable.selectAll()
-        }
 
     private fun Query.applyFilters(criteria: GuestListCriteria): Query {
         val statusCondition = buildStatusCondition(criteria.status)
@@ -167,7 +157,7 @@ class GuestExposedRepository(
     private fun buildAvailabilityCondition(availability: GuestAvailability): Op<Boolean>? =
         when (availability) {
             GuestAvailability.ALL -> null
-            GuestAvailability.UNASSIGNED -> InvitationGuestTable.guestId.isNull()
+            GuestAvailability.UNASSIGNED -> guestIsNotAssigned(GuestTable.id)
         }
 
     private fun buildSearchCondition(search: String?): Op<Boolean>? =

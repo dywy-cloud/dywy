@@ -17,6 +17,8 @@ object InvitationFixtures {
         updateDate = creationDate,
         label = "Bridesmaid",
         description = "Bridesmaid invitation",
+        postalAddress = PostalAddressFixtures.paris,
+        deliveryMethod = DeliveryMethod.POSTED,
         guests = setOf(GuestFixtures.janeDoe),
         accessToken = InvitationAccessToken("dca71c6f-4b29-43a0-80df-426786ca9075"),
     )
@@ -27,6 +29,8 @@ object InvitationFixtures {
         updateDate = creationDate,
         label = "Bestman",
         description = "Best man invitation",
+        postalAddress = PostalAddressFixtures.geneva,
+        deliveryMethod = DeliveryMethod.POSTED,
         guests = setOf(GuestFixtures.mickaelKael),
         accessToken = InvitationAccessToken("35cae9dd-4e1a-4a01-95c0-4c286cafc3e4"),
     )
@@ -37,6 +41,7 @@ object InvitationFixtures {
         updateDate = creationDate,
         label = "Bride Family",
         description = "Bride family invitation",
+        deliveryMethod = DeliveryMethod.HAND_DELIVERED,
         guests = setOf(GuestFixtures.johnDoe),
     )
 
@@ -46,13 +51,32 @@ object InvitationFixtures {
         updateDate = creationDate,
         label = "Friends",
         description = "Friends brunch invitation",
+        postalAddress = PostalAddressFixtures.montreal,
+        deliveryMethod = DeliveryMethod.POSTED,
         guests = setOf(GuestFixtures.emmaWilson, GuestFixtures.liamMiller),
     )
 
     val scienceConferenceInvitation = Invitation(
         label = "Science Conference",
         description = "Welcome to the conference",
+        postalAddress = PostalAddressFixtures.london,
+        deliveryMethod = DeliveryMethod.POSTED,
         guests = setOf(GuestFixtures.albertEinstein, GuestFixtures.marieCurie) // guest can be replaced in tests if needed
+    )
+
+    val communityDinnerInvitation = Invitation(
+        label = "Community Dinner",
+        description = "Invitation for our community dinner",
+        postalAddress = PostalAddressFixtures.kampala,
+        deliveryMethod = DeliveryMethod.POSTED,
+        guests = setOf(GuestFixtures.ryanEvans),
+    )
+
+    val handDeliveredInvitation = Invitation(
+        label = "Hand delivered",
+        description = "Invitation given by hand",
+        deliveryMethod = DeliveryMethod.HAND_DELIVERED,
+        guests = setOf(GuestFixtures.joyceClement),
     )
 
     val scienceConferenceInvitationUpdated = scienceConferenceInvitation.copy(

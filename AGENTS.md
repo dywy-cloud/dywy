@@ -22,10 +22,17 @@ And many other features to come
 4. Stage the affected files with `git add` after each change.
 5. Do not commit or push — leave that to the maintainer.
 6. If you are an automated agent, you must never run `git commit`, `git merge`, `git rebase`, or `git push` in this repository. Leave all changes as uncommitted working tree and/or staged changes for the maintainer to review.
+7. **Commit message format** (when asked to propose one): `<type>(#<issue>[, #<issue>]): <gitmoji> <short description>`, followed by a blank line and one GitHub closing line per issue (`Closes #<issue>`), with no other body. Example:
+   ```
+   feat(#233, #234): ✨ add postal address and delivery method stored in a jsonb invitation_data column
+
+   Closes #233
+   Closes #234
+   ```
 
 ## Craft principles
 - **KISS**: prefer the simplest implementation that satisfies the scope; avoid unnecessary abstraction, indirection, or overly clever code.
-- **YAGNI**: implement only what is required by the current issue scope; do not add speculative features, extension points, or premature generalization.
+- **YAGNI**: implement only what is required by the current issue scope; do not add speculative features, extension points, or premature generalization.- **No comments**: do not add code comments or KDoc/JSDoc; make the code self-explanatory through naming and structure. Only add a comment when explicitly asked or when a non-obvious constraint cannot be expressed in code.
 
 ## Testing
 - Backend: 
@@ -33,6 +40,7 @@ And many other features to come
   - Integration tests: `./gradlew integrationTest`
   - Full verification: `./gradlew check`
 - Frontend: `pnpm run test` (watch mode: `pnpm run test:watch`, coverage: `pnpm run test:coverage`)
+- Backend test method names always start with `should` and describe the expected behavior; never repeat the name of the tested function/class (e.g. `should add the error for blank values`, not `addIfBlank should add the error for blank values`).
 
 ## Versioning
 For every issue, bump and keep aligned both application versions:
