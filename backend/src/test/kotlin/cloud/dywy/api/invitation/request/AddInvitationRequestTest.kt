@@ -7,6 +7,8 @@ import assertk.assertions.isNotEmpty
 import assertk.assertions.isNull
 import jakarta.validation.Validation
 import jakarta.validation.Validator
+import cloud.dywy.domain.invitation.entity.DeliveryMethod
+import cloud.dywy.domain.invitation.entity.PostalAddressFixtures
 import cloud.dywy.api.invitation.request.AddInvitationRequestFixtures.blankLabel
 import cloud.dywy.api.invitation.request.AddInvitationRequestFixtures.malformedGuestId
 import cloud.dywy.api.invitation.request.AddInvitationRequestFixtures.mixedGuestsWithWhitespace
@@ -58,5 +60,47 @@ class AddInvitationRequestTest {
         val command = noGuest.toCommandOrNull()
 
         assertThat(command).isEqualTo(noGuestCommand)
+    }
+
+    @Test
+    fun `should keep delivery method when mapping request to command`() {
+        val request = AddInvitationRequest(
+            label = "Mixed guests",
+            description = "Mixed guests invitation",
+            deliveryMethod = DeliveryMethod.POSTED,
+            guestIds = listOf(mixedGuestsWithWhitespace.guestIds.first())
+        )
+
+        val command = request.toCommandOrNull()
+
+        assertThat(command?.deliveryMethod).isEqualTo(DeliveryMethod.POSTED)
+    }
+
+    @Test
+    fun `should keep postal address when mapping request to command`() {
+        val request = AddInvitationRequest(
+            label = "Mixed guests",
+            description = "Mixed guests invitation",
+            postalAddress = PostalAddressFixtures.paris,
+            deliveryMethod = DeliveryMethod.POSTED,
+            guestIds = listOf(mixedGuestsWithWhitespace.guestIds.first())
+        )
+
+        assertThat(request.toCommandOrNull()?.postalAddress).isEqualTo(PostalAddressFixtures.paris)
+    }
+
+    @Test
+    fun `should map posted request without postal address and leave validation to application`() {
+        val request = AddInvitationRequest(
+            label = "Mixed guests",
+            description = "Mixed guests invitation",
+            deliveryMethod = DeliveryMethod.POSTED,
+            guestIds = listOf(mixedGuestsWithWhitespace.guestIds.first())
+        )
+
+        val command = request.toCommandOrNull()
+
+        assertThat(command?.postalAddress).isNull()
+        assertThat(command?.isMissingPostalAddress()).isEqualTo(true)
     }
 }

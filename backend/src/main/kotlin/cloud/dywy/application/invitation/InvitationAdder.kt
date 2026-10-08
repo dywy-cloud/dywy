@@ -15,7 +15,8 @@ class InvitationAdder(
 ) {
 
     fun add(command: AddInvitationCommand): AddInvitationResult =
-        command.guestIds
+        if (command.isMissingPostalAddress()) AddInvitationResult.MissingPostalAddress
+        else command.guestIds
             .takeIf { it.isNotEmpty() }
             ?.let(guests::findByIds)
             ?.let { activeGuests ->

@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import cloud.dywy.api.invitation.response.InvitationResponseFixtures.brideFamilyPublic
 import cloud.dywy.api.invitation.response.InvitationResponseFixtures.friendsPublic
+import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
 import kotlin.test.Test
@@ -22,6 +23,13 @@ class PublicInvitationResponseTest {
         val response = friendsInvitation.toPublicResponse()
 
         assertThat(response).isEqualTo(friendsPublic)
+    }
+
+    @Test
+    fun `should map delivery method when invitation is handed over`() {
+        val response = friendsInvitation.copy(deliveryMethod = DeliveryMethod.HAND_DELIVERED).toPublicResponse()
+
+        assertThat(response.deliveryMethod).isEqualTo(DeliveryMethod.HAND_DELIVERED)
     }
 }
 

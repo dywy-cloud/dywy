@@ -12,7 +12,9 @@ import cloud.dywy.application.invitation.command.AddInvitationCommandFixtures.no
 import cloud.dywy.application.invitation.result.AddInvitationResult
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
 import cloud.dywy.domain.guest.repository.Guests
+import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
+import cloud.dywy.domain.invitation.entity.PostalAddressFixtures
 import cloud.dywy.domain.invitation.repository.Invitations
 import org.springframework.dao.DataIntegrityViolationException
 import kotlin.test.BeforeTest
@@ -70,6 +72,25 @@ class InvitationAdderTest {
         every { guests.findByIds(missingGuests.guestIds) } returns emptySet()
 
         assertThat(invitationAdder.add(missingGuests)).isEqualTo(AddInvitationResult.InvalidGuests(missingGuests.guestIds))
+    }
+
+    @Test
+    fun `should return missing postal address when invitation is posted without postal address`() {
+        val command = brideFamily.copy(deliveryMethod = DeliveryMethod.POSTED, postalAddress = null)
+
+        assertThat(invitationAdder.add(command)).isEqualTo(AddInvitationResult.MissingPostalAddress)
+        verify { guests wasNot Called }
+        verify { invitations wasNot Called }
+    }
+
+    @Test
+    fun `should add posted invitation when postal address is provided`() {
+        val command = brideFamily.copy(deliveryMethod = DeliveryMethod.POSTED, postalAddress = PostalAddressFixtures.paris)
+        every { guests.findByIds(command.guestIds) } returns setOf(johnDoe)
+        every { invitations.findAssignedGuestIds(command.guestIds) } returns emptySet()
+        every { invitations.add(any()) } returns brideFamilyInvitation
+
+        assertThat(invitationAdder.add(command)).isEqualTo(AddInvitationResult.Added(brideFamilyInvitation))
     }
 
     @Test

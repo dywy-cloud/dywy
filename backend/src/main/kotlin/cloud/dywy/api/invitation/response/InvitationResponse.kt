@@ -1,5 +1,6 @@
 package cloud.dywy.api.invitation.response
 
+import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.Invitation
 
 data class InvitationResponse(
@@ -10,6 +11,7 @@ data class InvitationResponse(
     val updateDate: String,
     val label: String,
     val description: String,
+    val deliveryMethod: DeliveryMethod? = null,
     val guests: List<InvitationGuestResponse>,
     val guestCount: Int,
 )
@@ -22,6 +24,7 @@ internal fun Invitation.toResponse() = InvitationResponse(
     updateDate = updateDate.toString(),
     label = label,
     description = description,
+    deliveryMethod = deliveryMethod,
     guests = guests
         .sortedBy { it.id.toString() }
         .map {

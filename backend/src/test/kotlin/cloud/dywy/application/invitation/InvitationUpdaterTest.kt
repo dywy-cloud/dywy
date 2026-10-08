@@ -2,10 +2,6 @@ package cloud.dywy.application.invitation
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import io.mockk.Called
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
 import cloud.dywy.application.invitation.command.UpdateInvitationCommandFixtures.brideFamily
 import cloud.dywy.application.invitation.command.UpdateInvitationCommandFixtures.missingGuests
 import cloud.dywy.application.invitation.command.UpdateInvitationCommandFixtures.mixedGuests
@@ -14,9 +10,14 @@ import cloud.dywy.application.invitation.result.UpdateInvitationResult
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
 import cloud.dywy.domain.guest.repository.Guests
+import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
 import cloud.dywy.domain.invitation.repository.Invitations
+import io.mockk.Called
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import org.springframework.dao.DataIntegrityViolationException
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -103,6 +104,16 @@ class InvitationUpdaterTest {
         every { guests.findByIds(missingGuests.guestIds) } returns emptySet()
 
         assertThat(invitationUpdater.update(missingGuests)).isEqualTo(UpdateInvitationResult.InvalidGuests(missingGuests.guestIds))
+    }
+
+    @Test
+    fun `should return missing postal address when invitation is posted without postal address`() {
+        val command = brideFamily.copy(deliveryMethod = DeliveryMethod.POSTED, postalAddress = null)
+        every { invitations.findById(command.id) } returns brideFamilyInvitation
+
+        assertThat(invitationUpdater.update(command)).isEqualTo(UpdateInvitationResult.MissingPostalAddress)
+        verify { guests wasNot Called }
+        verify(exactly = 0) { invitations.update(any()) }
     }
 
     @Test

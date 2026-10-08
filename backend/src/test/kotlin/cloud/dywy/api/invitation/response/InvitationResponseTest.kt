@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import cloud.dywy.api.invitation.response.InvitationResponseFixtures.brideFamily
 import cloud.dywy.api.invitation.response.InvitationResponseFixtures.friends
+import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
 import kotlin.test.Test
@@ -22,6 +23,13 @@ class InvitationResponseTest {
         val response = friendsInvitation.toResponse()
 
         assertThat(response).isEqualTo(friends)
+    }
+
+    @Test
+    fun `should map delivery method when invitation is posted`() {
+        val response = friendsInvitation.copy(deliveryMethod = DeliveryMethod.POSTED).toResponse()
+
+        assertThat(response.deliveryMethod).isEqualTo(DeliveryMethod.POSTED)
     }
 }
 
