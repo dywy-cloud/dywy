@@ -8,6 +8,7 @@ import cloud.dywy.api.invitation.request.UpdateInvitationRequest
 import cloud.dywy.api.invitation.response.AlreadyAssignedInvitationGuestsResponse
 import cloud.dywy.api.invitation.response.InvalidInvitationGuestsResponse
 import cloud.dywy.api.invitation.response.MissingInvitationGuestsResponse
+import cloud.dywy.api.invitation.response.MissingPostalAddressResponse
 import cloud.dywy.api.invitation.response.toResponse
 import cloud.dywy.application.invitation.InvitationAdder
 import cloud.dywy.application.invitation.InvitationGetter
@@ -51,6 +52,10 @@ class InvitationEndpoint(
                             MissingInvitationGuestsResponse(message = "At least one guest is required.")
                         )
 
+                        is AddInvitationResult.MissingPostalAddress -> ServerResponse.badRequest().body(
+                            MissingPostalAddressResponse(message = POSTAL_ADDRESS_REQUIRED_MESSAGE)
+                        )
+
                         is AddInvitationResult.InvalidGuests -> ServerResponse.badRequest().body(
                             InvalidInvitationGuestsResponse(
                                 message = "Some guests were not found or are archived.",
@@ -90,6 +95,10 @@ class InvitationEndpoint(
                                 MissingInvitationGuestsResponse(message = "At least one guest is required.")
                             )
 
+                            is UpdateInvitationResult.MissingPostalAddress -> ServerResponse.badRequest().body(
+                                MissingPostalAddressResponse(message = POSTAL_ADDRESS_REQUIRED_MESSAGE)
+                            )
+
                             is UpdateInvitationResult.InvalidGuests -> ServerResponse.badRequest().body(
                                 InvalidInvitationGuestsResponse(
                                     message = "Some guests were not found or are archived.",
@@ -108,4 +117,8 @@ class InvitationEndpoint(
                     } ?: ServerResponse.badRequest().build()
             }
         } ?: ServerResponse.badRequest().build()
+
+    private companion object {
+        const val POSTAL_ADDRESS_REQUIRED_MESSAGE = "A postal address is required when the invitation is posted."
+    }
 }

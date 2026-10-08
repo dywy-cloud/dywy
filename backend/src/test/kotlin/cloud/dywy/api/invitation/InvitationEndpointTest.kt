@@ -14,6 +14,7 @@ import cloud.dywy.application.invitation.InvitationLister
 import cloud.dywy.application.invitation.InvitationUpdater
 import cloud.dywy.application.invitation.result.UpdateInvitationResult
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
+import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationId
 import cloud.dywy.domain.invitation.entity.InvitationListCriteria
@@ -166,6 +167,34 @@ class InvitationEndpointTest {
         )
 
         assertThat(invitationEndpoint.addInvitation(request).statusCode()).isEqualTo(HttpStatus.CONFLICT)
+    }
+
+    @Test
+    fun `should return bad request when invitation is posted without postal address`() {
+        val request = mockk<ServerRequest>()
+        val payload = AddInvitationRequest(
+            label = brideFamilyInvitation.label,
+            description = brideFamilyInvitation.description,
+            deliveryMethod = DeliveryMethod.POSTED,
+            guestIds = invitationGuestIds,
+        )
+
+        every { request.body(AddInvitationRequest::class.java) } returns payload
+        every { invitationAdder.add(payload.toCommandOrNull()!!) } returns AddInvitationResult.MissingPostalAddress
+
+        assertThat(invitationEndpoint.addInvitation(request).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+    }
+
+    @Test
+    fun `should return bad request when updated invitation is posted without postal address`() {
+        val request = mockk<ServerRequest>()
+        val invitationId = brideFamilyInvitation.id
+        val payload = updateInvitationRequest().copy(deliveryMethod = DeliveryMethod.POSTED)
+
+        mockUpdateRequest(request, invitationId, payload)
+        every { invitationUpdater.update(payload.toCommandOrNull(invitationId)!!) } returns UpdateInvitationResult.MissingPostalAddress
+
+        assertThat(invitationEndpoint.updateInvitation(request).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test

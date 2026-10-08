@@ -7,6 +7,8 @@ import assertk.assertions.isNotEmpty
 import assertk.assertions.isNull
 import jakarta.validation.Validation
 import jakarta.validation.Validator
+import cloud.dywy.domain.invitation.entity.DeliveryMethod
+import cloud.dywy.domain.invitation.entity.PostalAddressFixtures
 import cloud.dywy.api.invitation.request.UpdateInvitationRequestFixtures.blankLabel
 import cloud.dywy.api.invitation.request.UpdateInvitationRequestFixtures.malformedGuestId
 import cloud.dywy.api.invitation.request.UpdateInvitationRequestFixtures.mixedGuestsWithWhitespace
@@ -73,5 +75,51 @@ class UpdateInvitationRequestTest {
         val command = noGuest.toCommandOrNull(brideFamilyInvitation.id)
 
         assertThat(command).isEqualTo(noGuestCommand)
+    }
+
+    @Test
+    fun `should keep delivery method when mapping request to command`() {
+        val request = UpdateInvitationRequest(
+            version = brideFamilyInvitation.version,
+            label = "Mixed guests",
+            description = "Mixed guests invitation",
+            deliveryMethod = DeliveryMethod.HAND_DELIVERED,
+            guestIds = listOf(mixedGuestsWithWhitespace.guestIds.first())
+        )
+
+        val command = request.toCommandOrNull(brideFamilyInvitation.id)
+
+        assertThat(command?.deliveryMethod).isEqualTo(DeliveryMethod.HAND_DELIVERED)
+    }
+
+    @Test
+    fun `should keep postal address when mapping request to command`() {
+        val request = UpdateInvitationRequest(
+            version = brideFamilyInvitation.version,
+            label = "Mixed guests",
+            description = "Mixed guests invitation",
+            postalAddress = PostalAddressFixtures.paris,
+            deliveryMethod = DeliveryMethod.POSTED,
+            guestIds = listOf(mixedGuestsWithWhitespace.guestIds.first())
+        )
+
+        assertThat(request.toCommandOrNull(brideFamilyInvitation.id)?.postalAddress)
+            .isEqualTo(PostalAddressFixtures.paris)
+    }
+
+    @Test
+    fun `should map posted request without postal address and leave validation to application`() {
+        val request = UpdateInvitationRequest(
+            version = brideFamilyInvitation.version,
+            label = "Mixed guests",
+            description = "Mixed guests invitation",
+            deliveryMethod = DeliveryMethod.POSTED,
+            guestIds = listOf(mixedGuestsWithWhitespace.guestIds.first())
+        )
+
+        val command = request.toCommandOrNull(brideFamilyInvitation.id)
+
+        assertThat(command?.postalAddress).isNull()
+        assertThat(command?.isMissingPostalAddress(brideFamilyInvitation)).isEqualTo(true)
     }
 }

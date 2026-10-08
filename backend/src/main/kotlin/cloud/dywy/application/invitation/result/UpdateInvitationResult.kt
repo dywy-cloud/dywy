@@ -8,6 +8,7 @@ sealed interface UpdateInvitationResult {
     data object NotFound : UpdateInvitationResult
     data object VersionConflict : UpdateInvitationResult
     data object MissingGuests : UpdateInvitationResult
+    data object MissingPostalAddress : UpdateInvitationResult
     data class InvalidGuests(val guestIds: Set<GuestId>) : UpdateInvitationResult
     data class AlreadyAssignedGuests(val guestIds: Set<GuestId>) : UpdateInvitationResult
 }

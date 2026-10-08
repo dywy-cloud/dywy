@@ -22,6 +22,7 @@ class InvitationUpdater(
                 ?.let { existingInvitation ->
                     when {
                         existingInvitation.version != version -> UpdateInvitationResult.VersionConflict
+                        isMissingPostalAddress(existingInvitation) -> UpdateInvitationResult.MissingPostalAddress
                         guestIds.isEmpty() -> UpdateInvitationResult.MissingGuests
                         else -> guests.findByIds(guestIds)
                             .let { activeGuests ->
