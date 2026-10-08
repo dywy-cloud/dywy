@@ -11,10 +11,12 @@ import cloud.dywy.domain.invitation.entity.InvitationPage
 import cloud.dywy.domain.invitation.repository.Invitations
 import cloud.dywy.infrastructure.config.GuestProperties
 import cloud.dywy.infrastructure.guest.repository.GuestTable
-import org.jetbrains.exposed.v1.core.*
-import org.jetbrains.exposed.v1.jdbc.batchInsert
-import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.stereotype.Repository
@@ -26,57 +28,35 @@ class InvitationsExposedRepository(
     private val guestProperties: GuestProperties,
 ) : Invitations {
 
-    private val listOrder =
-        arrayOf(InvitationTable.id to SortOrder.ASC)
+    private val listOrder = arrayOf(InvitationTable.id to SortOrder.ASC)
 
     @Transactional
-    override fun add(invitation: Invitation): Invitation {
-        InvitationTable.insert {
-            it[id] = invitation.id.value
-            it[version] = invitation.version
-            it[creationDate] = invitation.creationDate
-            it[updateDate] = invitation.updateDate
-            it[label] = invitation.label
-            it[description] = invitation.description
-            it[accessToken] = invitation.accessToken.value
+    override fun add(invitation: Invitation): Invitation =
+        invitation.also {
+            InvitationTable.insert {
+                it[id] = invitation.id.value
+                it[version] = invitation.version
+                it[creationDate] = invitation.creationDate
+                it[updateDate] = invitation.updateDate
+                it[invitationData] = invitation.toData().toJson()
+            }
         }
-
-        InvitationGuestTable.batchInsert(invitation.guests) { guest ->
-            this[InvitationGuestTable.invitationId] = invitation.id.value
-            this[InvitationGuestTable.guestId] = guest.id.value
-        }
-
-        return invitation
-    }
 
     @Transactional
-    override fun update(invitation: Invitation): Invitation? {
-        val updatedRows = InvitationTable.update({ InvitationTable.id eq invitation.id.value }) {
+    override fun update(invitation: Invitation): Invitation? =
+        InvitationTable.update({ InvitationTable.id eq invitation.id.value }) {
             it[version] = invitation.version
             it[updateDate] = invitation.updateDate
-            it[label] = invitation.label
-            it[description] = invitation.description
-        }
-
-        if (updatedRows == 0) {
-            return null
-        }
-
-        InvitationGuestTable.deleteWhere { invitationId eq invitation.id.value }
-        InvitationGuestTable.batchInsert(invitation.guests) { guest ->
-            this[InvitationGuestTable.invitationId] = invitation.id.value
-            this[InvitationGuestTable.guestId] = guest.id.value
-        }
-
-        return invitation
-    }
+            it[invitationData] = invitation.toData().toJson()
+        }.let { if (it == 0) null else invitation }
 
     @Transactional(readOnly = true)
     override fun findById(id: InvitationId): Invitation? =
         InvitationTable.selectAll()
             .where { InvitationTable.id eq id.value }
+            .toList()
+            .toInvitations()
             .firstOrNull()
-            ?.toInvitation(fetchGuestsByInvitationIds(setOf(id.value))[id.value].orEmpty())
 
     @Transactional(readOnly = true)
     override fun list(criteria: InvitationListCriteria): InvitationPage {
@@ -84,17 +64,15 @@ class InvitationsExposedRepository(
         val totalPages = if (totalItems == 0L) 0 else ((totalItems - 1) / criteria.size + 1).toInt()
         val offset = criteria.page.toLong() * criteria.size
 
-        val rows = InvitationTable.selectAll()
+        val items = InvitationTable.selectAll()
             .orderBy(*listOrder)
             .limit(criteria.size)
             .offset(offset)
             .toList()
-
-        val invitationIds = rows.map { it[InvitationTable.id] }.toSet()
-        val guestsByInvitation = fetchGuestsByInvitationIds(invitationIds)
+            .toInvitations()
 
         return InvitationPage(
-            items = rows.map { row -> row.toInvitation(guestsByInvitation[row[InvitationTable.id]].orEmpty()) },
+            items = items,
             page = criteria.page,
             size = criteria.size,
             totalItems = totalItems,
@@ -105,34 +83,46 @@ class InvitationsExposedRepository(
     @Transactional(readOnly = true)
     override fun findAssignedGuestIds(guestIds: Set<GuestId>): Set<GuestId> =
         if (guestIds.isEmpty()) emptySet()
-        else InvitationGuestTable.selectAll()
-            .where { InvitationGuestTable.guestId inList guestIds.map(GuestId::value) }
-            .map { GuestId(it[InvitationGuestTable.guestId]) }
-            .toSet()
-
+        else {
+            val requested = guestIds.map { it.value.toString() }.toSet()
+            InvitationTable.select(InvitationTable.id, InvitationTable.invitationData)
+                .where { guestIdsOverlap(requested) }
+                .flatMap { row -> row.data().guestIds }
+                .filter { it in requested }
+                .map { GuestId(Uuid.parse(it)) }
+                .toSet()
+        }
 
     @Transactional(readOnly = true)
     override fun findInvitationByAccessToken(token: InvitationAccessToken): Invitation? =
         InvitationTable.selectAll()
-            .where { InvitationTable.accessToken eq token.value }
+            .where { accessTokenEquals(token.value) }
+            .toList()
+            .toInvitations()
             .firstOrNull()
-            ?.let { row ->
-                row[InvitationTable.id]
-                    .let { invitationId ->
-                        row.toInvitation(fetchGuestsByInvitationIds(setOf(invitationId))[invitationId].orEmpty())
-                    }
-            }
 
-    private fun fetchGuestsByInvitationIds(invitationIds: Set<Uuid>) =
-        if (invitationIds.isEmpty()) {
+    private fun List<ResultRow>.toInvitations(): List<Invitation> {
+        val rows = map { row -> row to row.data() }
+        val guestIds = rows.flatMap { (row, data) -> data.parsedGuestIds(row.invitationId()) }.toSet()
+        val guestsById = fetchGuestsByIds(guestIds)
+        return rows.map { (row, data) -> row.toInvitation(data, guestsById) }
+    }
+
+    private fun ResultRow.invitationId() = InvitationId(this[InvitationTable.id])
+
+    private fun ResultRow.data(): InvitationData =
+        parseInvitationData(invitationId(), this[InvitationTable.invitationData])
+
+    private fun fetchGuestsByIds(guestIds: Set<Uuid>) =
+        if (guestIds.isEmpty()) {
             emptyMap()
         } else {
-            InvitationGuestTable
-                .join(GuestTable, JoinType.INNER, InvitationGuestTable.guestId, GuestTable.id)
+            GuestTable
                 .selectAll()
-                .where { InvitationGuestTable.invitationId inList invitationIds }
-                .groupBy({ it[InvitationGuestTable.invitationId] }) { row ->
-                    Guest(
+                .where { GuestTable.id inList guestIds }
+                .toList()
+                .associate { row ->
+                    row[GuestTable.id] to Guest(
                         id = GuestId(row[GuestTable.id]),
                         version = row[GuestTable.version],
                         creationDate = row[GuestTable.creationDate],
@@ -144,18 +134,15 @@ class InvitationsExposedRepository(
                         language = Language.fromNullable(row[GuestTable.language], guestProperties.defaultLanguage),
                     )
                 }
-                .mapValues { (_, guests) -> guests.toSet() }
         }
 
-    private fun ResultRow.toInvitation(guests: Set<Guest>) = Invitation(
-        id = InvitationId(this[InvitationTable.id]),
-        version = this[InvitationTable.version],
-        creationDate = this[InvitationTable.creationDate],
-        updateDate = this[InvitationTable.updateDate],
-        label = this[InvitationTable.label],
-        description = this[InvitationTable.description],
-        guests = guests,
-        accessToken = InvitationAccessToken(this[InvitationTable.accessToken]),
-    )
+    private fun ResultRow.toInvitation(data: InvitationData, guestsById: Map<Uuid, Guest>) =
+        data.toInvitation(
+            id = InvitationId(this[InvitationTable.id]),
+            version = this[InvitationTable.version],
+            creationDate = this[InvitationTable.creationDate],
+            updateDate = this[InvitationTable.updateDate],
+            guestsById = guestsById,
+        )
 }
 

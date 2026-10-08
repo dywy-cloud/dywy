@@ -15,7 +15,7 @@ plugins {
 
 
 group = "cloud.dywy"
-version = "0.0.67"
+version = "0.0.69"
 
 java {
     toolchain {
@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.uuid.creator)
     implementation(libs.kotlin.logging.jvm)
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("tools.jackson.module:jackson-module-kotlin")
 
     runtimeOnly("org.postgresql:postgresql")
 
