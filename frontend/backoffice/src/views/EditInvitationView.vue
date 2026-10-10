@@ -18,31 +18,37 @@
     </div>
 
     <form v-else class="space-y-5" @submit.prevent="handleSubmit">
-      <div>
-        <label class="form-label" for="invitation-label">Label</label>
-        <input
-          id="invitation-label"
-          v-model="label"
-          class="form-input"
-          data-test="invitation-label-input"
-          required
-          type="text"
-        >
-      </div>
+      <fieldset class="space-y-4 rounded-xl border border-secondary/30 bg-white p-4 shadow-sm" data-test="invitation-details-section">
+        <legend class="px-2 text-base font-medium text-text">Invitation</legend>
 
-      <div>
-        <label class="form-label" for="invitation-description">Description</label>
-        <textarea
-          id="invitation-description"
-          v-model="description"
-          class="form-input min-h-24"
-          data-test="invitation-description-input"
-        />
-      </div>
+        <div>
+          <label class="form-label" for="invitation-label">Label</label>
+          <input
+            id="invitation-label"
+            v-model="label"
+            class="form-input"
+            data-test="invitation-label-input"
+            required
+            type="text"
+          >
+        </div>
 
-      <div class="rounded-xl border border-secondary/30 bg-white p-4 shadow-sm">
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <h3 class="text-base font-medium text-text">Guests</h3>
+        <div>
+          <label class="form-label" for="invitation-description">Description</label>
+          <textarea
+            id="invitation-description"
+            v-model="description"
+            class="form-input min-h-24"
+            data-test="invitation-description-input"
+          />
+        </div>
+      </fieldset>
+
+      <InvitationDeliveryFields v-model:delivery-method="deliveryMethod" v-model:postal-address="postalAddress" />
+
+      <fieldset class="rounded-xl border border-secondary/30 bg-white p-4 shadow-sm" data-test="guests-section">
+        <legend class="px-2 text-base font-medium text-text">Guests</legend>
+        <div class="mb-3 flex items-center justify-end gap-3">
           <input
             id="guest-search"
             v-model="searchQuery"
@@ -102,7 +108,7 @@
             Loading more guests...
           </p>
         </div>
-      </div>
+      </fieldset>
 
       <p v-if="displayedValidationError" class="text-sm text-red-700" data-test="invitation-validation-error">
         {{ displayedValidationError }}
@@ -136,10 +142,12 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import BaseButton from '../components/ui/BaseButton.vue';
+import InvitationDeliveryFields from '../components/InvitationDeliveryFields.vue';
 import addGuestIcon from '../assets/icons/add-guest.svg';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { listGuests, type GuestResponse } from '../services/guestApi';
 import { getInvitationById, updateInvitation, type InvitationGuestResponse } from '../services/invitationApi';
+import { useInvitationDelivery } from '../composables/useInvitationDelivery';
 
 const router = useRouter();
 const route = useRoute();
@@ -149,6 +157,14 @@ const invitationId = computed(() => String(route.params.id ?? ''));
 const invitationVersion = ref<number>(0);
 const initialLabel = ref('');
 const initialDescription = ref('');
+const initialDelivery = ref('');
+const {
+  deliveryMethod,
+  postalAddress,
+  validationError: deliveryValidationError,
+  payload: deliveryPayload,
+  loadFrom: loadDeliveryFrom
+} = useInvitationDelivery();
 const initialGuestIds = ref<string[]>([]);
 const guests = ref<GuestResponse[]>([]);
 const invitationGuests = ref<InvitationGuestResponse[]>([]);
@@ -191,15 +207,22 @@ const hasGuestSelectionChanged = computed(() => {
   return currentGuestIds.some((guestId, index) => guestId !== initialIds[index]);
 });
 
+const serializeDelivery = () => JSON.stringify(deliveryPayload.value);
+
 const hasFormChanged = computed(() => {
   return normalizedLabel.value !== initialLabel.value
     || normalizedDescription.value !== initialDescription.value
+    || serializeDelivery() !== initialDelivery.value
     || hasGuestSelectionChanged.value;
 });
 
 const currentValidationError = computed(() => {
   if (normalizedLabel.value.length === 0) {
     return 'Label is required.';
+  }
+
+  if (deliveryValidationError.value) {
+    return deliveryValidationError.value;
   }
 
   if (selectedGuestIds.value.length === 0) {
@@ -272,6 +295,8 @@ const loadInvitation = async () => {
     description.value = invitation.description;
     initialLabel.value = invitation.label.trim();
     initialDescription.value = invitation.description.trim();
+    loadDeliveryFrom(invitation);
+    initialDelivery.value = serializeDelivery();
     invitationGuests.value = invitation.guests;
     selectedGuestIds.value = invitation.guests.map((guest) => guest.id);
     initialGuestIds.value = invitation.guests.map((guest) => guest.id);
@@ -413,6 +438,7 @@ const handleSubmit = async () => {
       version: invitationVersion.value,
       label: normalizedLabel.value,
       description: normalizedDescription.value,
+      ...deliveryPayload.value,
       guestIds: selectedGuestIds.value
     });
 

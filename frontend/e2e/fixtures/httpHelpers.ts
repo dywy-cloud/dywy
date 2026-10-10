@@ -1,4 +1,4 @@
-import type { Route } from '@playwright/test';
+import type { Page, Route } from '@playwright/test';
 
 export const fulfillJson = async (
   route: Route,
@@ -14,3 +14,8 @@ export const fulfillJson = async (
   });
 };
 
+export const mockEmptyGuestList = async (page: Page) => {
+  await page.route('**/api/guests*', async (route) => {
+    await fulfillJson(route, { items: [], page: 0, size: 20, totalItems: 0, totalPages: 0 });
+  });
+};

@@ -4,6 +4,8 @@ import { defineComponent } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import EditInvitationView from './EditInvitationView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
+import { createGuestPage } from '../testFixtures/guestFixtures';
+import { createInvitationResponse } from '../testFixtures/invitationFixtures';
 
 const listGuestsMock = vi.hoisted(() => vi.fn());
 const getInvitationByIdMock = vi.hoisted(() => vi.fn());
@@ -251,10 +253,36 @@ describe('EditInvitationView', () => {
       version: 1,
       label: 'Family table updated',
       description: 'Updated family table',
+      deliveryMethod: 'HAND_DELIVERED',
       guestIds: ['guest-1']
     });
     expect(router.currentRoute.value.name).toBe(BACKOFFICE_ROUTE_NAMES.invitationDetails);
     expect(router.currentRoute.value.params.id).toBe('inv-1');
+  });
+
+  it('allows switching a posted invitation to hand delivered', async () => {
+    getInvitationByIdMock.mockResolvedValue(createInvitationResponse({
+      deliveryMethod: 'POSTED',
+      postalAddress: { line1: '1 rue de la Paix', locality: 'Paris', countryCode: 'FR' }
+    }));
+    listGuestsMock.mockResolvedValue(createGuestPage());
+    updateInvitationMock.mockResolvedValue({ id: 'inv-1' });
+
+    const { wrapper } = await mountView();
+
+    expect(wrapper.get('[data-test="delivery-method-switch"]').attributes('aria-checked')).toBe('true');
+    expect((wrapper.get('[data-test="postal-address-line1-input"]').element as HTMLInputElement).value)
+      .toBe('1 rue de la Paix');
+
+    await wrapper.get('[data-test="delivery-method-switch"]').trigger('click');
+
+    expect(wrapper.find('[data-test="postal-address-fieldset"]').exists()).toBe(false);
+
+    await wrapper.get('form').trigger('submit.prevent');
+    await flushPromises();
+
+    expect(updateInvitationMock.mock.calls[0]?.[1].deliveryMethod).toBe('HAND_DELIVERED');
+    expect(updateInvitationMock.mock.calls[0]?.[1].postalAddress).toBeUndefined();
   });
 
   it('shows loading state while fetching invitation data', async () => {
@@ -865,6 +893,7 @@ describe('EditInvitationView', () => {
       version: 1,
       label: 'Family table updated',
       description: 'Updated family table',
+      deliveryMethod: 'HAND_DELIVERED',
       guestIds: ['guest-1']
     });
   });

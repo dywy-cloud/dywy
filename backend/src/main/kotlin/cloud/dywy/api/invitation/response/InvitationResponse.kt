@@ -2,6 +2,7 @@ package cloud.dywy.api.invitation.response
 
 import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.Invitation
+import cloud.dywy.domain.invitation.entity.PostalAddress
 
 data class InvitationResponse(
     val id: String,
@@ -11,6 +12,7 @@ data class InvitationResponse(
     val updateDate: String,
     val label: String,
     val description: String,
+    val postalAddress: PostalAddress? = null,
     val deliveryMethod: DeliveryMethod? = null,
     val guests: List<InvitationGuestResponse>,
     val guestCount: Int,
@@ -24,6 +26,7 @@ internal fun Invitation.toResponse() = InvitationResponse(
     updateDate = updateDate.toString(),
     label = label,
     description = description,
+    postalAddress = postalAddress,
     deliveryMethod = deliveryMethod,
     guests = guests
         .sortedBy { it.id.toString() }

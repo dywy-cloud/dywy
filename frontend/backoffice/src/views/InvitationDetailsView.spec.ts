@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import InvitationDetailsView from './InvitationDetailsView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { applyCapabilities, resetCapabilities } from '../composables/useCapabilities';
+import { createInvitationResponse } from '../testFixtures/invitationFixtures';
 
 const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -151,6 +152,37 @@ describe('InvitationDetailsView', () => {
     expect(wrapper.findAll('[data-test="invitation-details-guest-item"]')).toHaveLength(2);
     expect(wrapper.text()).toContain('Alice Martin (alice@example.com)');
     expect(wrapper.text()).toContain('Bob Durand (bob@example.com)');
+  });
+
+
+  it('renders the postal address when present and hides it otherwise', async () => {
+    const baseInvitation = createInvitationResponse({ guests: [] });
+
+    getInvitationByIdMock.mockResolvedValueOnce({
+      ...baseInvitation,
+      deliveryMethod: 'POSTED',
+      postalAddress: { line1: '1 rue de la Paix', postalCode: '75002', locality: 'Paris', countryCode: 'FR' }
+    });
+
+    const { wrapper } = await mountView();
+
+    expect(wrapper.get('[data-test="invitation-details-postal-address"]').text())
+      .toBe('1 rue de la Paix, 75002 Paris, FR');
+
+    getInvitationByIdMock.mockResolvedValueOnce(baseInvitation);
+
+    const { wrapper: withoutAddress } = await mountView();
+
+    expect(withoutAddress.find('[data-test="invitation-details-postal-address"]').exists()).toBe(false);
+  });
+
+  it('renders legacy invitations without delivery method as hand delivered', async () => {
+    getInvitationByIdMock.mockResolvedValueOnce(createInvitationResponse({ deliveryMethod: null }));
+
+    const { wrapper } = await mountView();
+
+    expect(wrapper.get('[data-test="invitation-details-delivery-method"]').text()).toBe('Hand delivered');
+    expect(wrapper.find('[data-test="invitation-details-postal-address"]').exists()).toBe(false);
   });
 
   it('renders empty guest list state', async () => {

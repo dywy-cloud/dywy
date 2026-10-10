@@ -5,6 +5,7 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import InvitationsListView from './InvitationsListView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { applyCapabilities, resetCapabilities } from '../composables/useCapabilities';
+import { createInvitationResponse } from '../testFixtures/invitationFixtures';
 
 const listInvitationsMock = vi.hoisted(() => vi.fn());
 const listGuestsMock = vi.hoisted(() => vi.fn());
@@ -99,6 +100,7 @@ describe('InvitationsListView', () => {
           updateDate: '2026-07-01T10:45:28Z',
           label: 'Family table',
           description: 'ignored by card content',
+          deliveryMethod: 'POSTED',
           guests: [
             {
               id: 'g-1',
@@ -132,6 +134,7 @@ describe('InvitationsListView', () => {
     expect(wrapper.find('table').exists()).toBe(false);
     expect(wrapper.text()).toContain('Family table');
     expect(wrapper.text()).toContain('2 guests');
+    expect(wrapper.get('[data-test="invitation-card-delivery-method"]').text()).toBe('Posted');
     expect(wrapper.find('[data-test="invitation-qr-panel"]').exists()).toBe(true);
     expect(wrapper.get('[data-test="invitation-qr-url"]').text()).toContain('token-invitation-1234567890');
     expect(wrapper.get('[data-test="invitation-qr-url"]').attributes('href')).toContain('/guest-access/token-invitation-1234567890');
@@ -145,6 +148,35 @@ describe('InvitationsListView', () => {
     expect(viewLink.attributes('href')).toBe('/invitations/inv-1');
     expect(editLink.attributes('href')).toBe('/invitations/inv-1/edit');
     expect(listGuestsMock).not.toHaveBeenCalled();
+  });
+
+  it('uses the singular form when an invitation has a single guest', async () => {
+    listInvitationsMock.mockResolvedValue({
+      items: [createInvitationResponse({ label: 'Solo', deliveryMethod: 'HAND_DELIVERED' })],
+      page: 0,
+      size: 20,
+      totalItems: 1,
+      totalPages: 1
+    });
+
+    const { wrapper } = await mountView();
+
+    expect(wrapper.get('[data-test="invitation-card-guest-count"]').text()).toBe('1 guest');
+    expect(wrapper.get('[data-test="invitation-card-delivery-method"]').text()).toBe('Hand delivered');
+  });
+
+  it('shows legacy invitations without delivery method as hand delivered', async () => {
+    listInvitationsMock.mockResolvedValue({
+      items: [createInvitationResponse({ deliveryMethod: null })],
+      page: 0,
+      size: 20,
+      totalItems: 1,
+      totalPages: 1
+    });
+
+    const { wrapper } = await mountView();
+
+    expect(wrapper.get('[data-test="invitation-card-delivery-method"]').text()).toBe('Hand delivered');
   });
 
   it('shows create-first-guest CTA when there are no guests', async () => {

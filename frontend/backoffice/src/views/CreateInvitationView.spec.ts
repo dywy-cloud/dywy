@@ -151,6 +151,7 @@ describe('CreateInvitationView', () => {
     expect(createInvitationMock).toHaveBeenCalledWith({
       label: 'Family table',
       description: 'Main table',
+      deliveryMethod: 'HAND_DELIVERED',
       guestIds: ['guest-1']
     });
     expect(router.currentRoute.value.name).toBe(BACKOFFICE_ROUTE_NAMES.invitationList);
@@ -286,5 +287,96 @@ describe('CreateInvitationView', () => {
     expect(wrapper.text()).toContain('Alice Martin');
     expect(wrapper.text()).toContain('Zoe Durand');
   });
-});
 
+  describe('delivery method', () => {
+    const switchSelector = '[data-test="delivery-method-switch"]';
+    const addressFieldsetSelector = '[data-test="postal-address-fieldset"]';
+
+    const mountWithGuest = async () => {
+      listGuestsMock.mockResolvedValue(buildGuestPage());
+      createInvitationMock.mockResolvedValue({ id: 'inv-1' });
+
+      return mountView();
+    };
+
+    const fillRequiredFieldsAndSubmit = async (wrapper: Awaited<ReturnType<typeof mountView>>['wrapper']) => {
+      await wrapper.get('[data-test="invitation-label-input"]').setValue('Family table');
+      await wrapper.get('[data-test="guest-checkbox"]').setValue(true);
+      await wrapper.get('form').trigger('submit.prevent');
+      await flushPromises();
+    };
+
+    it('hides the postal address section unless delivery method is posted', async () => {
+      const { wrapper } = await mountWithGuest();
+
+      expect(wrapper.get(switchSelector).attributes('aria-checked')).toBe('false');
+      expect(wrapper.find(addressFieldsetSelector).exists()).toBe(false);
+
+      await wrapper.get(switchSelector).trigger('click');
+      expect(wrapper.find(addressFieldsetSelector).exists()).toBe(true);
+
+      await wrapper.get(switchSelector).trigger('click');
+      expect(wrapper.find(addressFieldsetSelector).exists()).toBe(false);
+    });
+
+    it('does not send the postal address when hand delivered', async () => {
+      const { wrapper } = await mountWithGuest();
+
+      await wrapper.get(switchSelector).trigger('click');
+      await wrapper.get('[data-test="postal-address-line1-input"]').setValue('1 rue de la Paix');
+      await wrapper.get(switchSelector).trigger('click');
+      await fillRequiredFieldsAndSubmit(wrapper);
+
+      expect(createInvitationMock.mock.calls[0]?.[0].deliveryMethod).toBe('HAND_DELIVERED');
+      expect(createInvitationMock.mock.calls[0]?.[0].postalAddress).toBeUndefined();
+    });
+
+    it('requires a postal address when posted', async () => {
+      const { wrapper } = await mountWithGuest();
+
+      await wrapper.get(switchSelector).trigger('click');
+      await fillRequiredFieldsAndSubmit(wrapper);
+
+      expect(wrapper.get('[data-test="invitation-validation-error"]').text()).toContain('Address line 1 is required.');
+      expect(createInvitationMock).not.toHaveBeenCalled();
+    });
+
+    it('shows validation error when the postal address is incomplete', async () => {
+      const { wrapper } = await mountWithGuest();
+
+      await wrapper.get(switchSelector).trigger('click');
+      await wrapper.get('[data-test="postal-address-line1-input"]').setValue('1 rue de la Paix');
+      await fillRequiredFieldsAndSubmit(wrapper);
+
+      expect(wrapper.get('[data-test="invitation-validation-error"]').text()).toContain('City is required.');
+      expect(createInvitationMock).not.toHaveBeenCalled();
+    });
+
+    it('submits the postal address when posted', async () => {
+      const { wrapper } = await mountWithGuest();
+
+      await wrapper.get(switchSelector).trigger('click');
+      await wrapper.get('[data-test="postal-address-line1-input"]').setValue(' 1 rue de la Paix ');
+      await wrapper.get('[data-test="postal-address-postal-code-input"]').setValue('75002');
+      await wrapper.get('[data-test="postal-address-locality-input"]').setValue('Paris');
+      await wrapper.get('[data-test="postal-address-country-code-input"]').setValue('FR');
+      await fillRequiredFieldsAndSubmit(wrapper);
+
+      expect(createInvitationMock).toHaveBeenCalledWith({
+        label: 'Family table',
+        description: '',
+        deliveryMethod: 'POSTED',
+        postalAddress: {
+          line1: '1 rue de la Paix',
+          line2: null,
+          line3: null,
+          postalCode: '75002',
+          locality: 'Paris',
+          region: null,
+          countryCode: 'FR'
+        },
+        guestIds: ['guest-1']
+      });
+    });
+  });
+});

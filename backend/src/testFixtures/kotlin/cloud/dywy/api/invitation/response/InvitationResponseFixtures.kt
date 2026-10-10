@@ -21,6 +21,7 @@ object InvitationResponseFixtures {
         updateDate = brideFamilyInvitation.updateDate.toString(),
         label = brideFamilyInvitation.label,
         description = brideFamilyInvitation.description,
+        postalAddress = brideFamilyInvitation.postalAddress,
         deliveryMethod = brideFamilyInvitation.deliveryMethod,
         guests = listOf(brideFamilyGuest),
         guestCount = 1,
@@ -34,6 +35,7 @@ object InvitationResponseFixtures {
         updateDate = friendsInvitation.updateDate.toString(),
         label = friendsInvitation.label,
         description = friendsInvitation.description,
+        postalAddress = friendsInvitation.postalAddress,
         deliveryMethod = friendsInvitation.deliveryMethod,
         guests = friendsInvitation.guests
             .sortedBy { it.id.toString() }

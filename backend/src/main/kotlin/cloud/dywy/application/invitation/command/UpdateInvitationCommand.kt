@@ -27,7 +27,10 @@ data class UpdateInvitationCommand(
             updateDate = Dates.nowUtcMillis(),
             label = label.trim(),
             description = description.trim(),
-            postalAddress = postalAddress ?: existing.postalAddress,
+            postalAddress = when (deliveryMethod) {
+                DeliveryMethod.HAND_DELIVERED -> null
+                else -> postalAddress ?: existing.postalAddress
+            },
             deliveryMethod = deliveryMethod ?: existing.deliveryMethod,
             guests = guests,
         )

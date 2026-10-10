@@ -1,4 +1,7 @@
 import { getApiBaseUrl, readCookie } from './http';
+import type { PostalAddress } from './postalAddress';
+
+export type DeliveryMethod = 'HAND_DELIVERED' | 'POSTED';
 
 export interface InvitationResponse {
   id: string;
@@ -8,6 +11,8 @@ export interface InvitationResponse {
   updateDate: string;
   label: string;
   description: string;
+  deliveryMethod?: DeliveryMethod | null;
+  postalAddress?: PostalAddress | null;
   guests: InvitationGuestResponse[];
   guestCount: number;
 }
@@ -30,6 +35,8 @@ export interface InvitationPageResponse {
 export interface CreateInvitationPayload {
   label: string;
   description: string;
+  deliveryMethod?: DeliveryMethod;
+  postalAddress?: PostalAddress;
   guestIds: string[];
 }
 
@@ -37,6 +44,8 @@ export interface UpdateInvitationPayload {
   version: number;
   label: string;
   description: string;
+  deliveryMethod?: DeliveryMethod;
+  postalAddress?: PostalAddress;
   guestIds: string[];
 }
 
@@ -195,6 +204,3 @@ export const updateInvitation = async (id: string, payload: UpdateInvitationPayl
 
   return normalizeInvitation(invitation);
 };
-
-
-
