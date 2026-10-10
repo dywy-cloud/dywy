@@ -5,31 +5,37 @@
     </header>
 
     <form class="space-y-5" @submit.prevent="handleSubmit">
-      <div>
-        <label class="form-label" for="invitation-label">Label</label>
-        <input
-          id="invitation-label"
-          v-model="label"
-          class="form-input"
-          data-test="invitation-label-input"
-          required
-          type="text"
-        >
-      </div>
+      <fieldset class="space-y-4 rounded-xl border border-secondary/30 bg-white p-4 shadow-sm" data-test="invitation-details-section">
+        <legend class="px-2 text-base font-medium text-text">Invitation</legend>
 
-      <div>
-        <label class="form-label" for="invitation-description">Description</label>
-        <textarea
-          id="invitation-description"
-          v-model="description"
-          class="form-input min-h-24"
-          data-test="invitation-description-input"
-        />
-      </div>
+        <div>
+          <label class="form-label" for="invitation-label">Label</label>
+          <input
+            id="invitation-label"
+            v-model="label"
+            class="form-input"
+            data-test="invitation-label-input"
+            required
+            type="text"
+          >
+        </div>
 
-      <div class="rounded-xl border border-secondary/30 bg-white p-4 shadow-sm">
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <h3 class="text-base font-medium text-text">Guests</h3>
+        <div>
+          <label class="form-label" for="invitation-description">Description</label>
+          <textarea
+            id="invitation-description"
+            v-model="description"
+            class="form-input min-h-24"
+            data-test="invitation-description-input"
+          />
+        </div>
+      </fieldset>
+
+      <InvitationDeliveryFields v-model:delivery-method="deliveryMethod" v-model:postal-address="postalAddress" />
+
+      <fieldset class="rounded-xl border border-secondary/30 bg-white p-4 shadow-sm" data-test="guests-section">
+        <legend class="px-2 text-base font-medium text-text">Guests</legend>
+        <div class="mb-3 flex items-center justify-end gap-3">
           <input
             id="guest-search"
             v-model="searchQuery"
@@ -89,7 +95,7 @@
             Loading more guests...
           </p>
         </div>
-      </div>
+      </fieldset>
 
       <p v-if="validationErrorMessage" class="text-sm text-red-700" data-test="invitation-validation-error">
         {{ validationErrorMessage }}
@@ -121,14 +127,23 @@
 
 <script setup lang="ts">
 import BaseButton from '../components/ui/BaseButton.vue';
+import InvitationDeliveryFields from '../components/InvitationDeliveryFields.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import addGuestIcon from '../assets/icons/add-guest.svg';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { listGuests, type GuestResponse } from '../services/guestApi';
 import { createInvitation } from '../services/invitationApi';
+import { useInvitationDelivery } from '../composables/useInvitationDelivery';
 
 const router = useRouter();
+
+const {
+  deliveryMethod,
+  postalAddress,
+  validationError: deliveryValidationError,
+  payload: deliveryPayload
+} = useInvitationDelivery();
 
 const guests = ref<GuestResponse[]>([]);
 const selectedGuestIds = ref<string[]>([]);
@@ -284,6 +299,11 @@ const handleSubmit = async () => {
     return;
   }
 
+  if (deliveryValidationError.value) {
+    validationErrorMessage.value = deliveryValidationError.value;
+    return;
+  }
+
   if (selectedGuestIds.value.length === 0) {
     validationErrorMessage.value = 'Select at least one guest.';
     return;
@@ -295,6 +315,7 @@ const handleSubmit = async () => {
     await createInvitation({
       label: label.value.trim(),
       description: description.value.trim(),
+      ...deliveryPayload.value,
       guestIds: selectedGuestIds.value
     });
 

@@ -70,7 +70,11 @@
       >
         <h3 class="-mx-4 -mt-4 mb-3 rounded-t-xl border-b border-secondary/40 bg-background/60 px-4 py-2 text-lg font-medium text-text" data-test="invitation-card-label">{{ invitation.label }}</h3>
 
-        <p class="mb-1 text-xs text-text/60" data-test="invitation-card-guest-count">{{ invitation.guestCount }} guests</p>
+        <p class="mb-3 text-xs text-text/60">
+          <span data-test="invitation-card-guest-count">{{ invitation.guestCount }} {{ invitation.guestCount === 1 ? 'guest' : 'guests' }}</span>
+          <span aria-hidden="true"> · </span>
+          <span data-test="invitation-card-delivery-method">{{ formatDeliveryMethod(invitation.deliveryMethod) }}</span>
+        </p>
 
         <ul class="mb-3 space-y-1 text-xs text-text/80" data-test="invitation-card-guest-details">
           <li
@@ -126,6 +130,7 @@ import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { buildGuestAccessUrl } from '../services/guestAccessUrl';
 import { listGuests } from '../services/guestApi';
 import { listInvitations, type InvitationPageResponse } from '../services/invitationApi';
+import { formatDeliveryMethod } from '../services/deliveryMethod';
 
 const invitationPage = ref<InvitationPageResponse>({
   items: [],

@@ -36,6 +36,14 @@
           <dd data-test="invitation-details-description">{{ invitation.description }}</dd>
         </div>
         <div>
+          <dt class="text-text/60">Delivery method</dt>
+          <dd data-test="invitation-details-delivery-method">{{ formatDeliveryMethod(invitation.deliveryMethod) }}</dd>
+        </div>
+        <div v-if="invitation.deliveryMethod === 'POSTED' && invitation.postalAddress">
+          <dt class="text-text/60">Postal address</dt>
+          <dd data-test="invitation-details-postal-address">{{ formatPostalAddress(invitation.postalAddress) }}</dd>
+        </div>
+        <div>
           <dt class="text-text/60">Guests</dt>
           <dd data-test="invitation-details-guest-count">{{ invitation.guestCount }}</dd>
         </div>
@@ -101,6 +109,8 @@ import backIcon from '../assets/icons/back.svg';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { buildGuestAccessUrl } from '../services/guestAccessUrl';
 import { getInvitationById, type InvitationResponse } from '../services/invitationApi';
+import { formatDeliveryMethod } from '../services/deliveryMethod';
+import { formatPostalAddress } from '../services/postalAddress';
 
 const route = useRoute();
 const router = useRouter();

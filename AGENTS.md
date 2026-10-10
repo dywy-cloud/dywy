@@ -32,7 +32,9 @@ And many other features to come
 
 ## Craft principles
 - **KISS**: prefer the simplest implementation that satisfies the scope; avoid unnecessary abstraction, indirection, or overly clever code.
-- **YAGNI**: implement only what is required by the current issue scope; do not add speculative features, extension points, or premature generalization.- **No comments**: do not add code comments or KDoc/JSDoc; make the code self-explanatory through naming and structure. Only add a comment when explicitly asked or when a non-obvious constraint cannot be expressed in code.
+- **YAGNI**: implement only what is required by the current issue scope; do not add speculative features, extension points, or premature generalization.
+- **DRY**: do not duplicate logic, rules, or data between backend and frontend, or within either. Before adding code, search for an existing helper, fixture, or constant and reuse it; extract shared code once a second copy appears. When a rule must exist on both sides (e.g. validation), keep the backend as the source of truth and have the frontend mirror it without redefining it differently.
+- **No comments**: do not add code comments or KDoc/JSDoc; make the code self-explanatory through naming and structure. Only add a comment when explicitly asked or when a non-obvious constraint cannot be expressed in code.
 
 ## Testing
 - Backend: 
@@ -41,6 +43,8 @@ And many other features to come
   - Full verification: `./gradlew check`
 - Frontend: `pnpm run test` (watch mode: `pnpm run test:watch`, coverage: `pnpm run test:coverage`)
 - Backend test method names always start with `should` and describe the expected behavior; never repeat the name of the tested function/class (e.g. `should add the error for blank values`, not `addIfBlank should add the error for blank values`).
+- Keep tests DRY too: build test data with shared fixtures/builders (backend `testFixtures`, frontend `testFixtures`, e2e `fixtures`) instead of copying objects or setup between tests; extract repeated arrange/act steps into helpers; use parameterized tests (`it.each`, `@ParameterizedTest`) for the same assertion over several inputs.
+- Test behavior once, at the right level: do not re-assert in a higher-level test what a lower-level test already covers, and do not assert that something is absent just because it is not specified.
 
 ## Versioning
 For every issue, bump and keep aligned both application versions:
