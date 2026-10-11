@@ -133,6 +133,21 @@ export const listInvitations = async (
   return normalizeInvitationPage(invitationPage);
 };
 
+export const listAllInvitations = async (): Promise<InvitationResponse[]> => {
+  const invitations: InvitationResponse[] = [];
+  let page = 0;
+  let totalPages = 1;
+
+  while (page < totalPages) {
+    const invitationPage = await listInvitations({ page });
+    invitations.push(...invitationPage.items);
+    totalPages = invitationPage.totalPages;
+    page += 1;
+  }
+
+  return invitations;
+};
+
 export const createInvitation = async (payload: CreateInvitationPayload): Promise<InvitationResponse> => {
   const csrfToken = readCookie('XSRF-TOKEN');
   const headers = new Headers({

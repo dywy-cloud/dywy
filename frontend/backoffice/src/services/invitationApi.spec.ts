@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createInvitation, getInvitationById, listInvitations, updateInvitation } from './invitationApi';
-import { backofficeApiBaseUrl, clearCsrfCookie, expectCsrfHeader, getFirstRequest, mockFetchResponse, setCsrfCookie } from '../testFixtures/httpTestHelpers';
+import { createInvitation, getInvitationById, listAllInvitations, listInvitations, updateInvitation } from './invitationApi';
+import { backofficeApiBaseUrl, clearCsrfCookie, expectCsrfHeader, getFirstRequest, mockFetchResponse, mockFetchResponseSequence, setCsrfCookie } from '../testFixtures/httpTestHelpers';
 
 const invitationNotFoundMessage = 'Invitation not found.';
 const invitationConflictMessage = 'Some guests are already assigned to another invitation. Please refresh and try again.';
@@ -216,6 +216,54 @@ describe('invitationApi', () => {
       description: 'Updated main family table',
       guestIds: ['guest-1']
     })).rejects.toThrow(invitationVersionConflictMessage);
+  });
+
+  describe('listAllInvitations', () => {
+    const pageResponse = (ids: string[], page: number, totalPages: number) => ({
+      ok: true,
+      body: {
+        items: ids.map((id) => ({ ...invitationResponse, id })),
+        page,
+        size: 20,
+        totalItems: ids.length,
+        totalPages
+      }
+    });
+
+    it('returns an empty list when there are no invitations', async () => {
+      const fetchMock = mockFetchResponseSequence([pageResponse([], 0, 0)]);
+
+      await expect(listAllInvitations()).resolves.toEqual([]);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns the invitations of a single page', async () => {
+      const fetchMock = mockFetchResponseSequence([pageResponse(['inv-1', 'inv-2'], 0, 1)]);
+
+      const invitations = await listAllInvitations();
+
+      expect(invitations.map((invitation) => invitation.id)).toEqual(['inv-1', 'inv-2']);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('loads every page and preserves the list order', async () => {
+      const fetchMock = mockFetchResponseSequence([
+        pageResponse(['inv-1', 'inv-2'], 0, 3),
+        pageResponse(['inv-3', 'inv-4'], 1, 3),
+        pageResponse(['inv-5'], 2, 3)
+      ]);
+
+      const invitations = await listAllInvitations();
+
+      expect(invitations.map((invitation) => invitation.id)).toEqual(['inv-1', 'inv-2', 'inv-3', 'inv-4', 'inv-5']);
+      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([0, 1, 2].map((page) => `${backofficeApiBaseUrl}/invitations?page=${page}&size=20`));
+    });
+
+    it('rejects with the error of a later page', async () => {
+      mockFetchResponseSequence([pageResponse(['inv-1'], 0, 2), { ok: false }]);
+
+      await expect(listAllInvitations()).rejects.toThrow('Unable to retrieve invitations at the moment.');
+    });
   });
 });
 
