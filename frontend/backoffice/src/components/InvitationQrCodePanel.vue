@@ -2,7 +2,7 @@
   <section class="space-y-3 overflow-hidden rounded-xl border border-secondary/30 bg-white/70 p-4" data-test="invitation-qr-panel">
     <header class="flex items-center justify-between gap-3">
       <h4 class="text-sm font-medium text-text">Invitation QR code</h4>
-      <div class="flex items-center gap-2">
+      <div v-if="showDownloads" class="flex items-center gap-2">
         <button
           :disabled="!guestAccessUrl"
           class="inline-flex rounded border border-secondary px-2 py-1 text-xs text-text transition hover:bg-secondary/20 disabled:cursor-not-allowed disabled:opacity-60"
@@ -70,11 +70,16 @@ import { QrcodeCanvas, QrcodeSvg } from 'qrcode.vue';
 import { computed, ref } from 'vue';
 import { DEFAULT_QR_COLOR, useQrPngDataUrl } from '../composables/useQrPngDataUrl';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   guestAccessUrl?: string;
   invitationLabel: string;
   previewSize?: number;
-}>();
+  showDownloads?: boolean;
+}>(), {
+  guestAccessUrl: undefined,
+  previewSize: undefined,
+  showDownloads: true
+});
 
 const { toPngDataUrl } = useQrPngDataUrl();
 
