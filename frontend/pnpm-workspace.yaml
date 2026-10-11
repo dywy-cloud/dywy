@@ -1,6 +1,7 @@
 packages:
   - 'frontend'
 allowBuilds:
+  core-js: false
   esbuild: true
 
 minimumReleaseAgeExclude:
