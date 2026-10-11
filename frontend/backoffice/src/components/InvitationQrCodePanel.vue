@@ -24,7 +24,7 @@
       </div>
     </header>
 
-    <div class="flex w-full items-center justify-center rounded border border-secondary/20 bg-white p-3">
+    <div ref="qrPreviewContainer" class="flex w-full items-center justify-center rounded border border-secondary/20 bg-white p-3">
       <QrcodeCanvas
         v-if="guestAccessUrl"
         :value="guestAccessUrl"
@@ -78,6 +78,7 @@ const props = defineProps<{
 
 const { toPngDataUrl } = useQrPngDataUrl();
 
+const qrPreviewContainer = ref<HTMLElement | null>(null);
 const qrSvgContainer = ref<HTMLElement | null>(null);
 
 const previewSize = computed(() => {
@@ -122,12 +123,17 @@ const triggerDownload = (href: string, filename: string) => {
   link.click();
 };
 
+const resolveQrCanvasElement = (): HTMLCanvasElement | undefined => {
+  return qrPreviewContainer.value?.querySelector('canvas') ?? undefined;
+};
+
 const resolveQrSvgElement = (): SVGSVGElement | undefined => {
   return qrSvgContainer.value?.querySelector('svg') ?? undefined;
 };
 
-const downloadPng = () => {
-  const dataUrl = props.guestAccessUrl ? toPngDataUrl(props.guestAccessUrl) : undefined;
+const downloadPng = async () => {
+  const exportedDataUrl = props.guestAccessUrl ? await toPngDataUrl(props.guestAccessUrl) : undefined;
+  const dataUrl = exportedDataUrl ?? resolveQrCanvasElement()?.toDataURL('image/png');
 
   if (!dataUrl) {
     return;

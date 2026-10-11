@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent } from 'vue';
 import { describe, expect, it, vi } from 'vitest';
 import InvitationQrCodePanel from './InvitationQrCodePanel.vue';
@@ -129,10 +129,39 @@ describe('InvitationQrCodePanel', () => {
     });
 
     await wrapper.get('[data-test="download-qr-png"]').trigger('click');
+    await flushPromises();
     await wrapper.get('[data-test="download-qr-svg"]').trigger('click');
 
     expect(clickSpy).toHaveBeenCalledTimes(2);
     expect(canvasToDataUrlSpy).toHaveBeenCalledWith('image/png');
     expect(createObjectUrlSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to preview canvas when the export image is unavailable for png download', async () => {
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    clickSpy.mockClear();
+    vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('');
+
+    const wrapper = mount(InvitationQrCodePanel, {
+      props: {
+        guestAccessUrl: 'http://localhost:4173/guest-access/token-1',
+        invitationLabel: 'Family table'
+      },
+      global: {
+        stubs: qrCodeStubs
+      }
+    });
+
+    const previewToDataUrlSpy = vi.fn().mockReturnValue('data:image/png;base64,preview');
+    Object.defineProperty(wrapper.get('canvas').element, 'toDataURL', {
+      value: previewToDataUrlSpy,
+      configurable: true
+    });
+
+    await wrapper.get('[data-test="download-qr-png"]').trigger('click');
+    await flushPromises();
+
+    expect(previewToDataUrlSpy).toHaveBeenCalledWith('image/png');
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 });
