@@ -24,13 +24,13 @@
       </div>
     </header>
 
-    <div ref="qrPreviewContainer" class="flex w-full items-center justify-center rounded border border-secondary/20 bg-white p-3">
+    <div class="flex w-full items-center justify-center rounded border border-secondary/20 bg-white p-3">
       <QrcodeCanvas
         v-if="guestAccessUrl"
         :value="guestAccessUrl"
         :size="previewSize"
         :margin="1"
-        foreground="#37474f"
+        :foreground="DEFAULT_QR_COLOR"
         level="M"
         :style="qrPreviewStyle"
         data-test="invitation-qr-image"
@@ -39,22 +39,12 @@
     </div>
 
     <div ref="qrSvgContainer" class="hidden" aria-hidden="true">
-      <QrcodeCanvas
-        v-if="guestAccessUrl"
-        :value="guestAccessUrl"
-        :size="384"
-        :margin="1"
-        foreground="#37474f"
-        level="M"
-        data-test="invitation-qr-export-canvas"
-      />
-
       <QrcodeSvg
         v-if="guestAccessUrl"
         :value="guestAccessUrl"
         :size="280"
         :margin="1"
-        foreground="#37474f"
+        :foreground="DEFAULT_QR_COLOR"
         level="M"
         data-test="invitation-qr-svg"
       />
@@ -78,6 +68,7 @@
 <script setup lang="ts">
 import { QrcodeCanvas, QrcodeSvg } from 'qrcode.vue';
 import { computed, ref } from 'vue';
+import { DEFAULT_QR_COLOR, useQrPngDataUrl } from '../composables/useQrPngDataUrl';
 
 const props = defineProps<{
   guestAccessUrl?: string;
@@ -85,7 +76,8 @@ const props = defineProps<{
   previewSize?: number;
 }>();
 
-const qrPreviewContainer = ref<HTMLElement | null>(null);
+const { toPngDataUrl } = useQrPngDataUrl();
+
 const qrSvgContainer = ref<HTMLElement | null>(null);
 
 const previewSize = computed(() => {
@@ -130,26 +122,18 @@ const triggerDownload = (href: string, filename: string) => {
   link.click();
 };
 
-const resolveQrCanvasElement = (): HTMLCanvasElement | undefined => {
-  return qrPreviewContainer.value?.querySelector('canvas') ?? undefined;
-};
-
-const resolveQrExportCanvasElement = (): HTMLCanvasElement | undefined => {
-  return qrSvgContainer.value?.querySelector('[data-test="invitation-qr-export-canvas"]') as HTMLCanvasElement | undefined;
-};
-
 const resolveQrSvgElement = (): SVGSVGElement | undefined => {
   return qrSvgContainer.value?.querySelector('svg') ?? undefined;
 };
 
 const downloadPng = () => {
-  const canvas = resolveQrExportCanvasElement() ?? resolveQrCanvasElement();
+  const dataUrl = props.guestAccessUrl ? toPngDataUrl(props.guestAccessUrl) : undefined;
 
-  if (!canvas || typeof canvas.toDataURL !== 'function') {
+  if (!dataUrl) {
     return;
   }
 
-  triggerDownload(canvas.toDataURL('image/png'), buildDownloadFilename('png'));
+  triggerDownload(dataUrl, buildDownloadFilename('png'));
 };
 
 const downloadSvg = () => {

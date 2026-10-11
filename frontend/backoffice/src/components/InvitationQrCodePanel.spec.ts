@@ -135,35 +135,4 @@ describe('InvitationQrCodePanel', () => {
     expect(canvasToDataUrlSpy).toHaveBeenCalledWith('image/png');
     expect(createObjectUrlSpy).toHaveBeenCalledTimes(1);
   });
-
-  it('falls back to preview canvas when export canvas is unavailable for png download', async () => {
-    const wrapper = mount(InvitationQrCodePanel, {
-      props: {
-        guestAccessUrl: 'http://localhost:4173/guest-access/token-1',
-        invitationLabel: 'Family table'
-      },
-      global: {
-        stubs: qrCodeStubs
-      }
-    });
-
-    const canvases = wrapper.findAll('canvas').map((node) => node.element as HTMLCanvasElement);
-    const previewCanvas = canvases[0];
-    const exportCanvas = canvases[1];
-
-    exportCanvas.remove();
-
-    const previewToDataUrlSpy = vi.fn().mockReturnValue('data:image/png;base64,preview');
-    Object.defineProperty(previewCanvas, 'toDataURL', {
-      value: previewToDataUrlSpy,
-      configurable: true
-    });
-
-    await wrapper.get('[data-test="download-qr-png"]').trigger('click');
-
-    expect(previewToDataUrlSpy).toHaveBeenCalledWith('image/png');
-  });
 });
-
-
-
