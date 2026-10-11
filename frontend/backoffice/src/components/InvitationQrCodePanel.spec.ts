@@ -112,6 +112,23 @@ describe('InvitationQrCodePanel', () => {
     expect(malformedTokenWrapper.get('[data-test="invitation-qr-url"]').text()).toBe('Open invitation link');
   });
 
+  it('hides the download buttons when downloads are disabled', () => {
+    const wrapper = mount(InvitationQrCodePanel, {
+      props: {
+        guestAccessUrl: 'http://localhost:4173/guest-access/token-1',
+        invitationLabel: 'Family table',
+        showDownloads: false
+      },
+      global: {
+        stubs: qrCodeStubs
+      }
+    });
+
+    expect(wrapper.find('[data-test="download-qr-png"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="download-qr-svg"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="invitation-qr-image"]').exists()).toBe(true);
+  });
+
   it('downloads png and svg formats', async () => {
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
     const canvasToDataUrlSpy = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,qr');

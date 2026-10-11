@@ -5,18 +5,39 @@
 
       <h2 class="page-title justify-self-center">Invitations</h2>
 
-      <WriteOnly>
-        <RouterLink
-          :to="{ name: BACKOFFICE_ROUTE_NAMES.invitationAdd }"
-          aria-label="Create invitation"
-          class="justify-self-end inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-gradient text-white shadow transition hover:scale-105 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          data-test="create-invitation-cta"
-          title="Create invitation"
+      <div class="flex items-center gap-3 justify-self-end">
+        <button
+          :aria-busy="isPrinting"
+          :disabled="invitationPage.totalItems === 0 || isPrinting"
+          aria-label="Print stickers"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-gradient text-white shadow transition hover:scale-105 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+          data-test="print-stickers-cta"
+          title="Print stickers"
+          type="button"
+          @click="isPrintDialogOpen = true"
         >
-          <img :src="addInvitationIcon" alt="" aria-hidden="true" class="h-6 w-6 brightness-0 invert" />
-        </RouterLink>
-      </WriteOnly>
+          <img :src="printIcon" alt="" aria-hidden="true" class="h-6 w-6 brightness-0 invert" :class="{ 'animate-pulse': isPrinting }" />
+        </button>
+
+        <WriteOnly>
+          <RouterLink
+            :to="{ name: BACKOFFICE_ROUTE_NAMES.invitationAdd }"
+            aria-label="Create invitation"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-gradient text-white shadow transition hover:scale-105 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            data-test="create-invitation-cta"
+            title="Create invitation"
+          >
+            <img :src="addInvitationIcon" alt="" aria-hidden="true" class="h-6 w-6 brightness-0 invert" />
+          </RouterLink>
+        </WriteOnly>
+      </div>
     </header>
+
+    <p v-if="printErrorMessage" class="mb-4 text-center text-sm text-red-700" data-test="print-stickers-error" role="alert">
+      {{ printErrorMessage }}
+    </p>
+
+    <PrintStickersDialog v-if="isPrintDialogOpen" @cancel="isPrintDialogOpen = false" @print="printStickers" />
 
     <p v-if="isLoading" class="py-8 text-center text-sm" aria-live="polite">Loading invitations...</p>
 
@@ -90,6 +111,7 @@
           <InvitationQrCodePanel
             :guest-access-url="buildGuestAccessUrl(invitation.accessToken)"
             :invitation-label="invitation.label"
+            :show-downloads="false"
           />
 
           <div class="flex items-center justify-end gap-2">
@@ -122,15 +144,19 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import InvitationQrCodePanel from '../components/InvitationQrCodePanel.vue';
+import PrintStickersDialog from '../components/PrintStickersDialog.vue';
 import WriteOnly from '../components/ui/WriteOnly.vue';
 import addInvitationIcon from '../assets/icons/add-invitation.svg';
 import editInvitationIcon from '../assets/icons/edit.svg';
+import printIcon from '../assets/icons/print.svg';
 import viewInvitationIcon from '../assets/icons/view.svg';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { buildGuestAccessUrl } from '../services/guestAccessUrl';
 import { listGuests } from '../services/guestApi';
-import { listInvitations, type InvitationPageResponse } from '../services/invitationApi';
+import { listAllInvitations, listInvitations, type InvitationPageResponse } from '../services/invitationApi';
 import { formatDeliveryMethod } from '../services/deliveryMethod';
+
+const STICKERS_FILENAME = 'invitation-stickers.pdf';
 
 const invitationPage = ref<InvitationPageResponse>({
   items: [],
@@ -142,6 +168,9 @@ const invitationPage = ref<InvitationPageResponse>({
 const guestTotalItems = ref(0);
 const isLoading = ref(false);
 const errorMessage = ref('');
+const isPrintDialogOpen = ref(false);
+const isPrinting = ref(false);
+const printErrorMessage = ref('');
 
 const loadData = async () => {
   isLoading.value = true;
@@ -166,6 +195,25 @@ const loadData = async () => {
   }
 };
 
+const printStickers = async (color: string) => {
+  isPrintDialogOpen.value = false;
+  isPrinting.value = true;
+  printErrorMessage.value = '';
+
+  try {
+    const invitations = await listAllInvitations();
+    const { buildStickerPdf } = await import('../services/stickerPdf');
+    const pdf = await buildStickerPdf(invitations, color);
+
+    pdf.save(STICKERS_FILENAME);
+  } catch (error: unknown) {
+    printErrorMessage.value = error instanceof Error
+      ? error.message
+      : 'Unexpected error while generating the stickers.';
+  } finally {
+    isPrinting.value = false;
+  }
+};
 
 onMounted(() => {
   void loadData();

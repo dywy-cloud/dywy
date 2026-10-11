@@ -8,10 +8,17 @@ import { applyCapabilities, resetCapabilities } from '../composables/useCapabili
 import { createInvitationResponse } from '../testFixtures/invitationFixtures';
 
 const listInvitationsMock = vi.hoisted(() => vi.fn());
+const listAllInvitationsMock = vi.hoisted(() => vi.fn());
 const listGuestsMock = vi.hoisted(() => vi.fn());
+const buildStickerPdfMock = vi.hoisted(() => vi.fn());
 
 vi.mock('../services/invitationApi', () => ({
-  listInvitations: listInvitationsMock
+  listInvitations: listInvitationsMock,
+  listAllInvitations: listAllInvitationsMock
+}));
+
+vi.mock('../services/stickerPdf', () => ({
+  buildStickerPdf: buildStickerPdfMock
 }));
 
 vi.mock('../services/guestApi', async (importOriginal) => {
@@ -80,7 +87,8 @@ describe('InvitationsListView', () => {
       template: '<RouterView />'
     }), {
       global: {
-        plugins: [router]
+        plugins: [router],
+        stubs: { teleport: true }
       }
     });
 
@@ -276,6 +284,106 @@ describe('InvitationsListView', () => {
 
     expect(wrapper.find('[data-test="empty-no-guests"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="create-first-guest-cta"]').exists()).toBe(false);
+  });
+
+  describe('print stickers', () => {
+    const singleInvitationPage = {
+      items: [createInvitationResponse()],
+      page: 0,
+      size: 20,
+      totalItems: 1,
+      totalPages: 1
+    };
+
+    const emptyInvitationPage = { items: [], page: 0, size: 20, totalItems: 0, totalPages: 0 };
+
+    const confirmPrint = async (wrapper: Awaited<ReturnType<typeof mountView>>['wrapper']) => {
+      await wrapper.get('[data-test="print-stickers-cta"]').trigger('click');
+      await wrapper.get('[data-test="color-swatch-#166534"]').trigger('click');
+      await wrapper.get('[data-test="print-stickers-confirm"]').trigger('click');
+    };
+
+    it('disables the button when there is no invitation', async () => {
+      listInvitationsMock.mockResolvedValue(emptyInvitationPage);
+      listGuestsMock.mockResolvedValue({ items: [], page: 0, size: 1, totalItems: 0, totalPages: 0 });
+
+      const { wrapper } = await mountView();
+
+      expect(wrapper.get('[data-test="print-stickers-cta"]').attributes('disabled')).toBeDefined();
+    });
+
+    it('is shown and enabled in read-only mode', async () => {
+      resetCapabilities();
+      listInvitationsMock.mockResolvedValue(singleInvitationPage);
+
+      const { wrapper } = await mountView();
+
+      expect(wrapper.get('[data-test="print-stickers-cta"]').attributes('disabled')).toBeUndefined();
+    });
+
+    it('removes the QR download buttons from the cards', async () => {
+      listInvitationsMock.mockResolvedValue(singleInvitationPage);
+
+      const { wrapper } = await mountView();
+
+      expect(wrapper.find('[data-test="download-qr-png"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="download-qr-svg"]').exists()).toBe(false);
+    });
+
+    it('opens the dialog and closes it on cancel', async () => {
+      listInvitationsMock.mockResolvedValue(singleInvitationPage);
+
+      const { wrapper } = await mountView();
+
+      expect(wrapper.find('[data-test="print-stickers-confirm"]').exists()).toBe(false);
+
+      await wrapper.get('[data-test="print-stickers-cta"]').trigger('click');
+
+      expect(wrapper.find('[data-test="print-stickers-confirm"]').exists()).toBe(true);
+
+      await wrapper.get('[data-test="print-stickers-cancel"]').trigger('click');
+
+      expect(wrapper.find('[data-test="print-stickers-confirm"]').exists()).toBe(false);
+    });
+
+    it('shows a loading state then downloads the pdf with the chosen color', async () => {
+      const save = vi.fn();
+      let resolveInvitations: (value: unknown) => void = () => undefined;
+      listInvitationsMock.mockResolvedValue(singleInvitationPage);
+      listAllInvitationsMock.mockReturnValue(new Promise((resolve) => {
+        resolveInvitations = resolve;
+      }));
+      buildStickerPdfMock.mockResolvedValue({ save });
+
+      const { wrapper } = await mountView();
+
+      await confirmPrint(wrapper);
+
+      const button = wrapper.get('[data-test="print-stickers-cta"]');
+      expect(button.attributes('aria-busy')).toBe('true');
+      expect(button.attributes('disabled')).toBeDefined();
+
+      resolveInvitations(singleInvitationPage.items);
+      await flushPromises();
+
+      expect(buildStickerPdfMock).toHaveBeenCalledWith(singleInvitationPage.items, '#166534');
+      expect(save).toHaveBeenCalledWith('invitation-stickers.pdf');
+      expect(wrapper.get('[data-test="print-stickers-cta"]').attributes('aria-busy')).toBe('false');
+      expect(wrapper.find('[data-test="print-stickers-error"]').exists()).toBe(false);
+    });
+
+    it('shows an error message when the generation fails', async () => {
+      listInvitationsMock.mockResolvedValue(singleInvitationPage);
+      listAllInvitationsMock.mockRejectedValue(new Error('Unable to load invitations.'));
+
+      const { wrapper } = await mountView();
+
+      await confirmPrint(wrapper);
+      await flushPromises();
+
+      expect(wrapper.get('[data-test="print-stickers-error"]').text()).toBe('Unable to load invitations.');
+      expect(wrapper.get('[data-test="print-stickers-cta"]').attributes('disabled')).toBeUndefined();
+    });
   });
 });
 
