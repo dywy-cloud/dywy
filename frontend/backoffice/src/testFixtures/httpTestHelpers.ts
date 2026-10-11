@@ -27,6 +27,16 @@ export const mockFetchResponse = ({ ok, status = 200, body = {} }: MockFetchResp
   } as Response);
 };
 
+export const mockFetchResponseSequence = (responses: MockFetchResponseArgs[]) => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch');
+
+  responses.forEach(({ ok, status = 200, body = {} }) => {
+    fetchMock.mockResolvedValueOnce({ ok, status, json: async () => body } as Response);
+  });
+
+  return fetchMock;
+};
+
 export const getFirstRequest = (fetchMock: { mock: { calls: unknown[][] } }) => {
   return fetchMock.mock.calls[0] as [string, RequestInit];
 };
