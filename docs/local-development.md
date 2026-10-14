@@ -64,6 +64,47 @@ VITE_ROUTER_BASE=/backoffice/
 > `VITE_ROUTER_BASE` must match the path the backoffice is served under. In production the
 > backoffice lives at `/backoffice/`; in development it is served at the root `/`.
 
+## Sample data
+
+A complete demo dataset (guests in both languages, an archived guest, every delivery method, every
+meal, attending/declined/pending RSVPs, synchronized and unsynchronized songs, expired and used
+magic-link tokens) lives in `backend/src/testFixtures/resources/sample/`:
+
+- `sample-data.sql`: the dataset. It only touches rows of guests with a `@sample.dywy.cloud` email
+  (and their invitations, RSVPs and magic-link tokens), so other data is never removed. Rows are
+  upserted by id.
+- `load-sample-data.sql`: psql loader that runs the dataset in a single transaction. It refuses to
+  run unless `confirm` equals the name of the connected database.
+
+Load it once the backend has started at least once (so Liquibase created the tables). From the
+repository root, through the Docker database (no local `psql` needed):
+
+```bash
+docker cp backend/src/testFixtures/resources/sample dywy-db:/tmp/sample
+docker exec dywy-db psql -U admin -d dywy_db -v confirm=dywy_db -f /tmp/sample/load-sample-data.sql
+```
+
+Or with a local `psql` (it prompts for the password, or reads `PGPASSWORD`):
+
+```bash
+psql "postgresql://admin@localhost:5432/dywy_db" -v confirm=dywy_db \
+  -f backend/src/testFixtures/resources/sample/load-sample-data.sql
+```
+
+Without `confirm`, or with a different value, nothing is written and the expected command is printed.
+
+### Use the sample data
+
+- Backoffice: the sample guests and invitations appear in the lists (filter on `sample.dywy.cloud`).
+- Guest area and Bruno: take an invitation token from the dataset, for example
+  `SELECT invitation_data ->> 'label' AS label, invitation_data ->> 'accessToken' AS token FROM invitation WHERE invitation_data ->> 'label' LIKE '%Martin%';`
+  and use it as `invitation_token` in the
+  [magic-link scenario](#guest-magic-link-email-delivery-test-scenario-mailpit--bruno).
+- Mailpit: magic links requested for sample guests are delivered to their
+  `*@sample.dywy.cloud` address and visible at `http://localhost:8025`.
+- The two seeded magic-link tokens (one expired, one already used) exist to test rejected links;
+  request a fresh link to get a valid one.
+
 ## Guest magic-link email delivery test scenario (Mailpit + Bruno)
 
 The guest-access magic-link flow is protected by CSRF. To test email delivery locally, use Mailpit
@@ -77,10 +118,11 @@ plus the Bruno collection under `backend/http/Wedding Plan`.
   - `backend_url` (for example `http://localhost:8080`)
   - `invitation_token` (a valid token from your local DB)
 
-Optional SQL to get a token:
+Optional SQL to get a token (the token lives in the `invitation_data` jsonb column; with the
+[sample data](#sample-data) loaded, filter on a sample label such as `Martin`):
 
 ```sql
-SELECT access_token FROM invitation ORDER BY creation_date DESC LIMIT 1;
+SELECT invitation_data ->> 'accessToken' FROM invitation ORDER BY creation_date DESC LIMIT 1;
 ```
 
 ### Required request order
