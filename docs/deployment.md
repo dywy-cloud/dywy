@@ -66,6 +66,30 @@ In Google OAuth app settings, configure the callback URL:
 - Backoffice: `https://<your-render-domain>/backoffice`
 - API base: same origin, under `/api`
 
+## 5) Load the sample data (preprod only)
+
+A complete demo dataset can be loaded on a **preprod** database (see
+[Sample data](local-development.md#sample-data) for its content). Never load it on production.
+
+The database must already be migrated (the app deployed and started once). From the repository
+root, with the Aiven connection URL (`sslmode=require`) and the database name as `confirm`:
+
+```bash
+psql "postgresql://<user>@<host>:<port>/<db>?sslmode=require" \
+  -v confirm=<db> \
+  -f backend/src/testFixtures/resources/sample/load-sample-data.sql
+```
+
+- **Confirm guard**: the loader refuses to run unless `confirm` equals the name of the connected
+  database (`current_database()`), so a command pasted against the wrong database does nothing. It
+  prints the expected command instead.
+- **Scoped cleanup**: before inserting, the dataset only deletes rows of guests with a
+  `@sample.dywy.cloud` email, together with their invitations, RSVPs and magic-link tokens. Other
+  data is never touched, and rows are upserted by id, so the command can be re-run.
+- **All or nothing**: everything runs in a single transaction.
+
+Pass the password with `PGPASSWORD` or the prompt; never put it in the command or in git.
+
 ## Security notes
 
 - Never commit `.env` production secrets.

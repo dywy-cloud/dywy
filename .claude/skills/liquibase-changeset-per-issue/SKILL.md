@@ -18,5 +18,6 @@ Migrations live in `backend/src/main/resources/db/changelog/` and are included f
 ## Checklist
 1. `--liquibase formatted sql` + `--changeset elgregos:<n>`.
 2. Update test seed `backend/src/testFixtures/resources/data.sql` (truncate list, inserts).
-3. Run `./gradlew test integrationTest` (Testcontainers applies the migration).
+3. Extend the sample dataset `backend/src/testFixtures/resources/sample/sample-data.sql` with the new column, table or enum value (every state must appear at least once), and check it still loads on the migrated schema.
+4. Run `./gradlew test integrationTest` (Testcontainers applies the migration).
 

@@ -46,6 +46,10 @@ And many other features to come
 - Keep tests DRY too: build test data with shared fixtures/builders (backend `testFixtures`, frontend `testFixtures`, e2e `fixtures`) instead of copying objects or setup between tests; extract repeated arrange/act steps into helpers; use parameterized tests (`it.each`, `@ParameterizedTest`) for the same assertion over several inputs.
 - Test behavior once, at the right level: do not re-assert in a higher-level test what a lower-level test already covers, and do not assert that something is absent just because it is not specified.
 
+## Sample data
+- The demo dataset `backend/src/testFixtures/resources/sample/sample-data.sql` (loaded with `load-sample-data.sql`, see [local development](docs/local-development.md#sample-data)) must cover every feature, enum value and nullable field.
+- Any new feature, column or enum value must extend the sample dataset in the same issue. Keep its ids UUIDv7 with a timestamp matching `creation_date`, and keep every row scoped to the `@sample.dywy.cloud` email domain so the cleanup stays safe on preprod.
+
 ## Versioning
 For every issue, bump and keep aligned both application versions:
 - `frontend/package.json` (run `pnpm run version:issue`)
