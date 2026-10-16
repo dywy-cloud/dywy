@@ -313,7 +313,7 @@ class InvitationsExposedRepositoryIT : AbstractIntegrationTest() {
     }
 
     private fun insertRawInvitation(json: String): java.util.UUID {
-        val id = java.util.UUID.randomUUID()
+        val id = InvitationId.generate().value.toJavaUuid()
         jdbcTemplate.update(
             """
             insert into invitation (id, version, creation_date, update_date, invitation_data)
