@@ -2,6 +2,7 @@ package cloud.dywy.infrastructure.rsvp.repository
 
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.containsOnly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -11,6 +12,7 @@ import cloud.dywy.AbstractIntegrationTest
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.rsvp.entity.GuestRsvp
+import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.janeDoeRsvpWithSameSyncedChoicesAsJohnDoe
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvp
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvpDeclined
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvpMealOnly
@@ -104,6 +106,43 @@ class GuestRsvpExposedRepositoryIT : AbstractIntegrationTest() {
         guestRsvpsRepository.save(johnDoeRsvp)
 
         assertThat(guestRsvpsRepository.findByGuestId(johnDoeRsvp.guestId)).isEqualTo(johnDoeRsvp)
+    }
+
+    @Test
+    fun `should find rsvps of several guests in a single query`() {
+        guestRsvpsRepository.save(johnDoeRsvp)
+        guestRsvpsRepository.save(janeDoeRsvpWithSameSyncedChoicesAsJohnDoe)
+        val (found, statements) = withExecutedSql {
+            guestRsvpsRepository.findByGuestIds(
+                setOf(johnDoeRsvp.guestId, janeDoeRsvpWithSameSyncedChoicesAsJohnDoe.guestId)
+            )
+        }
+
+        assertThat(found).containsOnly(johnDoeRsvp, janeDoeRsvpWithSameSyncedChoicesAsJohnDoe)
+        assertThat(statements.size).isEqualTo(1)
+    }
+
+    @Test
+    fun `should only return rsvps of the requested guests`() {
+        guestRsvpsRepository.save(johnDoeRsvp)
+        guestRsvpsRepository.save(janeDoeRsvpWithSameSyncedChoicesAsJohnDoe)
+
+        assertThat(guestRsvpsRepository.findByGuestIds(setOf(johnDoeRsvp.guestId))).containsExactly(johnDoeRsvp)
+    }
+
+    @Test
+    fun `should skip guests without rsvp in the batch lookup`() {
+        guestRsvpsRepository.save(johnDoeRsvp)
+
+        assertThat(guestRsvpsRepository.findByGuestIds(setOf(johnDoeRsvp.guestId, janeDoe.id)))
+            .containsExactly(johnDoeRsvp)
+    }
+
+    @Test
+    fun `should return nothing for an empty batch lookup`() {
+        guestRsvpsRepository.save(johnDoeRsvp)
+
+        assertThat(guestRsvpsRepository.findByGuestIds(emptySet())).isEmpty()
     }
 
     @Test
