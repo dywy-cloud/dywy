@@ -89,13 +89,17 @@
         class="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-secondary/30 bg-white p-4 shadow-sm"
         data-test="invitation-card"
       >
-        <h3 class="-mx-4 -mt-4 mb-3 rounded-t-xl border-b border-secondary/40 bg-background/60 px-4 py-2 text-lg font-medium text-text" data-test="invitation-card-label">{{ invitation.label }}</h3>
+        <div class="-mx-4 -mt-4 mb-3 flex items-center justify-between gap-2 rounded-t-xl border-b border-secondary/40 bg-background/60 px-4 py-2">
+          <h3 class="min-w-0 truncate text-lg font-medium text-text" data-test="invitation-card-label">{{ invitation.label }}</h3>
+          <RsvpStatusBadge :summary="invitation.rsvpSummary" class="shrink-0" />
+        </div>
 
         <p class="mb-3 text-xs text-text/60">
           <span data-test="invitation-card-guest-count">{{ invitation.guestCount }} {{ invitation.guestCount === 1 ? 'guest' : 'guests' }}</span>
           <span aria-hidden="true"> · </span>
           <span data-test="invitation-card-delivery-method">{{ formatDeliveryMethod(invitation.deliveryMethod) }}</span>
         </p>
+
 
         <ul class="mb-3 space-y-1 text-xs text-text/80" data-test="invitation-card-guest-details">
           <li
@@ -145,6 +149,7 @@
 import { onMounted, ref } from 'vue';
 import InvitationQrCodePanel from '../components/InvitationQrCodePanel.vue';
 import PrintStickersDialog from '../components/PrintStickersDialog.vue';
+import RsvpStatusBadge from '../components/RsvpStatusBadge.vue';
 import WriteOnly from '../components/ui/WriteOnly.vue';
 import addInvitationIcon from '../assets/icons/add-invitation.svg';
 import editInvitationIcon from '../assets/icons/edit.svg';

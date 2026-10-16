@@ -48,6 +48,10 @@
           <dd data-test="invitation-details-guest-count">{{ invitation.guestCount }}</dd>
         </div>
         <div>
+          <dt class="text-text/60">RSVP</dt>
+          <dd><RsvpStatusBadge :summary="invitation.rsvpSummary" data-test="invitation-details-rsvp" /></dd>
+        </div>
+        <div>
           <dt class="text-text/60">Created at</dt>
           <dd data-test="invitation-details-creation-date">{{ formatDateTime(invitation.creationDate) }}</dd>
         </div>
@@ -71,8 +75,10 @@
             v-for="guest in invitation.guests"
             :key="guest.id"
             data-test="invitation-details-guest-item"
+            class="flex flex-wrap items-center gap-2"
           >
-            {{ guest.firstName }} {{ guest.lastName }} ({{ guest.email }})
+            <span data-test="invitation-details-guest-name">{{ guest.firstName }} {{ guest.lastName }} ({{ guest.email }})</span>
+            <RsvpStatusBadge :summary="guest.rsvpSummary" compact data-test="invitation-details-guest-rsvp" />
           </li>
         </ul>
       </div>
@@ -103,6 +109,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import InvitationQrCodePanel from '../components/InvitationQrCodePanel.vue';
+import RsvpStatusBadge from '../components/RsvpStatusBadge.vue';
 import BaseButton from '../components/ui/BaseButton.vue';
 import WriteOnly from '../components/ui/WriteOnly.vue';
 import backIcon from '../assets/icons/back.svg';

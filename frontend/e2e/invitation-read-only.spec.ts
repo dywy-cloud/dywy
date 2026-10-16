@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { allowReadOnlySession } from './fixtures/authSetup';
 import { fulfillJson } from './fixtures/httpHelpers';
+import { pendingGuestRsvpSummary } from './fixtures/rsvpFixtures';
 import { NAVIGATION_TIMEOUT_MS, UI_TIMEOUT_MS } from './fixtures/timeouts';
 
 test.describe('Invitations read-only access', () => {
@@ -23,7 +24,8 @@ test.describe('Invitations read-only access', () => {
                 id: 'guest-1',
                 firstName: 'Alice',
                 lastName: 'Martin',
-                email: 'alice@example.com'
+                email: 'alice@example.com',
+                rsvpSummary: pendingGuestRsvpSummary
               }
             ],
             guestCount: 1,

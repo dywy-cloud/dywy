@@ -19,6 +19,7 @@ class InvitationDtosTest {
             firstName = brideFamilyGuest.firstName,
             lastName = brideFamilyGuest.lastName,
             email = brideFamilyGuest.email,
+            rsvpSummary = brideFamilyGuest.rsvpSummary,
         )
 
         assertThat(response).isEqualTo(brideFamilyGuest)

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import InvitationDetailsView from './InvitationDetailsView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { applyCapabilities, resetCapabilities } from '../composables/useCapabilities';
-import { createInvitationResponse } from '../testFixtures/invitationFixtures';
+import { createInvitationGuestResponse, createInvitationResponse, createRsvpSummary } from '../testFixtures/invitationFixtures';
 
 const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -120,17 +120,19 @@ describe('InvitationDetailsView', () => {
           id: 'guest-1',
           firstName: 'Alice',
           lastName: 'Martin',
-          email: 'alice@example.com'
+          email: 'alice@example.com',
+          rsvpSummary: { status: 'ACCEPTED_ALL', attending: 1, declined: 0, pending: 0, total: 1 }
         },
         {
           id: 'guest-2',
           firstName: 'Bob',
           lastName: 'Durand',
-          email: 'bob@example.com'
+          email: 'bob@example.com',
+          rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
         }
       ],
       guestCount: 2,
-      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 2, total: 2 }
+      rsvpSummary: { status: 'PARTIALLY_ANSWERED', attending: 1, declined: 0, pending: 1, total: 2 }
     });
 
     const { wrapper } = await mountView();
@@ -154,6 +156,37 @@ describe('InvitationDetailsView', () => {
     expect(wrapper.findAll('[data-test="invitation-details-guest-item"]')).toHaveLength(2);
     expect(wrapper.text()).toContain('Alice Martin (alice@example.com)');
     expect(wrapper.text()).toContain('Bob Durand (bob@example.com)');
+  });
+
+  it('renders the invitation RSVP badge and one badge per guest', async () => {
+    getInvitationByIdMock.mockResolvedValue(createInvitationResponse({
+      guests: [
+        createInvitationGuestResponse({
+          id: 'guest-1',
+          rsvpSummary: createRsvpSummary({ status: 'ACCEPTED_ALL', attending: 1, pending: 0, total: 1 })
+        }),
+        createInvitationGuestResponse({
+          id: 'guest-2',
+          firstName: 'Bob',
+          rsvpSummary: createRsvpSummary({ status: 'DECLINED_ALL', declined: 1, pending: 0, total: 1 })
+        }),
+        createInvitationGuestResponse({ id: 'guest-3', firstName: 'Carl' })
+      ],
+      rsvpSummary: createRsvpSummary({ status: 'PARTIALLY_ACCEPTED', attending: 1, declined: 1, pending: 1, total: 3 })
+    }));
+
+    const { wrapper } = await mountView();
+
+    expect(wrapper.get('[data-test="invitation-details-rsvp"]').text()).toContain('Partially accepted 1/3');
+    expect(wrapper.get('[data-test="invitation-details-rsvp"]').attributes('data-status')).toBe('PARTIALLY_ACCEPTED');
+
+    const guestBadges = wrapper.findAll('[data-test="invitation-details-guest-rsvp"]');
+
+    expect(guestBadges.map((badge) => badge.attributes('data-status'))).toEqual([
+      'ACCEPTED_ALL',
+      'DECLINED_ALL',
+      'PENDING'
+    ]);
   });
 
 

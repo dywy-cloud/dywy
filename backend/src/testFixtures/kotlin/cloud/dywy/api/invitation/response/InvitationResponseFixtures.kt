@@ -7,11 +7,20 @@ import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
 import cloud.dywy.domain.rsvp.entity.RsvpStatus
 
 object InvitationResponseFixtures {
+    val pendingGuestRsvpSummary = InvitationRsvpSummaryResponse(
+        status = RsvpStatus.PENDING,
+        attending = 0,
+        declined = 0,
+        pending = 1,
+        total = 1,
+    )
+
     val brideFamilyGuest = InvitationGuestResponse(
         id = johnDoe.id.toString(),
         firstName = johnDoe.firstName,
         lastName = johnDoe.lastName,
         email = johnDoe.email,
+        rsvpSummary = pendingGuestRsvpSummary,
     )
 
     val brideFamily = InvitationResponse(
@@ -53,6 +62,7 @@ object InvitationResponseFixtures {
                     firstName = it.firstName,
                     lastName = it.lastName,
                     email = it.email,
+                    rsvpSummary = pendingGuestRsvpSummary,
                 )
             },
         guestCount = friendsInvitation.guests.size,
