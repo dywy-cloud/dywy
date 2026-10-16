@@ -113,7 +113,7 @@ class SampleDataIT : AbstractIntegrationTest() {
     fun `should cover both rsvp attendances`() {
         val attendances = sampleRsvps().map { it.attendance }.toSet()
 
-        assertThat(attendances).containsAtLeast(*RsvpAttendance.entries.toTypedArray())
+        assertThat(attendances).containsAtLeast(RsvpAttendance.ATTENDING, RsvpAttendance.DECLINED)
     }
 
     @Test

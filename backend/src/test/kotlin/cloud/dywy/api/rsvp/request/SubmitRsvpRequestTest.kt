@@ -66,6 +66,11 @@ class SubmitRsvpRequestTest {
     }
 
     @Test
+    fun `should map to null when attendance is pending`() {
+        assertThat(SubmitRsvpRequest(attendance = "PENDING").toCommand(johnDoe.id)).isNull()
+    }
+
+    @Test
     fun `should map to null when attending without a meal`() {
         assertThat(attendingWithoutMeal.toCommand(johnDoe.id)).isNull()
     }

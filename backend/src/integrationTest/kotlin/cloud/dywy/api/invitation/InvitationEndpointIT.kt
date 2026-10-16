@@ -17,6 +17,8 @@ import cloud.dywy.api.invitation.request.UpdateInvitationRequest
 import cloud.dywy.api.invitation.response.InvitationResponse
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
+import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.janeDoeRsvpWithSameSyncedChoicesAsJohnDoe
+import cloud.dywy.domain.rsvp.repository.GuestRsvps
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -24,11 +26,15 @@ import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import java.util.*
 import kotlin.test.Test
+import kotlin.uuid.toJavaUuid
 
 class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @Autowired
+    private lateinit var guestRsvps: GuestRsvps
 
     @Test
     fun `should create invitation with multiple active guests`() {
@@ -64,7 +70,6 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
 
         authenticatedJsonPost(
             csrf = csrf,
-            uri = "/api/invitations",
             body = AddInvitationRequest(
                 label = "Invalid invitation",
                 guestIds = listOf(activeGuest.id, archivedGuest.id),
@@ -84,7 +89,6 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
 
         authenticatedJsonPost(
             csrf = csrf,
-            uri = "/api/invitations",
             body = AddInvitationRequest(
                 label = "No guests",
                 guestIds = emptyList(),
@@ -102,7 +106,6 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
 
         authenticatedJsonPost(
             csrf = csrf,
-            uri = "/api/invitations",
             body = AddInvitationRequest(
                 label = "Duplicate guest invitation",
                 guestIds = listOf(janeDoe.id.toString()),
@@ -132,6 +135,7 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
             .jsonPath("$.items[0].guestCount").exists()
             .jsonPath("$.items[0].guests.length()").isEqualTo(1)
             .jsonPath("$.items[0].guests[0].id").isEqualTo("${janeDoe.id}")
+            .jsonPath("$.items[0].rsvpSummary.status").exists()
             .jsonPath("$.page").isEqualTo(0)
             .jsonPath("$.size").isEqualTo(10)
     }
@@ -152,6 +156,46 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
             .jsonPath("$.guestCount").isEqualTo(1)
             .jsonPath("$.guests.length()").isEqualTo(1)
             .jsonPath("$.guests[0].id").isEqualTo("${janeDoe.id}")
+            .jsonPath("$.guests[0].attendance").isEqualTo("PENDING")
+            .jsonPath("$.rsvpSummary.status").isEqualTo("PENDING")
+            .jsonPath("$.rsvpSummary.pending").isEqualTo(1)
+            .jsonPath("$.rsvpSummary.total").isEqualTo(1)
+    }
+
+    @Test
+    fun `should expose the rsvp summary and guest attendance when getting an invitation`() {
+        val csrf = authenticatedCsrfContext("gregory@example.com")
+        withJaneDoeRsvp {
+            restTestClient.get().uri("/api/invitations/${bridesMaidInvitation.id}")
+                .header(HttpHeaders.COOKIE, csrf.cookies)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk
+                .expectBody()
+                .jsonPath("$.guests[0].attendance").isEqualTo("ATTENDING")
+                .jsonPath("$.rsvpSummary.status").isEqualTo("ACCEPTED_ALL")
+                .jsonPath("$.rsvpSummary.attending").isEqualTo(1)
+                .jsonPath("$.rsvpSummary.declined").isEqualTo(0)
+                .jsonPath("$.rsvpSummary.pending").isEqualTo(0)
+                .jsonPath("$.rsvpSummary.total").isEqualTo(1)
+        }
+    }
+
+    @Test
+    fun `should expose the rsvp summary and guest attendance when listing invitations`() {
+        val csrf = authenticatedCsrfContext("gregory@example.com")
+        val invitation = "$.items[?(@.id=='${bridesMaidInvitation.id}')]"
+        withJaneDoeRsvp {
+            restTestClient.get().uri("/api/invitations?page=0&size=100")
+                .header(HttpHeaders.COOKIE, csrf.cookies)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk
+                .expectBody()
+                .jsonPath("$invitation.guests[0].attendance").isEqualTo("ATTENDING")
+                .jsonPath("$invitation.rsvpSummary.status").isEqualTo("ACCEPTED_ALL")
+                .jsonPath("$invitation.rsvpSummary.total").isEqualTo(1)
+        }
     }
 
     @Test
@@ -245,7 +289,7 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
 
     private fun authenticatedJsonPost(
         csrf: CsrfContext,
-        uri: String,
+        uri: String = "/api/invitations",
         body: Any,
     ) = restTestClient.post().uri(uri)
         .header(HttpHeaders.COOKIE, csrf.cookies)
@@ -282,5 +326,13 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
 
     private fun invitationCount() =
         jdbcTemplate.queryForObject("select count(*) from invitation", Int::class.java) ?: 0
-}
 
+    private fun withJaneDoeRsvp(assertions: () -> Unit) {
+        guestRsvps.save(janeDoeRsvpWithSameSyncedChoicesAsJohnDoe)
+        try {
+            assertions()
+        } finally {
+            jdbcTemplate.update("delete from guest_rsvp where id = ?", janeDoeRsvpWithSameSyncedChoicesAsJohnDoe.id.value.toJavaUuid())
+        }
+    }
+}

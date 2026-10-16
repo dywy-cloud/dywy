@@ -30,6 +30,11 @@ And many other features to come
    Closes #234
    ```
 
+## Tooling for automated agents
+- When the IntelliJ MCP server (`http://localhost:64342`) is available, prefer its tools (file reading, search, builds, inspections, git status) over raw terminal commands.
+- Edit files with the editor tools, one file and one edit at a time. Never write Python or shell scripts or heredocs to patch files.
+- After an edit, check the result (`git diff`, `grep`, or the IDE inspections) before building on it.
+
 ## Craft principles
 - **KISS**: prefer the simplest implementation that satisfies the scope; avoid unnecessary abstraction, indirection, or overly clever code.
 - **YAGNI**: implement only what is required by the current issue scope; do not add speculative features, extension points, or premature generalization.

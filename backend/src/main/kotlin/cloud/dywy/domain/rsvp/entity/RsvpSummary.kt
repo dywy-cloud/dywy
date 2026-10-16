@@ -12,24 +12,23 @@ data class RsvpSummary(
     companion object {
 
         fun of(guestIds: Collection<GuestId>, rsvps: Collection<GuestRsvp>): RsvpSummary =
-            guestIds.toSet().let { ids ->
-                summarize(
-                    total = ids.size,
-                    attendances = rsvps.filter { it.guestId in ids }.associate { it.guestId to it.attendance }.values,
-                )
+            rsvps.associate { it.guestId to it.attendance }.let { byGuest ->
+                summarize(guestIds.toSet().map { byGuest[it] ?: RsvpAttendance.PENDING })
             }
-        private fun summarize(total: Int, attendances: Collection<RsvpAttendance>): RsvpSummary =
+
+        private fun summarize(attendances: List<RsvpAttendance>): RsvpSummary =
             RsvpSummary(
                 status = statusOf(
                     attending = attendances.count { it == RsvpAttendance.ATTENDING },
                     declined = attendances.count { it == RsvpAttendance.DECLINED },
-                    total = total,
+                    total = attendances.size,
                 ),
                 attending = attendances.count { it == RsvpAttendance.ATTENDING },
                 declined = attendances.count { it == RsvpAttendance.DECLINED },
-                pending = total - attendances.size,
-                total = total,
+                pending = attendances.count { it == RsvpAttendance.PENDING },
+                total = attendances.size,
             )
+
         private fun statusOf(attending: Int, declined: Int, total: Int): RsvpStatus = when {
             attending == 0 && declined == 0 -> RsvpStatus.PENDING
             attending + declined < total -> RsvpStatus.PARTIALLY_ANSWERED

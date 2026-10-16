@@ -13,10 +13,12 @@ import cloud.dywy.api.invitation.response.toResponse
 import cloud.dywy.application.invitation.InvitationAdder
 import cloud.dywy.application.invitation.InvitationGetter
 import cloud.dywy.application.invitation.InvitationLister
+import cloud.dywy.application.invitation.InvitationRsvpLoader
 import cloud.dywy.application.invitation.InvitationUpdater
 import cloud.dywy.application.invitation.result.AddInvitationResult
 import cloud.dywy.application.invitation.result.UpdateInvitationResult
 import cloud.dywy.domain.guest.entity.GuestId
+import cloud.dywy.domain.invitation.entity.Invitation
 import cloud.dywy.domain.invitation.entity.InvitationListCriteria
 import jakarta.validation.Validator
 import org.springframework.http.HttpStatus
@@ -30,13 +32,16 @@ class InvitationEndpoint(
     private val invitationLister: InvitationLister,
     private val invitationGetter: InvitationGetter,
     private val invitationUpdater: InvitationUpdater,
+    private val invitationRsvpLoader: InvitationRsvpLoader,
     private val validator: Validator,
 ) {
     fun listInvitations(request: ServerRequest): ServerResponse =
         request.intQueryParam("page", default = 0)?.takeIf { it >= 0 }?.let { page ->
             request.intQueryParam("size", default = 20)?.takeIf { it > 0 }?.let { size ->
-                ServerResponse.ok()
-                    .body(invitationLister.list(InvitationListCriteria(page = page, size = size)).toResponse())
+                invitationLister.list(InvitationListCriteria(page = page, size = size)).let { invitationPage ->
+                    ServerResponse.ok()
+                        .body(invitationPage.toResponse(invitationRsvpLoader.load(invitationPage.items)))
+                }
             }
         } ?: ServerResponse.badRequest().build()
 
@@ -46,7 +51,7 @@ class InvitationEndpoint(
                 ?.let { command ->
                     when (val result = invitationAdder.add(command)) {
                         is AddInvitationResult.Added -> ServerResponse.status(HttpStatus.CREATED)
-                            .body(result.invitation.toResponse())
+                            .body(result.invitation.toResponseWithRsvps())
 
                         is AddInvitationResult.MissingGuests -> ServerResponse.badRequest().body(
                             MissingInvitationGuestsResponse(message = "At least one guest is required.")
@@ -76,7 +81,7 @@ class InvitationEndpoint(
     fun getInvitation(request: ServerRequest): ServerResponse =
         request.invitationIdPathParam()?.let { id ->
             invitationGetter.get(id)
-                ?.toResponse()
+                ?.toResponseWithRsvps()
                 ?.let(ServerResponse.ok()::body)
                 ?: ServerResponse.notFound().build()
         } ?: ServerResponse.badRequest().build()
@@ -87,7 +92,7 @@ class InvitationEndpoint(
                 payload.toCommandOrNull(id)
                     ?.let { command ->
                         when (val result = invitationUpdater.update(command)) {
-                            is UpdateInvitationResult.Updated -> ServerResponse.ok().body(result.invitation.toResponse())
+                            is UpdateInvitationResult.Updated -> ServerResponse.ok().body(result.invitation.toResponseWithRsvps())
                             is UpdateInvitationResult.VersionConflict -> ServerResponse.status(HttpStatus.CONFLICT)
                                 .body(mapOf("message" to "This invitation has been modified elsewhere. Please reload and try again."))
                             is UpdateInvitationResult.NotFound -> ServerResponse.notFound().build()
@@ -117,6 +122,8 @@ class InvitationEndpoint(
                     } ?: ServerResponse.badRequest().build()
             }
         } ?: ServerResponse.badRequest().build()
+
+    private fun Invitation.toResponseWithRsvps() = toResponse(invitationRsvpLoader.load(listOf(this)))
 
     private companion object {
         const val POSTAL_ADDRESS_REQUIRED_MESSAGE = "A postal address is required when the invitation is posted."

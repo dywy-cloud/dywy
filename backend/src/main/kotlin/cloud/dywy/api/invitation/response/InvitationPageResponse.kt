@@ -1,7 +1,8 @@
 package cloud.dywy.api.invitation.response
 
-import cloud.dywy.domain.invitation.entity.Invitation
+import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.invitation.entity.InvitationPage
+import cloud.dywy.domain.rsvp.entity.GuestRsvp
 
 data class InvitationPageResponse(
     val items: List<InvitationResponse>,
@@ -11,8 +12,8 @@ data class InvitationPageResponse(
     val totalPages: Int,
 )
 
-internal fun InvitationPage.toResponse() = InvitationPageResponse(
-    items = items.map(Invitation::toResponse),
+internal fun InvitationPage.toResponse(rsvps: Map<GuestId, GuestRsvp>) = InvitationPageResponse(
+    items = items.map { it.toResponse(rsvps) },
     page = page,
     size = size,
     totalItems = totalItems,
