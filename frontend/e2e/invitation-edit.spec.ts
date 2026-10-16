@@ -34,7 +34,8 @@ test.describe('Invitation edit', () => {
               email: 'bob@example.com'
             }
           ],
-          guestCount: 2
+          guestCount: 2,
+          rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 2, total: 2 }
         });
       } else if (route.request().method() === 'PUT') {
         await fulfillJson(route, {
@@ -53,7 +54,8 @@ test.describe('Invitation edit', () => {
               email: 'alice@example.com'
             }
           ],
-          guestCount: 1
+          guestCount: 1,
+          rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
         });
       } else {
         await route.fallback();
@@ -134,7 +136,8 @@ test.describe('Invitation edit', () => {
             email: 'alice@example.com'
           }
         ],
-        guestCount: 1
+        guestCount: 1,
+        rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
       });
     });
 
@@ -192,7 +195,8 @@ test.describe('Invitation edit', () => {
             email: 'alice@example.com'
           }
         ],
-        guestCount: 1
+        guestCount: 1,
+        rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
       });
     });
 
@@ -248,7 +252,8 @@ test.describe('Invitation edit', () => {
             email: 'alice@example.com'
           }
         ],
-        guestCount: 1
+        guestCount: 1,
+        rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
       });
     });
 
@@ -319,7 +324,8 @@ test.describe('Invitation edit', () => {
             email: 'alice@example.com'
           }
         ],
-        guestCount: 1
+        guestCount: 1,
+        rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
       });
     });
 
@@ -365,6 +371,7 @@ test.describe('Invitation edit', () => {
       description: 'Main family table',
       guests: [{ id: 'guest-1', firstName: 'Alice', lastName: 'Martin', email: 'alice@example.com' }],
       guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 },
       ...overrides
     });
 

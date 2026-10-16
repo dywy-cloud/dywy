@@ -1,4 +1,13 @@
-import type { InvitationGuestResponse, InvitationResponse } from '../services/invitationApi';
+import type { InvitationGuestResponse, InvitationResponse, RsvpSummary } from '../services/invitationApi';
+
+export const createRsvpSummary = (overrides: Partial<RsvpSummary> = {}): RsvpSummary => ({
+  status: 'PENDING',
+  attending: 0,
+  declined: 0,
+  pending: 3,
+  total: 3,
+  ...overrides
+});
 
 export const createInvitationGuestResponse = (
   overrides: Partial<InvitationGuestResponse> = {}
@@ -23,6 +32,7 @@ export const createInvitationResponse = (overrides: Partial<InvitationResponse> 
     description: 'Main family table',
     guests,
     guestCount: guests.length,
+    rsvpSummary: createRsvpSummary({ pending: guests.length, total: guests.length }),
     ...overrides
   };
 };

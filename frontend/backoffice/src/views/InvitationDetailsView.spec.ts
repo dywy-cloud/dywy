@@ -91,7 +91,8 @@ describe('InvitationDetailsView', () => {
       label: 'Family table',
       description: 'Main family table',
       guests: [],
-      guestCount: 0
+      guestCount: 0,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
     });
 
     const { wrapper, router } = await mountView({ previousPath: '/invitations' });
@@ -128,7 +129,8 @@ describe('InvitationDetailsView', () => {
           email: 'bob@example.com'
         }
       ],
-      guestCount: 2
+      guestCount: 2,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 2, total: 2 }
     });
 
     const { wrapper } = await mountView();
@@ -194,7 +196,8 @@ describe('InvitationDetailsView', () => {
       label: 'Family table',
       description: 'Main family table',
       guests: [],
-      guestCount: 0
+      guestCount: 0,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
     });
 
     const { wrapper } = await mountView();
@@ -222,7 +225,8 @@ describe('InvitationDetailsView', () => {
       label: 'Family table',
       description: 'Main family table',
       guests: [],
-      guestCount: 0
+      guestCount: 0,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
     });
 
     const { wrapper } = await mountView();
@@ -241,7 +245,8 @@ describe('InvitationDetailsView', () => {
       label: 'Family table',
       description: 'Main family table',
       guests: [],
-      guestCount: 0
+      guestCount: 0,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
     });
 
     const { wrapper } = await mountView();
