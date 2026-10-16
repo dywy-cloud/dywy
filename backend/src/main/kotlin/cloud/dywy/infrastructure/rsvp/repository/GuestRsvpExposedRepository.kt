@@ -8,6 +8,7 @@ import cloud.dywy.domain.rsvp.repository.GuestRsvps
 import cloud.dywy.domain.rsvp.repository.PendingSongSync
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.upsert
@@ -15,11 +16,18 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
 @Repository
-class GuestRsvpExposedRepository: GuestRsvps {
+class GuestRsvpExposedRepository : GuestRsvps {
 
     @Transactional(readOnly = true)
     override fun findByGuestId(guestId: GuestId): GuestRsvp? =
         selectByGuestId(guestId)?.toGuestRsvp()
+
+    @Transactional(readOnly = true)
+    override fun findByGuestIds(guestIds: Set<GuestId>): List<GuestRsvp> =
+        if (guestIds.isEmpty()) emptyList()
+        else GuestRsvpTable.selectAll()
+            .where { GuestRsvpTable.guestId inList guestIds.map(GuestId::value) }
+            .map { it.toGuestRsvp() }
 
     @Transactional(readOnly = true)
     override fun isSongOnPlaylist(deezerId: Long): Boolean =

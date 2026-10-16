@@ -1,5 +1,10 @@
 package cloud.dywy
 
+import org.jetbrains.exposed.v1.core.Transaction
+import org.jetbrains.exposed.v1.core.statements.StatementContext
+import org.jetbrains.exposed.v1.core.statements.StatementInterceptor
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Import
@@ -8,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.jdbc.Sql
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -20,6 +27,9 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Sql(scripts = ["classpath:data.sql"], executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 abstract class AbstractIntegrationTest {
+
+    @Autowired
+    private lateinit var platformTransactionManager: PlatformTransactionManager
 
     companion object {
         private const val MAILPIT_SMTP_PORT = 1025
@@ -52,4 +62,18 @@ abstract class AbstractIntegrationTest {
     }
 
     protected fun mailpitApiBaseUrl() = "http://${mailpit.host}:${mailpit.getMappedPort(MAILPIT_HTTP_PORT)}"
+
+    protected fun <T> withExecutedSql(function: () -> T): Pair<T, List<String>> =
+        mutableListOf<String>().let { statements ->
+            checkNotNull(
+                TransactionTemplate(platformTransactionManager).execute {
+                    TransactionManager.current().registerInterceptor(object : StatementInterceptor {
+                        override fun beforeExecution(transaction: Transaction, context: StatementContext) {
+                            statements += context.sql(transaction)
+                        }
+                    })
+                    function() to statements
+                }
+            )
+        }
 }
