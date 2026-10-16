@@ -3,6 +3,16 @@ import type { PostalAddress } from './postalAddress';
 
 export type DeliveryMethod = 'HAND_DELIVERED' | 'POSTED';
 
+export type RsvpStatus = 'ACCEPTED_ALL' | 'PARTIALLY_ACCEPTED' | 'DECLINED_ALL' | 'PENDING' | 'PARTIALLY_ANSWERED';
+
+export interface RsvpSummary {
+  status: RsvpStatus;
+  attending: number;
+  declined: number;
+  pending: number;
+  total: number;
+}
+
 export interface InvitationResponse {
   id: string;
   accessToken: string;
@@ -15,6 +25,7 @@ export interface InvitationResponse {
   postalAddress?: PostalAddress | null;
   guests: InvitationGuestResponse[];
   guestCount: number;
+  rsvpSummary: RsvpSummary;
 }
 
 export interface InvitationGuestResponse {

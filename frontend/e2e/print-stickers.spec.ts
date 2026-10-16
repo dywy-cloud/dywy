@@ -14,7 +14,8 @@ const buildInvitation = (index: number) => ({
   label: `Table ${index}`,
   description: `Table ${index}`,
   guests: [],
-  guestCount: 0
+  guestCount: 0,
+  rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
 });
 
 test.describe('Print stickers', () => {

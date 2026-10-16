@@ -123,7 +123,8 @@ describe('InvitationsListView', () => {
               email: 'bob@example.com'
             }
           ],
-          guestCount: 2
+          guestCount: 2,
+          rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 2, total: 2 }
         }
       ],
       page: 0,
@@ -246,7 +247,8 @@ describe('InvitationsListView', () => {
           label: 'Family table',
           description: 'ignored by card content',
           guests: [],
-          guestCount: 0
+          guestCount: 0,
+          rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
         }
       ],
       page: 0,

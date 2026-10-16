@@ -26,7 +26,8 @@ test.describe('Invitations read-only access', () => {
                 email: 'alice@example.com'
               }
             ],
-            guestCount: 1
+            guestCount: 1,
+            rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
           }
         ],
         page: 0,

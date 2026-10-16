@@ -98,7 +98,8 @@ describe('EditInvitationView', () => {
       label: 'Family table',
       description: 'Main family table',
       guests: [],
-      guestCount: 0
+      guestCount: 0,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
     });
     listGuestsMock.mockResolvedValue({
       items: [],
@@ -132,7 +133,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
     listGuestsMock.mockResolvedValue({
       items: [
@@ -184,7 +186,8 @@ describe('EditInvitationView', () => {
           email: 'bob@example.com'
         }
       ],
-      guestCount: 2
+      guestCount: 2,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 2, total: 2 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -229,7 +232,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     const { wrapper, router } = await mountView();
@@ -324,7 +328,8 @@ describe('EditInvitationView', () => {
             email: 'alice@example.com'
           }
         ],
-        guestCount: 1
+        guestCount: 1,
+        rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
       });
     });
 
@@ -376,7 +381,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -424,7 +430,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -473,7 +480,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -522,7 +530,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -564,7 +573,8 @@ describe('EditInvitationView', () => {
       label: 'Family table',
       description: 'Main family table',
       guests: [],
-      guestCount: 0
+      guestCount: 0,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -598,7 +608,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -634,7 +645,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -685,7 +697,8 @@ describe('EditInvitationView', () => {
             email: 'alice@example.com'
           }
         ],
-        guestCount: 1
+        guestCount: 1,
+        rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
       });
 
       listGuestsMock
@@ -744,7 +757,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock
@@ -817,7 +831,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockRejectedValue(new Error('Unable to retrieve guests at the moment.'));
@@ -843,7 +858,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -879,7 +895,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     const { wrapper } = await mountView();
@@ -914,7 +931,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
 
     listGuestsMock.mockResolvedValue({
@@ -947,7 +965,8 @@ describe('EditInvitationView', () => {
             label: 'Family table',
             description: 'Main family table',
             guests: [],
-            guestCount: 0
+            guestCount: 0,
+            rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
           });
         };
       })
@@ -992,7 +1011,8 @@ describe('EditInvitationView', () => {
           email: 'alice@example.com'
         }
       ],
-      guestCount: 1
+      guestCount: 1,
+      rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
     });
     listGuestsMock.mockResolvedValue({
       items: [
