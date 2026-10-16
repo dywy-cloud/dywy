@@ -10,7 +10,7 @@ class InvitationPageResponseTest {
 
     @Test
     fun `should map invitation page to response`() {
-        val response = firstPageDomain.toResponse()
+        val response = firstPageDomain.toResponse(emptyMap())
 
         assertThat(response).isEqualTo(firstPage)
     }

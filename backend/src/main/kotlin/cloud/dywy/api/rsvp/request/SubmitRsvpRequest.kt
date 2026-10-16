@@ -18,19 +18,17 @@ data class SubmitRsvpRequest(
      * an unknown attendance, or — when attending — a missing/unknown meal.
      * Choices are ignored for a declined guest.
      */
-    internal fun toCommand(guestId: GuestId): SubmitGuestRsvpCommand? {
-        val attendance = RsvpAttendance.parseOrNull(attendance) ?: return null
-
-        if (attendance != RsvpAttendance.ATTENDING) {
-            return SubmitGuestRsvpCommand(guestId = guestId, attendance = attendance)
+    internal fun toCommand(guestId: GuestId): SubmitGuestRsvpCommand? =
+        when (val parsed = RsvpAttendance.parse(attendance)) {
+            RsvpAttendance.PENDING -> null
+            RsvpAttendance.DECLINED -> SubmitGuestRsvpCommand(guestId = guestId, attendance = parsed)
+            RsvpAttendance.ATTENDING -> Meal.parseOrNull(meal)?.let { parsedMeal ->
+                SubmitGuestRsvpCommand(
+                    guestId = guestId,
+                    attendance = parsed,
+                    answers = RsvpAnswers(meal = parsedMeal, song = song?.toSongChoice()),
+                )
+            }
         }
-
-        val meal = Meal.parseOrNull(meal) ?: return null
-        return SubmitGuestRsvpCommand(
-            guestId = guestId,
-            attendance = attendance,
-            answers = RsvpAnswers(meal = meal, song = song?.toSongChoice()),
-        )
-    }
 }
 

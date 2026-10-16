@@ -4,6 +4,7 @@ import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
+import cloud.dywy.domain.rsvp.entity.RsvpStatus
 
 object InvitationResponseFixtures {
     val brideFamilyGuest = InvitationGuestResponse(
@@ -25,6 +26,13 @@ object InvitationResponseFixtures {
         deliveryMethod = brideFamilyInvitation.deliveryMethod,
         guests = listOf(brideFamilyGuest),
         guestCount = 1,
+        rsvpSummary = InvitationRsvpSummaryResponse(
+            status = RsvpStatus.PENDING,
+            attending = 0,
+            declined = 0,
+            pending = 1,
+            total = 1,
+        ),
     )
 
     val friends = InvitationResponse(
@@ -48,6 +56,13 @@ object InvitationResponseFixtures {
                 )
             },
         guestCount = friendsInvitation.guests.size,
+        rsvpSummary = InvitationRsvpSummaryResponse(
+            status = RsvpStatus.PENDING,
+            attending = 0,
+            declined = 0,
+            pending = friendsInvitation.guests.size,
+            total = friendsInvitation.guests.size,
+        ),
     )
 
     val firstPage = InvitationPageResponse(

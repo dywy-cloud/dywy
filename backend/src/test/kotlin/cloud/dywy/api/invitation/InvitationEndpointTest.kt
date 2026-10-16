@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import cloud.dywy.api.invitation.request.AddInvitationRequest
 import cloud.dywy.api.invitation.request.UpdateInvitationRequest
 import cloud.dywy.api.invitation.response.toResponse
@@ -11,11 +12,13 @@ import cloud.dywy.application.invitation.result.AddInvitationResult
 import cloud.dywy.application.invitation.InvitationAdder
 import cloud.dywy.application.invitation.InvitationGetter
 import cloud.dywy.application.invitation.InvitationLister
+import cloud.dywy.application.invitation.InvitationRsvpLoader
 import cloud.dywy.application.invitation.InvitationUpdater
 import cloud.dywy.application.invitation.result.UpdateInvitationResult
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
 import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
+import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
 import cloud.dywy.domain.invitation.entity.InvitationId
 import cloud.dywy.domain.invitation.entity.InvitationListCriteria
 import cloud.dywy.domain.invitation.entity.InvitationPage
@@ -35,6 +38,7 @@ class InvitationEndpointTest {
     private lateinit var invitationLister: InvitationLister
     private lateinit var invitationGetter: InvitationGetter
     private lateinit var invitationUpdater: InvitationUpdater
+    private lateinit var invitationRsvpLoader: InvitationRsvpLoader
     private lateinit var invitationEndpoint: InvitationEndpoint
 
     private val invitationGuestIds = brideFamilyInvitation.guests.map { it.id.toString() }
@@ -45,8 +49,17 @@ class InvitationEndpointTest {
         invitationLister = mockk()
         invitationGetter = mockk()
         invitationUpdater = mockk()
+        invitationRsvpLoader = mockk()
+        every { invitationRsvpLoader.load(any()) } returns emptyMap()
         validator = Validation.buildDefaultValidatorFactory().validator
-        invitationEndpoint = InvitationEndpoint(invitationAdder, invitationLister, invitationGetter, invitationUpdater, validator)
+        invitationEndpoint = InvitationEndpoint(
+            invitationAdder,
+            invitationLister,
+            invitationGetter,
+            invitationUpdater,
+            invitationRsvpLoader,
+            validator,
+        )
     }
 
     private fun updateInvitationRequest(
@@ -68,7 +81,7 @@ class InvitationEndpointTest {
 
     @Test
     fun `should map invitation to response`() {
-        val response = brideFamilyInvitation.toResponse()
+        val response = brideFamilyInvitation.toResponse(emptyMap())
 
         assertThat(response.accessToken).isEqualTo(brideFamilyInvitation.accessToken.value)
         assertThat(response.label).isEqualTo(brideFamilyInvitation.label)
@@ -201,10 +214,10 @@ class InvitationEndpointTest {
     fun `should list invitations with default pagination`() {
         val request = mockk<ServerRequest>()
         val invitationPage = InvitationPage(
-            items = listOf(brideFamilyInvitation),
+            items = listOf(brideFamilyInvitation, friendsInvitation),
             page = 0,
             size = 20,
-            totalItems = 1,
+            totalItems = 2,
             totalPages = 1,
         )
 
@@ -213,6 +226,7 @@ class InvitationEndpointTest {
         every { invitationLister.list(InvitationListCriteria(page = 0, size = 20)) } returns invitationPage
 
         assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.OK)
+        verify(exactly = 1) { invitationRsvpLoader.load(invitationPage.items) }
     }
 
     @Test
