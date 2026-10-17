@@ -25,7 +25,8 @@ jobs:
 
       # A pushed tag is released as is. Closing a milestone named X.Y.Z tags the head of the default
       # branch, unless that tag already exists (manual tag, or milestone closed again).
-      # The tag filter is a loose glob: the strict X.Y.Z check happens here.
+      # The tag filter is a loose glob: the strict X.Y.Z check happens here. A pushed tag that does not
+      # respect it fails the run; a milestone with another title is simply not a release.
       - name: Resolve the release
         id: release
         run: |
@@ -38,6 +39,9 @@ jobs:
               git push origin "$VERSION"
               release=true
             fi
+          elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            echo "Tag '$VERSION' does not respect the X.Y.Z version template" >&2
+            exit 1
           fi
           echo "release=$release" >> "$GITHUB_OUTPUT"
 
@@ -60,12 +64,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push the image
+      - name: Build the image
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          load: true
           build-args: |
             APP_VERSION=${{ env.VERSION }}
           tags: ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+
+      - name: Check the image version matches the tag
+        run: |
+          built=$(docker run --rm --entrypoint unzip "$IMAGE" -p /app/app.jar BOOT-INF/classes/META-INF/build-info.properties \
+            | sed -n 's/^build.version=//p')
+          if [ "$built" != "$VERSION" ]; then
+            echo "Image version '$built' does not match tag '$VERSION'" >&2
+            exit 1
+          fi
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+
+      - name: Push the image
+        run: docker push "$IMAGE"
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:${{ env.VERSION }}
 
