@@ -1,17 +1,16 @@
 <template>
   <span
     :class="badge.classes"
-    class="group relative inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    class="group relative inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
     data-test="rsvp-status-badge"
     :data-status="summary.status"
-    tabindex="0"
   >
     <span aria-hidden="true" data-test="rsvp-status-icon">{{ badge.icon }}</span>
     <span v-if="!compact" aria-hidden="true" data-test="rsvp-status-counter">{{ badge.counter }}</span>
     <span class="sr-only" data-test="rsvp-status-label">{{ badge.label }}</span>
     <span
       aria-hidden="true"
-      class="pointer-events-none absolute right-0 top-full z-10 mt-1 hidden whitespace-nowrap rounded-md bg-text px-2 py-1 text-xs font-normal text-white shadow group-hover:block group-focus-visible:block"
+      class="pointer-events-none absolute right-0 top-full z-10 mt-1 hidden whitespace-nowrap rounded-md bg-text px-2 py-1 text-xs font-normal text-white shadow group-hover:block"
       data-test="rsvp-status-tooltip"
     >
       {{ badge.label }}

@@ -85,10 +85,20 @@ describe('RsvpStatusBadge', () => {
     expect(wrapper.text()).toContain('Declined');
   });
 
+  it('is not a keyboard tab stop in either mode', () => {
+    const summary = createRsvpSummary({ status: 'PENDING' });
+    const full = mountBadge(summary);
+    const compact = mount(RsvpStatusBadge, { props: { summary, compact: true } });
+
+    expect(full.attributes('tabindex')).toBeUndefined();
+    expect(compact.attributes('tabindex')).toBeUndefined();
+    expect(full.find('[tabindex]').exists()).toBe(false);
+    expect(compact.find('[tabindex]').exists()).toBe(false);
+  });
+
   it('exposes the status for the parent views', () => {
     const wrapper = mountBadge(createRsvpSummary({ status: 'PARTIALLY_ANSWERED', attending: 1, pending: 2 }));
 
     expect(wrapper.attributes('data-status')).toBe('PARTIALLY_ANSWERED');
   });
 });
-
