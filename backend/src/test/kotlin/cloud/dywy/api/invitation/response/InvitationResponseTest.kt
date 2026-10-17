@@ -5,6 +5,7 @@ import assertk.assertions.isEqualTo
 import cloud.dywy.api.invitation.response.InvitationResponseFixtures.brideFamily
 import cloud.dywy.api.invitation.response.InvitationResponseFixtures.friends
 import cloud.dywy.api.invitation.response.InvitationResponseFixtures.pendingGuestRsvpSummary
+import cloud.dywy.domain.guest.entity.GuestFixtures
 import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
@@ -59,5 +60,16 @@ class InvitationResponseTest {
         val response = friendsInvitation.toResponse(emptyMap())
 
         assertThat(response.guests.map { it.rsvpSummary }.distinct()).isEqualTo(listOf(pendingGuestRsvpSummary))
+    }
+
+    @Test
+    fun `should expose each guest own summary when only some guests answered`() {
+        val emmaRsvp = johnDoeRsvp.copy(guestId = GuestFixtures.emmaWilson.id)
+        val response = friendsInvitation.toResponse(mapOf(emmaRsvp.guestId to emmaRsvp))
+        val summaryByGuestId = response.guests.associate { it.id to it.rsvpSummary }
+
+        assertThat(summaryByGuestId[GuestFixtures.emmaWilson.id.toString()]?.status).isEqualTo(RsvpStatus.ACCEPTED_ALL)
+        assertThat(summaryByGuestId[GuestFixtures.liamMiller.id.toString()]).isEqualTo(pendingGuestRsvpSummary)
+        assertThat(response.rsvpSummary.status).isEqualTo(RsvpStatus.PARTIALLY_ANSWERED)
     }
 }
