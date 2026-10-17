@@ -1,23 +1,35 @@
-# Deployment guide (Render + Aiven)
+# Deployment guide
 
 This repository ships with:
 
 - `Dockerfile`: builds frontend + backend and ships a single runtime image.
-- `render.yaml`: Render Blueprint with required runtime environment variables.
+- `render.yaml`: Render Blueprint with required runtime environment variables (preprod).
+- `docker-compose.prod.yml`: the app and PostgreSQL as containers (production stack).
 
-## Architecture
+## Environments
+
+| Environment | Hosting                                    | Deployed by                                                         |
+|-------------|--------------------------------------------|---------------------------------------------------------------------|
+| Preprod     | Render + Aiven PostgreSQL                  | `.github/workflows/deploy-preprod.yml`, after CI succeeds on `main` |
+| Production  | Docker Compose (`docker-compose.prod.yml`) | Not automated yet                                                   |
+
+Sections 1 to 6 describe **preprod** (Render + Aiven). The production deployment will be
+documented in its own section once its workflow exists. [Health endpoints](#health-endpoints) apply
+to both.
+
+## Architecture (preprod)
 
 - Backend (Spring Boot) serves API under `/api/**`.
 - Backoffice frontend is bundled into the backend jar and served under `/backoffice`.
 - Database is external (Aiven PostgreSQL).
 
-## 1) Create the Render web service from `render.yaml`
+## 1) Create the Render web service from `render.yaml` (preprod)
 
 Render will build with Docker and run a single web service.
 
 ### 1.1) Enable deployment from GitHub after merge on `main`
 
-This repository includes `.github/workflows/deploy.yml`.
+This repository includes `.github/workflows/deploy-preprod.yml` (workflow `Deploy preprod`).
 
 - It triggers only when `CI to build dywy` workflow succeeds on `main`
 
@@ -92,6 +104,14 @@ psql "postgresql://<user>@<host>:<port>/<db>?sslmode=require" \
 
 Pass the password with `PGPASSWORD` or the prompt; never put it in the command or in git.
 
+## 6) Security notes
+
+- Never commit `.env` secrets.
+- Keep all credentials in Render secret environment variables.
+- Avoid printing sensitive env vars in logs, CI summaries, or scripts.
+- For IP-based protections (rate limiting), do not trust forwarded headers unless your
+  ingress/proxy sanitizes them.
+
 ## Health endpoints
 
 The backend exposes Spring Boot Actuator `health` only, on a dedicated management port (`MANAGEMENT_SERVER_PORT`, default `8081`) that is never published by Docker:
@@ -100,11 +120,3 @@ The backend exposes Spring Boot Actuator `health` only, on a dedicated managemen
 - `/actuator/health/readiness`: the app is ready and the database is reachable (`UP` or `DOWN`, no details).
 
 `docker-compose.prod.yml` uses the readiness endpoint for the `app` healthcheck. Render keeps `healthCheckPath: /backoffice/index.html` on the main port, because it only probes the public port.
-
-## Security notes
-
-- Never commit `.env` production secrets.
-- Keep all credentials in Render secret environment variables.
-- Avoid printing sensitive env vars in logs, CI summaries, or scripts.
-- For IP-based protections (rate limiting), do not trust forwarded headers unless your
-  ingress/proxy sanitizes them.

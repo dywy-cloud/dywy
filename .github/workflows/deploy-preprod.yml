@@ -1,4 +1,4 @@
-name: CI to build dywy on Render
+name: Deploy preprod
 
 on:
   workflow_run:
