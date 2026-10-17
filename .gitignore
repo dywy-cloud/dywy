@@ -4,6 +4,7 @@
 *10.DS_Store?
 .env
 .env.*
+!.env.prod.example
 ### Language Specific ###
 # Java/Spring
 *.class

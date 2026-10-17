@@ -1,0 +1,70 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?required}
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    mem_limit: 1g
+    logging: *default-logging
+
+  app:
+    image: ghcr.io/dywy-cloud/dywy:${APP_IMAGE_TAG:?required}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:?required}
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      POSTGRES_SSLMODE: disable
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=75}
+      SERVER_FORWARD_HEADERS_STRATEGY: ${SERVER_FORWARD_HEADERS_STRATEGY:-none}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID:?required}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET:?required}
+      APP_AUTH_ADMIN_EMAILS: ${APP_AUTH_ADMIN_EMAILS:?required}
+      APP_AUTH_READ_ONLY_EMAILS: ${APP_AUTH_READ_ONLY_EMAILS:-}
+      APP_AUTH_SUCCESS_REDIRECT_URL: ${APP_AUTH_SUCCESS_REDIRECT_URL:?required}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:?required}
+      APP_GUEST_ACCESS_BASE_URL: ${APP_GUEST_ACCESS_BASE_URL:?required}
+      APP_GUEST_AREA_URL: ${APP_GUEST_AREA_URL:?required}
+      APP_GUEST_ACCESS_JWT_SECRET: ${APP_GUEST_ACCESS_JWT_SECRET:?required}
+      APP_DEEZER_ACCESS_TOKEN: ${APP_DEEZER_ACCESS_TOKEN:-}
+      APP_DEEZER_PLAYLIST_ID: ${APP_DEEZER_PLAYLIST_ID:-}
+      APP_MAIL_FROM: ${APP_MAIL_FROM:?required}
+      APP_MAIL_PROVIDER: brevo
+      BREVO_API_KEY: ${BREVO_API_KEY:?required}
+      BREVO_SENDER_NAME: ${BREVO_SENDER_NAME:-DYWY}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/backoffice/index.html || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    mem_limit: 1g
+    logging: *default-logging
+
+volumes:
+  db-data:
+
