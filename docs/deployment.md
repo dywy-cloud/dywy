@@ -41,6 +41,8 @@ Set these variables in the Render dashboard (or through Blueprint secrets), neve
 - `POSTGRES_DB`
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
+- `POSTGRES_SSLMODE` (optional, defaults to `require`; set to `disable` for a PostgreSQL container
+  without TLS on the same Docker network)
 - `APP_MAIL_FROM`
 - `APP_MAIL_PROVIDER` (magic-link email transport; **use `brevo` on Render** — see
   [Email delivery](email-delivery.md))
@@ -97,4 +99,3 @@ Pass the password with `PGPASSWORD` or the prompt; never put it in the command o
 - Avoid printing sensitive env vars in logs, CI summaries, or scripts.
 - For IP-based protections (rate limiting), do not trust forwarded headers unless your
   ingress/proxy sanitizes them.
-
