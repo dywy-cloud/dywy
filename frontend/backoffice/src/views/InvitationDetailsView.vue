@@ -28,7 +28,10 @@
     </div>
 
     <article v-else-if="invitation" class="rounded-xl border border-secondary/30 bg-white p-6 shadow-sm" data-test="invitation-details-card">
-      <h3 class="mb-4 text-2xl font-medium text-text" data-test="invitation-details-label">{{ invitation.label }}</h3>
+      <div class="mb-4 flex items-center justify-between gap-2">
+        <h3 class="min-w-0 truncate text-2xl font-medium text-text" data-test="invitation-details-label">{{ invitation.label }}</h3>
+        <RsvpStatusBadge :summary="invitation.rsvpSummary" class="shrink-0" data-test="invitation-details-rsvp" />
+      </div>
 
       <dl class="grid gap-4 text-sm text-text/80 sm:grid-cols-2">
         <div>
@@ -46,10 +49,6 @@
         <div>
           <dt class="text-text/60">Guests</dt>
           <dd data-test="invitation-details-guest-count">{{ invitation.guestCount }}</dd>
-        </div>
-        <div>
-          <dt class="text-text/60">RSVP</dt>
-          <dd><RsvpStatusBadge :summary="invitation.rsvpSummary" data-test="invitation-details-rsvp" /></dd>
         </div>
         <div>
           <dt class="text-text/60">Created at</dt>
