@@ -57,7 +57,7 @@ services:
       BREVO_API_KEY: ${BREVO_API_KEY:?required}
       BREVO_SENDER_NAME: ${BREVO_SENDER_NAME:-DYWY}
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/backoffice/index.html || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health/readiness || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5

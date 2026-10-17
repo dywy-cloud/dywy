@@ -43,6 +43,14 @@ class SecurityConfig(
 ) {
 
     @Bean
+    @Order(0)
+    fun managementFilterChain(http: HttpSecurity): SecurityFilterChain =
+        http
+            .securityMatcher("/actuator/**")
+            .authorizeHttpRequests { auth -> auth.anyRequest().permitAll() }
+            .build()
+
+    @Bean
     @Order(1)
     fun guestSecuredFilterChain(
         http: HttpSecurity,

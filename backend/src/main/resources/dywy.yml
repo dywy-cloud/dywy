@@ -1,0 +1,39 @@
+app:
+  auth:
+    admin-emails: ${APP_AUTH_ADMIN_EMAILS:}
+    read-only-emails: ${APP_AUTH_READ_ONLY_EMAILS:}
+    success-redirect-url: ${APP_AUTH_SUCCESS_REDIRECT_URL:}
+    rate-limit:
+      enabled: ${APP_AUTH_RATE_LIMIT_ENABLED:true}
+      max-requests-per-window: ${APP_AUTH_RATE_LIMIT_MAX_REQUESTS_PER_WINDOW:60}
+      window-seconds: ${APP_AUTH_RATE_LIMIT_WINDOW_SECONDS:60}
+  mail:
+    from: ${APP_MAIL_FROM:no-reply@localhost}
+    provider: ${APP_MAIL_PROVIDER:smtp}
+    couple-display-name: ${APP_MAIL_COUPLE_DISPLAY_NAME:Thecla & Grégory}
+  brevo:
+    api-key: ${BREVO_API_KEY:}
+    base-url: ${BREVO_BASE_URL:https://api.brevo.com}
+    sender-name: ${BREVO_SENDER_NAME:DYWY}
+  guest:
+    default-language: ${APP_GUEST_DEFAULT_LANGUAGE:FR}
+  deezer:
+    access-token: ${APP_DEEZER_ACCESS_TOKEN}
+    base-url: ${APP_DEEZER_BASE_URL:https://api.deezer.com}
+    playlist-id: ${APP_DEEZER_PLAYLIST_ID}
+    connect-timeout: ${APP_DEEZER_CONNECT_TIMEOUT:2s}
+    read-timeout: ${APP_DEEZER_READ_TIMEOUT:3s}
+  guest-access:
+    base-url: ${APP_GUEST_ACCESS_BASE_URL}
+    guest-area-url: ${APP_GUEST_AREA_URL}
+    magic-link-ttl-seconds: ${APP_GUEST_ACCESS_MAGIC_LINK_TTL_SECONDS:900}
+    guest-session-ttl-seconds: ${APP_GUEST_ACCESS_GUEST_SESSION_TTL_SECONDS:1800}
+    jwt-secret: ${APP_GUEST_ACCESS_JWT_SECRET}
+    session-cookie-secure: ${APP_GUEST_ACCESS_SESSION_COOKIE_SECURE:true}
+    session-cookie-same-site: ${APP_GUEST_ACCESS_SESSION_COOKIE_SAME_SITE:Lax}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
+    allowed-origin-patterns: []
+    allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+    allowed-headers: [Authorization, Content-Type, Accept, Origin, X-XSRF-TOKEN]
+    allow-credentials: true
