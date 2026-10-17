@@ -92,6 +92,15 @@ psql "postgresql://<user>@<host>:<port>/<db>?sslmode=require" \
 
 Pass the password with `PGPASSWORD` or the prompt; never put it in the command or in git.
 
+## Health endpoints
+
+The backend exposes Spring Boot Actuator `health` only, on a dedicated management port (`MANAGEMENT_SERVER_PORT`, default `8081`) that is never published by Docker:
+
+- `/actuator/health/liveness`: the process is running.
+- `/actuator/health/readiness`: the app is ready and the database is reachable (`UP` or `DOWN`, no details).
+
+`docker-compose.prod.yml` uses the readiness endpoint for the `app` healthcheck. Render keeps `healthCheckPath: /backoffice/index.html` on the main port, because it only probes the public port.
+
 ## Security notes
 
 - Never commit `.env` production secrets.
