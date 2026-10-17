@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { allowAdminSession } from './fixtures/authSetup';
 import { fulfillJson, mockEmptyGuestList } from './fixtures/httpHelpers';
+import { pendingGuestRsvpSummary } from './fixtures/rsvpFixtures';
 import { NAVIGATION_TIMEOUT_MS, UI_TIMEOUT_MS } from './fixtures/timeouts';
 
 test.describe('Invitation edit', () => {
@@ -25,13 +26,15 @@ test.describe('Invitation edit', () => {
               id: 'guest-1',
               firstName: 'Alice',
               lastName: 'Martin',
-              email: 'alice@example.com'
+              email: 'alice@example.com',
+              rsvpSummary: pendingGuestRsvpSummary
             },
             {
               id: 'guest-2',
               firstName: 'Bob',
               lastName: 'Durand',
-              email: 'bob@example.com'
+              email: 'bob@example.com',
+              rsvpSummary: pendingGuestRsvpSummary
             }
           ],
           guestCount: 2,
@@ -51,7 +54,8 @@ test.describe('Invitation edit', () => {
               id: 'guest-1',
               firstName: 'Alice',
               lastName: 'Martin',
-              email: 'alice@example.com'
+              email: 'alice@example.com',
+              rsvpSummary: pendingGuestRsvpSummary
             }
           ],
           guestCount: 1,
@@ -133,7 +137,8 @@ test.describe('Invitation edit', () => {
             id: 'guest-1',
             firstName: 'Alice',
             lastName: 'Martin',
-            email: 'alice@example.com'
+            email: 'alice@example.com',
+            rsvpSummary: pendingGuestRsvpSummary
           }
         ],
         guestCount: 1,
@@ -192,7 +197,8 @@ test.describe('Invitation edit', () => {
             id: 'guest-1',
             firstName: 'Alice',
             lastName: 'Martin',
-            email: 'alice@example.com'
+            email: 'alice@example.com',
+            rsvpSummary: pendingGuestRsvpSummary
           }
         ],
         guestCount: 1,
@@ -249,7 +255,8 @@ test.describe('Invitation edit', () => {
             version: 1,
             firstName: 'Alice',
             lastName: 'Martin',
-            email: 'alice@example.com'
+            email: 'alice@example.com',
+            rsvpSummary: pendingGuestRsvpSummary
           }
         ],
         guestCount: 1,
@@ -321,7 +328,8 @@ test.describe('Invitation edit', () => {
             version: 1,
             firstName: 'Alice',
             lastName: 'Martin',
-            email: 'alice@example.com'
+            email: 'alice@example.com',
+            rsvpSummary: pendingGuestRsvpSummary
           }
         ],
         guestCount: 1,
@@ -369,7 +377,13 @@ test.describe('Invitation edit', () => {
       updateDate: '2026-07-03T10:00:00Z',
       label: 'Family table',
       description: 'Main family table',
-      guests: [{ id: 'guest-1', firstName: 'Alice', lastName: 'Martin', email: 'alice@example.com' }],
+      guests: [{
+        id: 'guest-1',
+        firstName: 'Alice',
+        lastName: 'Martin',
+        email: 'alice@example.com',
+        rsvpSummary: pendingGuestRsvpSummary
+      }],
       guestCount: 1,
       rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 },
       ...overrides

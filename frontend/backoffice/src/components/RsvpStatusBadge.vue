@@ -1,12 +1,21 @@
 <template>
   <span
     :class="badge.classes"
-    class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium"
+    class="group relative inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     data-test="rsvp-status-badge"
     :data-status="summary.status"
+    tabindex="0"
   >
     <span aria-hidden="true" data-test="rsvp-status-icon">{{ badge.icon }}</span>
-    <span data-test="rsvp-status-label">{{ badge.label }}</span>
+    <span v-if="!compact" aria-hidden="true" data-test="rsvp-status-counter">{{ badge.counter }}</span>
+    <span class="sr-only" data-test="rsvp-status-label">{{ badge.label }}</span>
+    <span
+      aria-hidden="true"
+      class="pointer-events-none absolute right-0 top-full z-10 mt-1 hidden whitespace-nowrap rounded-md bg-text px-2 py-1 text-xs font-normal text-white shadow group-hover:block group-focus-visible:block"
+      data-test="rsvp-status-tooltip"
+    >
+      {{ badge.label }}
+    </span>
   </span>
 </template>
 
@@ -20,6 +29,7 @@ defineOptions({
 
 const props = defineProps<{
   summary: RsvpSummary;
+  compact?: boolean;
 }>();
 
 const badge = computed(() => {
@@ -29,34 +39,38 @@ const badge = computed(() => {
     case 'ACCEPTED_ALL':
       return {
         icon: '✓',
+        counter: `${attending}/${total}`,
         label: `Accepted ${attending}/${total}`,
-        classes: 'border-green-300 bg-green-50 text-green-800'
+        classes: 'border-transparent bg-badge-gradient text-white'
       };
     case 'PARTIALLY_ACCEPTED':
       return {
         icon: '◐',
+        counter: `${attending}/${total}`,
         label: `Partially accepted ${attending}/${total}`,
-        classes: 'border-amber-300 bg-amber-50 text-amber-800'
+        classes: 'border-primary bg-primary/15 text-text'
       };
     case 'DECLINED_ALL':
       return {
         icon: '✕',
+        counter: `${declined}/${total}`,
         label: 'Declined',
-        classes: 'border-red-300 bg-red-50 text-red-800'
+        classes: 'border-accent bg-accent/15 text-accent-dark'
       };
     case 'PARTIALLY_ANSWERED':
       return {
         icon: '…',
+        counter: `${attending + declined}/${total}`,
         label: `Replied ${attending + declined}/${total}`,
-        classes: 'border-gray-300 bg-gray-100 text-gray-700'
+        classes: 'border-secondary bg-background text-text/70'
       };
     default:
       return {
         icon: '…',
+        counter: `0/${total}`,
         label: 'Awaiting reply',
-        classes: 'border-gray-300 bg-gray-100 text-gray-700'
+        classes: 'border-secondary bg-background text-text/70'
       };
   }
 });
 </script>
-

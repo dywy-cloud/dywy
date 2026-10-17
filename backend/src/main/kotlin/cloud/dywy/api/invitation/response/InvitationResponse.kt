@@ -5,7 +5,6 @@ import cloud.dywy.domain.invitation.entity.DeliveryMethod
 import cloud.dywy.domain.invitation.entity.Invitation
 import cloud.dywy.domain.invitation.entity.PostalAddress
 import cloud.dywy.domain.rsvp.entity.GuestRsvp
-import cloud.dywy.domain.rsvp.entity.RsvpAttendance
 import cloud.dywy.domain.rsvp.entity.RsvpSummary
 
 data class InvitationResponse(
@@ -42,7 +41,7 @@ internal fun Invitation.toResponse(rsvps: Map<GuestId, GuestRsvp>) =
                     firstName = it.firstName,
                     lastName = it.lastName,
                     email = it.email,
-                    attendance = rsvps[it.id]?.attendance ?: RsvpAttendance.PENDING,
+                    rsvpSummary = RsvpSummary.of(listOf(it.id), listOfNotNull(rsvps[it.id])).toResponse(),
                 )
             },
         guestCount = guests.size,

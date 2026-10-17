@@ -33,6 +33,7 @@ export interface InvitationGuestResponse {
   firstName: string;
   lastName: string;
   email: string;
+  rsvpSummary: RsvpSummary;
 }
 
 export interface InvitationPageResponse {

@@ -34,6 +34,7 @@ And many other features to come
 - When the IntelliJ MCP server (`http://localhost:64342`) is available, prefer its tools (file reading, search, builds, inspections, git status) over raw terminal commands.
 - Edit files with the editor tools, one file and one edit at a time. Never write Python or shell scripts or heredocs to patch files.
 - After an edit, check the result (`git diff`, `grep`, or the IDE inspections) before building on it.
+- Terminal commands: always run them in one reused IntelliJ terminal window (never open a new terminal tab per command), and use background mode only for genuinely long-running processes (dev servers, watchers). Kill every process you started once done so no stray terminal tabs or processes are left behind.
 
 ## Craft principles
 - **KISS**: prefer the simplest implementation that satisfies the scope; avoid unnecessary abstraction, indirection, or overly clever code.

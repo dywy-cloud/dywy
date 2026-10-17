@@ -156,14 +156,14 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
             .jsonPath("$.guestCount").isEqualTo(1)
             .jsonPath("$.guests.length()").isEqualTo(1)
             .jsonPath("$.guests[0].id").isEqualTo("${janeDoe.id}")
-            .jsonPath("$.guests[0].attendance").isEqualTo("PENDING")
+            .jsonPath("$.guests[0].rsvpSummary.status").isEqualTo("PENDING")
             .jsonPath("$.rsvpSummary.status").isEqualTo("PENDING")
             .jsonPath("$.rsvpSummary.pending").isEqualTo(1)
             .jsonPath("$.rsvpSummary.total").isEqualTo(1)
     }
 
     @Test
-    fun `should expose the rsvp summary and guest attendance when getting an invitation`() {
+    fun `should expose the rsvp summaries when getting an invitation`() {
         val csrf = authenticatedCsrfContext("gregory@example.com")
         withJaneDoeRsvp {
             restTestClient.get().uri("/api/invitations/${bridesMaidInvitation.id}")
@@ -172,7 +172,7 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
                 .exchange()
                 .expectStatus().isOk
                 .expectBody()
-                .jsonPath("$.guests[0].attendance").isEqualTo("ATTENDING")
+                .jsonPath("$.guests[0].rsvpSummary.status").isEqualTo("ACCEPTED_ALL")
                 .jsonPath("$.rsvpSummary.status").isEqualTo("ACCEPTED_ALL")
                 .jsonPath("$.rsvpSummary.attending").isEqualTo(1)
                 .jsonPath("$.rsvpSummary.declined").isEqualTo(0)
@@ -182,7 +182,7 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
     }
 
     @Test
-    fun `should expose the rsvp summary and guest attendance when listing invitations`() {
+    fun `should expose the rsvp summaries when listing invitations`() {
         val csrf = authenticatedCsrfContext("gregory@example.com")
         val invitation = "$.items[?(@.id=='${bridesMaidInvitation.id}')]"
         withJaneDoeRsvp {
@@ -192,7 +192,7 @@ class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
                 .exchange()
                 .expectStatus().isOk
                 .expectBody()
-                .jsonPath("$invitation.guests[0].attendance").isEqualTo("ATTENDING")
+                .jsonPath("$invitation.guests[0].rsvpSummary.status").isEqualTo("ACCEPTED_ALL")
                 .jsonPath("$invitation.rsvpSummary.status").isEqualTo("ACCEPTED_ALL")
                 .jsonPath("$invitation.rsvpSummary.total").isEqualTo(1)
         }

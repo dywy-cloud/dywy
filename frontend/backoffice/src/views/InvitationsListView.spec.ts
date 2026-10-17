@@ -5,7 +5,7 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import InvitationsListView from './InvitationsListView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { applyCapabilities, resetCapabilities } from '../composables/useCapabilities';
-import { createInvitationResponse } from '../testFixtures/invitationFixtures';
+import { createInvitationResponse, createRsvpSummary } from '../testFixtures/invitationFixtures';
 
 const listInvitationsMock = vi.hoisted(() => vi.fn());
 const listAllInvitationsMock = vi.hoisted(() => vi.fn());
@@ -157,6 +157,32 @@ describe('InvitationsListView', () => {
     expect(viewLink.attributes('href')).toBe('/invitations/inv-1');
     expect(editLink.attributes('href')).toBe('/invitations/inv-1/edit');
     expect(listGuestsMock).not.toHaveBeenCalled();
+  });
+
+  it('shows the RSVP badge of each invitation card', async () => {
+    listInvitationsMock.mockResolvedValue({
+      items: [
+        createInvitationResponse({
+          id: 'inv-1',
+          rsvpSummary: createRsvpSummary({ status: 'ACCEPTED_ALL', attending: 3, pending: 0 })
+        }),
+        createInvitationResponse({
+          id: 'inv-2',
+          rsvpSummary: createRsvpSummary({ status: 'DECLINED_ALL', declined: 3, pending: 0 })
+        }),
+        createInvitationResponse({ id: 'inv-3' })
+      ],
+      page: 0,
+      size: 20,
+      totalItems: 3,
+      totalPages: 1
+    });
+
+    const { wrapper } = await mountView();
+    const badges = wrapper.findAll('[data-test="invitation-card"] [data-test="rsvp-status-badge"]');
+
+    expect(badges.map((badge) => badge.attributes('data-status'))).toEqual(['ACCEPTED_ALL', 'DECLINED_ALL', 'PENDING']);
+    expect(badges[0].text()).toContain('Accepted 3/3');
   });
 
   it('uses the singular form when an invitation has a single guest', async () => {
@@ -388,4 +414,3 @@ describe('InvitationsListView', () => {
     });
   });
 });
-

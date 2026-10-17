@@ -16,6 +16,7 @@ export const createInvitationGuestResponse = (
   firstName: 'Alice',
   lastName: 'Martin',
   email: 'alice@example.com',
+  rsvpSummary: createRsvpSummary({ pending: 1, total: 1 }),
   ...overrides
 });
 
