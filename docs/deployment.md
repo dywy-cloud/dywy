@@ -112,11 +112,31 @@ Pass the password with `PGPASSWORD` or the prompt; never put it in the command o
 - For IP-based protections (rate limiting), do not trust forwarded headers unless your
   ingress/proxy sanitizes them.
 
+## Releases and versioning
+
+The release tag is the single source of truth for the application version.
+
+1. Trigger the release in one of two ways (the version is always `X.Y.Z`, for example `1.3.0`):
+    - close the milestone named `1.3.0`: the workflow tags the head of `main` with `1.3.0`;
+    - or push the tag `1.3.0` manually.
+      A milestone whose title is not `X.Y.Z`, or whose tag already exists, does not release anything.
+2. `.github/workflows/release.yml` builds the `Dockerfile` at that tag with
+   `--build-arg APP_VERSION=1.3.0`, then publishes `ghcr.io/dywy-cloud/dywy:1.3.0`.
+3. The running app reports that version: `GET /app/version` returns `{"version":"1.3.0"}` and the
+   backoffice footer displays it. `docker-compose.prod.yml` deploys it with `APP_IMAGE_TAG=1.3.0`.
+
+Other builds never hard-code a version: the [reckon](https://github.com/ajoberstar/reckon) Gradle plugin infers the next
+minor snapshot of the latest tag (last release `1.2.3` gives `1.3.0-SNAPSHOT`, or `0.1.0-SNAPSHOT` without any tag).
+Reading tags needs the full git history (`fetch-depth: 0` in CI). The Docker build context has no `.git`, so
+`APP_VERSION` must be passed explicitly (otherwise the image is `0.1.0-SNAPSHOT`, as on preprod).
+
 ## Health endpoints
 
-The backend exposes Spring Boot Actuator `health` only, on a dedicated management port (`MANAGEMENT_SERVER_PORT`, default `8081`) that is never published by Docker:
+The backend exposes Spring Boot Actuator `health` only, on a dedicated management port (`MANAGEMENT_SERVER_PORT`,
+default `8081`) that is never published by Docker:
 
 - `/actuator/health/liveness`: the process is running.
 - `/actuator/health/readiness`: the app is ready and the database is reachable (`UP` or `DOWN`, no details).
 
-`docker-compose.prod.yml` uses the readiness endpoint for the `app` healthcheck. Render keeps `healthCheckPath: /backoffice/index.html` on the main port, because it only probes the public port.
+`docker-compose.prod.yml` uses the readiness endpoint for the `app` healthcheck. Render keeps
+`healthCheckPath: /backoffice/index.html` on the main port, because it only probes the public port.

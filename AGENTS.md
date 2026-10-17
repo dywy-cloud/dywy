@@ -57,9 +57,9 @@ And many other features to come
 - Any new feature, column or enum value must extend the sample dataset in the same issue. Keep its ids UUIDv7 with a timestamp matching `creation_date`, and keep every row scoped to the `@sample.dywy.cloud` email domain so the cleanup stays safe on preprod.
 
 ## Versioning
-For every issue, bump and keep aligned both application versions:
-- `frontend/package.json` (run `pnpm run version:issue`)
-- `backend/build.gradle.kts` (`version = "..."`)
+The release tag (`X.Y.Z`) is the single source of truth: never bump a version in an issue, and never hard-code one in `backend/build.gradle.kts` or `frontend/package.json`.
+- Release builds get the version through `APP_VERSION`; other builds are inferred from git tags by the reckon Gradle plugin (`backend/build.gradle.kts`, version in `libs.versions.toml`): `<next minor>-SNAPSHOT` of the latest tag.
+- The backoffice reads the version from the backend (`GET /app/version`).
 
 ## Key commands
 - Run backend tests: `./gradlew test` or `./gradlew check`

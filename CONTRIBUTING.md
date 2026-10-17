@@ -28,11 +28,16 @@ dependencies (PostgreSQL, Mailpit) locally.
 
 ## Versioning
 
-For every issue (frontend, backend, or fullstack), bump and keep aligned both application versions
-before staging changes:
+The release tag (`X.Y.Z`) is the single source of truth for the application version. Closing the
+milestone named `X.Y.Z` creates that tag; a tag can also be pushed manually. Do not bump
+or hard-code a version in an issue (neither in `backend/build.gradle.kts` nor in
+`frontend/package.json`):
 
-- `frontend/package.json` (run `pnpm run version:issue`)
-- `backend/build.gradle.kts` (`version = "..."`)
+- Release builds receive the version through `APP_VERSION`.
+- Other builds are inferred from git tags by the [reckon](https://github.com/ajoberstar/reckon)
+  Gradle plugin: the next minor snapshot of the latest tag (last release `1.2.3` gives
+  `1.3.0-SNAPSHOT`).
+- The backoffice displays the version served by the backend (`GET /app/version`).
 
 ## Craft principles
 
