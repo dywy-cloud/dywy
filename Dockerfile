@@ -10,10 +10,11 @@ RUN pnpm run build
 
 FROM eclipse-temurin:25-jdk-alpine AS backend-build
 WORKDIR /workspace/backend
+ARG APP_VERSION
 COPY backend/ ./
 COPY --from=frontend-build /workspace/frontend/dist/ ./src/main/resources/static/
 RUN chmod +x ./gradlew
-RUN ./gradlew clean bootJar --no-daemon
+RUN APP_VERSION="$APP_VERSION" ./gradlew clean bootJar --no-daemon
 RUN executable_jar="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar')" \
     && [ "$(printf '%s\n' "$executable_jar" | wc -l)" -eq 1 ] \
     && cp "$executable_jar" build/app.jar

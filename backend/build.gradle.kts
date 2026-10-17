@@ -11,11 +11,16 @@ plugins {
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.dependency.update)
+    alias(libs.plugins.reckon)
 }
 
 
 group = "cloud.dywy"
-version = "0.0.90"
+
+
+springBoot {
+    buildInfo()
+}
 
 java {
     toolchain {
@@ -148,3 +153,16 @@ versionCatalogUpdate {
     sortByKey = false
     versionSelector(VersionSelectors.LATEST)
 }
+
+reckon {
+    setDefaultInferredScope("minor")
+    snapshots()
+    setScopeCalc(calcScopeFromProp())
+    setStageCalc(calcStageFromProp())
+}
+
+providers.gradleProperty("version")
+    .orElse(providers.environmentVariable("APP_VERSION")).orNull
+    ?.takeIf { it.isNotBlank() }
+    ?.let { version = it }
+

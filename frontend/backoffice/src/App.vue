@@ -24,7 +24,11 @@
         <RouterView />
       </main>
     </div>
-    <footer class="mx-auto mt-3 max-w-6xl shrink-0 text-right text-xs text-text/60" data-test="backoffice-version">
+    <footer
+      v-if="appVersion"
+      class="mx-auto mt-3 max-w-6xl shrink-0 text-right text-xs text-text/60"
+      data-test="backoffice-version"
+    >
       Backoffice version {{ appVersion }}
     </footer>
     <ConfirmDialog />
@@ -33,13 +37,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import BackofficeSidebar from './components/BackofficeSidebar.vue';
 import UserMenu from './components/ui/UserMenu.vue';
 import ConfirmDialog from './components/ui/ConfirmDialog.vue';
 import ToastContainer from './components/ui/ToastContainer.vue';
 import { logout } from './services/authApi';
+import { FALLBACK_APP_VERSION, getAppVersion } from './services/versionApi';
 import { clearSessionAuthStatus, getSessionAuthStatus } from './services/authStatusCache';
 import { applyCapabilities, resetCapabilities } from './composables/useCapabilities';
 import { BACKOFFICE_ROUTE_NAMES } from './router/routeNames';
@@ -49,7 +54,15 @@ const logoutErrorMessage = ref('');
 const connectedUserEmail = ref<string | null>(null);
 const route = useRoute();
 const router = useRouter();
-const appVersion = __APP_VERSION__;
+const appVersion = ref<string | null>(null);
+
+onMounted(async () => {
+  try {
+    appVersion.value = await getAppVersion();
+  } catch {
+    appVersion.value = FALLBACK_APP_VERSION;
+  }
+});
 
 const isProtectedRoute = computed(() => route.matched.some((record) => record.meta.requiresAuthorized));
 

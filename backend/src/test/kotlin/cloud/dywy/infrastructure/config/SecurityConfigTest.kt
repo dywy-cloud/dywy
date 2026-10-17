@@ -60,6 +60,7 @@ class SecurityConfigTest {
                 "/login/**",
                 "/auth/me",
                 "/auth/logout",
+                "/app/version",
                 "/error",
             )
         )

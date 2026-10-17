@@ -1,6 +1,6 @@
 ---
 name: start-issue
-description: Prepare a new dywy issue before any code change (branch from the latest main, read the issue, restore parked work, bump versions). Use whenever the user asks to start, prepare or work on the next issue.
+description: Prepare a new dywy issue before any code change (branch from the latest main, read the issue, restore parked work). Use whenever the user asks to start, prepare or work on the next issue.
 ---
 
 # Start a dywy issue
@@ -16,7 +16,7 @@ Follow the AGENTS.md workflow literally. Run every git command with `--no-pager`
    - Branch names follow AGENTS.md: `feat/#<issue>-...`, `fix/#<issue>-...`, `chore/#<issue>-...`.
 4. Read the issue. `gh` may be missing: use `https://api.github.com/repos/dywy-cloud/dywy/issues/<issue>`.
 5. Look for parked work from an earlier session: `git --no-pager stash list`, then `git --no-pager log -g --oneline stash` and `git --no-pager reflog` filtered on `#<issue>` if the list is empty. Apply with `git --no-pager stash pop` on the new branch (conflicts mean the stash was based on an older base: apply only the relevant files).
-6. Bump versions once per issue: `pnpm run version:issue` in `frontend/`, and set the same `version` in `backend/build.gradle.kts`.
+6. Do not bump any version: the release tag is the source of truth (see AGENTS.md, Versioning).
 7. Stage with `git add` after each change.
 
 ## Hard rules

@@ -52,7 +52,7 @@ Adapted from https://github.com/addyosmani/agent-skills (code-review-and-quality
 ## Project-specific checks
 - **Tests**: backend test names start with `should` and describe behavior without repeating the tested function/class name; test data comes from shared fixtures/builders (`backend-test-fixtures`); `it.each` / `@ParameterizedTest` for repeated assertions; no re-assertion of lower-level coverage and no assertions of absence of unspecified behavior.
 - **Sample data**: new features, columns or enum values extend `backend/src/testFixtures/resources/sample/sample-data.sql` (UUIDv7 ids matching `creation_date`, `@sample.dywy.cloud` emails only).
-- **Versioning**: `frontend/package.json` and `backend/build.gradle.kts` versions bumped and aligned for the issue.
+- **Versioning**: no version bumped or hard-coded in `frontend/package.json` or `backend/build.gradle.kts`; the release tag is the source of truth (see `AGENTS.md`).
 - **Git**: nothing committed, merged, rebased or pushed by an agent; changes are staged only. Commit message proposal follows `<type>(#<issue>): <gitmoji> <description>` + `Closes #<issue>` lines.
 - **Change size**: ~100 lines good, ~300 acceptable for one logical change, ~1000 too large (split). Refactoring and feature work are separate changes.
 
@@ -102,7 +102,7 @@ List code made unused by the change (functions, components, constants, fixtures)
 - [ ] No N+1, unbounded fetches or missing pagination
 
 ### Project rules
-- [ ] Test naming/fixtures, sample data, version bump, nothing committed
+- [ ] Test naming/fixtures, sample data, no version bump, nothing committed
 
 ### Verification
 - [ ] `./gradlew check` and `pnpm run test` green

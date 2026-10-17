@@ -20,8 +20,14 @@ const guestApiMock = vi.hoisted(() => ({
   addGuest: vi.fn()
 }));
 
+const versionApiMock = vi.hoisted(() => ({
+  FALLBACK_APP_VERSION: 'dev',
+  getAppVersion: vi.fn()
+}));
+
 vi.mock('./services/authApi', () => authApiMock);
 vi.mock('./services/guestApi', () => guestApiMock);
+vi.mock('./services/versionApi', () => versionApiMock);
 
 const globalStubs = {
   GuestForm: true,
@@ -48,6 +54,7 @@ describe('App auth states', () => {
   beforeEach(() => {
     clearSessionAuthStatus();
     vi.clearAllMocks();
+    versionApiMock.getAppVersion.mockResolvedValue('1.3.0');
   });
 
   const mountApp = async ({
@@ -82,8 +89,23 @@ describe('App auth states', () => {
     expect(authApiMock.getAuthStatus).toHaveBeenCalled();
     expect(wrapper.text()).toContain('Please sign in with Google to access the backoffice.');
     expect(wrapper.find('a').attributes('href')).toBe('http://localhost:8080/oauth2/authorization/google');
-    expect(wrapper.get('[data-test="backoffice-version"]').text())
-      .toContain(`Backoffice version ${__APP_VERSION__}`);
+  });
+
+  it('shows the version served by the backend', async () => {
+    mockAuthStatus(unauthenticatedAuthStatus);
+
+    const { wrapper } = await mountApp({ route: '/guests' });
+
+    expect(wrapper.get('[data-test="backoffice-version"]').text()).toBe('Backoffice version 1.3.0');
+  });
+
+  it('falls back to the dev version when the backend is unreachable', async () => {
+    mockAuthStatus(unauthenticatedAuthStatus);
+    versionApiMock.getAppVersion.mockRejectedValue(new Error('offline'));
+
+    const { wrapper } = await mountApp({ route: '/guests' });
+
+    expect(wrapper.get('[data-test="backoffice-version"]').text()).toBe('Backoffice version dev');
   });
 
   it('shows blocked message for unauthorized authenticated users', async () => {

@@ -4,5 +4,3 @@ declare module '*.vue' {
   export default component
 }
 
-declare const __APP_VERSION__: string
-
