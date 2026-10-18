@@ -5,7 +5,7 @@ x-logging: &default-logging
     max-file: "3"
 
 services:
-  db:
+  database:
     image: postgres:18-alpine
     restart: unless-stopped
     environment:
@@ -33,7 +33,7 @@ services:
       - "8080"
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      POSTGRES_HOST: db
+      POSTGRES_HOST: database
       POSTGRES_PORT: "5432"
       POSTGRES_DB: ${POSTGRES_DB:?required}
       POSTGRES_USER: ${POSTGRES_USER:?required}

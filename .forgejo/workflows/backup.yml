@@ -1,0 +1,70 @@
+name: Database backup
+
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+env:
+  PACKAGE_NAME: dywy-db-backup
+  BACKUP_KEEP: '30'
+
+jobs:
+  backup:
+    # The job image needs bash, the docker CLI, curl, jq and openssl. The runner on the production VM mounts
+    # the Docker socket (as in the deploy workflow), so `docker` talks to the production daemon.
+    runs-on: ubuntu-latest-forge
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Dump and encrypt
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          version="$(date -u +%Y%m%dT%H%M%SZ)"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          db="$(docker ps --quiet --filter label=com.docker.compose.service=database --filter status=running)"
+          [ "$(printf '%s\n' "$db" | grep -c .)" -eq 1 ] || { echo "Expected exactly one running database container" >&2; exit 1; }
+          docker exec "$db" sh -c 'pg_dump -Fc -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
+            | openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:BACKUP_PASSPHRASE \
+            > "dywy-$version.dump.enc"
+          # Never upload an empty or truncated dump.
+          [ "$(stat -c %s "dywy-$version.dump.enc")" -gt 1024 ]
+
+      - name: Publish to the Forgejo package registry
+        env:
+          FORGEJO_TOKEN: ${{ secrets.BACKUP_PACKAGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/$PACKAGE_NAME"
+          curl --fail --silent --show-error \
+            --header "Authorization: token $FORGEJO_TOKEN" \
+            --upload-file "dywy-$VERSION.dump.enc" "$api/$VERSION/dywy-$VERSION.dump.enc"
+
+      - name: Prune old versions
+        env:
+          FORGEJO_TOKEN: ${{ secrets.BACKUP_PACKAGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          server="${{ github.server_url }}"
+          owner="${{ github.repository_owner }}"
+          curl --fail --silent --show-error \
+            --header "Authorization: token $FORGEJO_TOKEN" \
+            "$server/api/v1/packages/$owner?type=generic&q=$PACKAGE_NAME&limit=100" \
+            | jq -r --arg name "$PACKAGE_NAME" '.[] | select(.name == $name) | .version' \
+            | sort -r | tail -n +"$((BACKUP_KEEP + 1))" \
+            | while read -r old; do
+                curl --fail --silent --show-error --request DELETE \
+                  --header "Authorization: token $FORGEJO_TOKEN" \
+                  "$server/api/packages/$owner/generic/$PACKAGE_NAME/$old"
+              done
+
+      - name: Alert on failure
+        if: failure()
+        run: |
+          curl --fail --silent --show-error \
+            --header 'Content-Type: application/json' \
+            --data '{"text":"dywy: database backup failed (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"}' \
+            "${{ secrets.ALERT_WEBHOOK_URL }}"
