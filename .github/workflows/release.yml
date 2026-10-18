@@ -75,7 +75,8 @@ jobs:
 
       - name: Check the image version matches the tag
         run: |
-          built=$(docker run --rm --entrypoint unzip "$IMAGE" -p /app/app.jar BOOT-INF/classes/META-INF/build-info.properties \
+          set -o pipefail
+          built=$(docker run --rm --entrypoint unzip "$IMAGE" -p /app/app.jar META-INF/build-info.properties \
             | sed -n 's/^build.version=//p')
           if [ "$built" != "$VERSION" ]; then
             echo "Image version '$built' does not match tag '$VERSION'" >&2
