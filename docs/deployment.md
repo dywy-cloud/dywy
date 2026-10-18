@@ -121,7 +121,9 @@ The release tag is the single source of truth for the application version.
     - or push the tag `1.3.0` manually.
       A milestone whose title is not `X.Y.Z`, or whose tag already exists, does not release anything.
 2. `.github/workflows/release.yml` builds the `Dockerfile` at that tag with
-   `--build-arg APP_VERSION=1.3.0`, then publishes `ghcr.io/dywy-cloud/dywy:1.3.0`.
+   `--build-arg APP_VERSION=1.3.0`, checks that the jar inside the image reports `1.3.0` (the job fails otherwise),
+   then publishes `ghcr.io/dywy-cloud/dywy:1.3.0`. There is no moving `latest` tag, and the workflow never calls
+   Forgejo or the VM: the production deploy is handled by the Forgejo workflow.
 3. The running app reports that version: `GET /app/version` returns `{"version":"1.3.0"}` and the
    backoffice footer displays it. `docker-compose.prod.yml` deploys it with `APP_IMAGE_TAG=1.3.0`.
 
@@ -129,6 +131,18 @@ Other builds never hard-code a version: the [reckon](https://github.com/ajoberst
 minor snapshot of the latest tag (last release `1.2.3` gives `1.3.0-SNAPSHOT`, or `0.1.0-SNAPSHOT` without any tag).
 Reading tags needs the full git history (`fetch-depth: 0` in CI). The Docker build context has no `.git`, so
 `APP_VERSION` must be passed explicitly (otherwise the image is `0.1.0-SNAPSHOT`, as on preprod).
+
+### Package visibility
+
+The GHCR package `ghcr.io/dywy-cloud/dywy` is kept **private** (package settings on GitHub, linked to the repository).
+The production VM pulls it with a read-only token:
+
+1. Create a token with only the `read:packages` scope (fine-grained tokens cannot read GHCR: use a classic one on a
+   dedicated machine account).
+2. Store it as a Forgejo secret (for example `GHCR_READ_TOKEN`); never commit it.
+3. On the VM, log in before `docker compose pull`: `echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u <user> --password-stdin`.
+
+If the package is made public instead, no token or login is needed.
 
 ## Health endpoints
 
