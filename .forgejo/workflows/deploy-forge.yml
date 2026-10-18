@@ -1,0 +1,39 @@
+name: Deploy prod on Docker
+
+on:
+  workflow_run:
+    workflows: ["CI to build dywy"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest-forge
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.VERSION }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_READ_TOKEN }}
+
+      - name: Deploy to docker host
+      # Script docker compose up
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_API_URL: ${{ github.api_url }}
+        run: |
+          echo "SHA : ${EXPECTED_SHA}\n"
+          echo "GitHub API URL : ${GH_API_URL}\n"
+          docker run hello-world 
