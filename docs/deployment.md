@@ -144,6 +144,21 @@ The production VM pulls it with a read-only token:
 
 If the package is made public instead, no token or login is needed.
 
+## Production reverse proxy (HTTPS)
+
+`docker-compose.prod.yml` runs Caddy (`proxy` service, config in `docker/caddy/Caddyfile`) as the only service
+publishing ports 80 and 443. It gets and renews Let's Encrypt certificates automatically, redirects HTTP to HTTPS and
+proxies to `app:8080` on the internal network. `app` and `db` publish nothing.
+
+- Required variables: `DOMAIN` (`app.dywy.cloud` in production, DNS pointing at the gateway's public IP, which
+  forwards TCP 80 and 443 to the VM) and `ACME_EMAIL`.
+- Certificates live in the `caddy-data` volume: keep it, or Let's Encrypt rate limits may be hit.
+- `SERVER_FORWARD_HEADERS_STRATEGY=framework` is fixed in the compose file because Caddy overwrites `X-Forwarded-*`.
+- Remember to set `APP_GUEST_ACCESS_BASE_URL` and `APP_CORS_ALLOWED_ORIGINS` to `https://app.dywy.cloud`,
+  `APP_GUEST_AREA_URL` to `https://app.dywy.cloud/guest-access/secured-area` and
+  `APP_AUTH_SUCCESS_REDIRECT_URL` to `https://app.dywy.cloud/backoffice`, and the Google OAuth redirect URI to
+  `https://app.dywy.cloud/login/oauth2/code/google`.
+
 ## Health endpoints
 
 The backend exposes Spring Boot Actuator `health` only, on a dedicated management port (`MANAGEMENT_SERVER_PORT`,
