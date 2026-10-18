@@ -11,7 +11,7 @@ This repository ships with:
 | Environment | Hosting                                    | Deployed by                                                         |
 |-------------|--------------------------------------------|---------------------------------------------------------------------|
 | Preprod     | Render + Aiven PostgreSQL                  | `.github/workflows/deploy-preprod.yml`, after CI succeeds on `main` |
-| Production  | Docker Compose (`docker-compose.prod.yml`) | Not automated yet                                                   |
+| Production  | Docker Compose (`docker-compose.prod.yml`) | Not automated yet (secrets: see [Production secrets](#production-secrets-and-settings-forgejo)) |
 
 Sections 1 to 6 describe **preprod** (Render + Aiven). The production deployment will be
 documented in its own section once its workflow exists. [Health endpoints](#health-endpoints) apply
@@ -158,6 +158,57 @@ proxies to `app:8080` on the internal network. `app` and `db` publish nothing.
   `APP_GUEST_AREA_URL` to `https://app.dywy.cloud/guest-access/secured-area` and
   `APP_AUTH_SUCCESS_REDIRECT_URL` to `https://app.dywy.cloud/backoffice`, and the Google OAuth redirect URI to
   `https://app.dywy.cloud/login/oauth2/code/google`.
+
+## Production secrets and settings (Forgejo)
+
+Production secrets live only in Forgejo Actions secrets (scoped to the repository or to a `production`
+environment), never in GitHub or in git. The deploy job renders them into an env file on the VM (mode `600`, owned by
+`deploy`) that `docker compose --env-file` reads. `.env.prod.example` lists every variable `docker-compose.prod.yml`
+expects; copy its names, never commit values.
+
+| Variable                                                                                                       | Kind     | Notes                                                                                                         |
+|----------------------------------------------------------------------------------------------------------------|----------|---------------------------------------------------------------------------------------------------------------|
+| `APP_IMAGE_TAG`, `DOMAIN`, `ACME_EMAIL`                                                                        | variable | Release tag to deploy, `app.dywy.cloud`, Let's Encrypt contact                                                |
+| `POSTGRES_DB`, `POSTGRES_USER`                                                                                 | variable |                                                                                                               |
+| `POSTGRES_PASSWORD`                                                                                            | secret   | Generated: `openssl rand -hex 32`                                                                             |
+| `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID` / `..._CLIENT_SECRET`                            | secret   | Redirect URI `https://app.dywy.cloud/login/oauth2/code/google`                                                |
+| `APP_AUTH_ADMIN_EMAILS`, `APP_AUTH_READ_ONLY_EMAILS`                                                           | variable | Comma-separated emails (the read-only list is optional)                                                       |
+| `APP_AUTH_SUCCESS_REDIRECT_URL`, `APP_CORS_ALLOWED_ORIGINS`, `APP_GUEST_ACCESS_BASE_URL`, `APP_GUEST_AREA_URL` | variable | See [Production reverse proxy](#production-reverse-proxy-https)                                              |
+| `APP_GUEST_ACCESS_JWT_SECRET`                                                                                  | secret   | HMAC key of guest session tokens, 32 characters minimum: `openssl rand -hex 32`                               |
+| `APP_MAIL_FROM`                                                                                                | variable | Verified sender in Brevo                                                                                      |
+| `BREVO_API_KEY`                                                                                                | secret   | `docker-compose.prod.yml` fixes `APP_MAIL_PROVIDER=brevo`; for `smtp` see [Email delivery](email-delivery.md) |
+| `BREVO_SENDER_NAME`                                                                                            | variable | Optional                                                                                                      |
+| `APP_DEEZER_ACCESS_TOKEN`                                                                                      | secret   | See [Deezer integration](deezer-integration.md)                                                               |
+| `APP_DEEZER_PLAYLIST_ID`                                                                                       | variable |                                                                                                               |
+| `RESTIC_REPOSITORY`, `RESTIC_PASSWORD`, bucket access key and secret                                           | secret   | Used by the backup job only, not by `docker-compose.prod.yml`                                                 |
+| `GHCR_READ_TOKEN`                                                                                              | secret   | See [Package visibility](#package-visibility)                                                                 |
+
+Rules:
+
+- Secrets never appear in logs or workflow summaries: do not `echo` them or enable `set -x` in steps that handle them,
+  and write the env file with a restrictive `umask 077` before filling it.
+- The sample data loader (see section 5) is a preprod tool. It is never run on production, and no workflow or compose
+  service calls it.
+
+### Rotating a secret
+
+1. Generate the new value (`openssl rand -hex 32` for passwords and keys) or create it at the provider.
+2. Update the Forgejo secret, then re-run the deploy job so the env file is rewritten and the containers recreated.
+3. Check the effect, then revoke the old value at the provider where there is one.
+
+| Secret                                     | Rotation notes                                                                                                     |
+|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `APP_GUEST_ACCESS_JWT_SECRET`              | Invalidates every guest session: guests must open their magic link again.                                          |
+| `POSTGRES_PASSWORD`                        | Also change it in the database first: `ALTER USER <user> PASSWORD '...'` (the env var only applies at first init). |
+| Google OAuth client secret                 | Add the new secret in Google Cloud, deploy, then delete the old one.                                               |
+| `BREVO_API_KEY`, `APP_DEEZER_ACCESS_TOKEN` | Create the new key or token, deploy, then revoke the old one.                                                      |
+| `RESTIC_PASSWORD`                          | Use `restic key add` then `restic key remove`; the repository is not re-encrypted.                                 |
+| `GHCR_READ_TOKEN`                          | Create the new token, update the secret, deploy (it logs in again), then delete the old token.                     |
+
+### Acceptance check after a deploy
+
+Admin Google login works, a magic-link email is received, and a Deezer playlist sync succeeds. Search the container
+logs and the workflow output for any secret value.
 
 ## Health endpoints
 
