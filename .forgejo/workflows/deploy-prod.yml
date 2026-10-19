@@ -80,8 +80,14 @@ jobs:
           APP_DEEZER_ACCESS_TOKEN: ${{ secrets.APP_DEEZER_ACCESS_TOKEN }}
           APP_DEEZER_PLAYLIST_ID: ${{ vars.APP_DEEZER_PLAYLIST_ID }}
         run: |
-          echo $UID
           umask 077
+          # The database container runs as the deploy user, which owns the data directory.
+          if [ "$(id -u)" = "0" ]; then
+            echo "The deploy step runs as root: postgres cannot run as uid 0, use a non-root runner user" >&2
+            exit 1
+          fi
+          DB_USER="$(id -u):$(id -g)"
+          DYWY_DATA_DIR="${DYWY_DATA_DIR:-$HOME/dywy}"
           ENV_FILE="$(mktemp)"
           trap 'rm -f "$ENV_FILE"' EXIT
           emit() {
@@ -104,8 +110,12 @@ jobs:
             APP_DEEZER_ACCESS_TOKEN APP_DEEZER_PLAYLIST_ID; do
             emit "$name"
           done
+          emit DB_USER
 
-          DATA_DIR="${DYWY_DATA_DIR:-/home/runner/dywy}"
+          DATA_DIR="${DYWY_DATA_DIR:-$HOME/dywy}"
+          # Created here so they belong to the deploy user (docker would create them as root).
+          mkdir -p -m 700 "${DATA_DIR}/postgres/data"
+          mkdir -p "${DATA_DIR}/caddy/data" "${DATA_DIR}/caddy/config"
           install -D -m 644 docker/caddy/Caddyfile "${DATA_DIR}/caddy/Caddyfile"
 
           echo "Deploying dywy ${VERSION}"
