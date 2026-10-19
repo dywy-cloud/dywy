@@ -38,7 +38,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_READ_TOKEN }}
 
       # The tag reaches the mirror before GitHub has finished publishing the image: wait for it.
       - name: Wait for the image on GHCR
