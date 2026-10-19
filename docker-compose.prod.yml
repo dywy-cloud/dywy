@@ -8,9 +8,6 @@ services:
   db:
     image: postgres:18-alpine
     restart: unless-stopped
-    # Same uid:gid as the owner of the bind-mounted data directory (the deploy user), otherwise
-    # postgres fails with "permission denied" on /var/lib/postgresql/data.
-    user: ${DB_USER:-1000:1000}
     environment:
       POSTGRES_DB: ${POSTGRES_DB:?required}
       POSTGRES_USER: ${POSTGRES_USER:?required}
