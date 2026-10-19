@@ -12,6 +12,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?required}
       POSTGRES_USER: ${POSTGRES_USER:?required}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    user: 1001:1001
     volumes:
       - ${DYWY_DATA_DIR:-/home/runner/dywy}/postgres:/var/lib/postgresql
     healthcheck:
