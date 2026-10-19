@@ -18,7 +18,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest-forge
+    runs-on: ubuntu-latest-dywy
     steps:
       # The tag filter is a loose glob and the manual input is free text: the strict X.Y.Z check
       # happens here, before anything is checked out or deployed.
