@@ -1,4 +1,4 @@
-FROM node:24-alpine AS frontend-build
+FROM docker.io/library/node:24-alpine AS frontend-build
 WORKDIR /workspace/frontend
 ENV VITE_ROUTER_BASE=/backoffice/
 ENV VITE_API_BASE_URL=""
@@ -8,7 +8,7 @@ RUN pnpm install --frozen-lockfile
 COPY frontend/ ./
 RUN pnpm run build
 
-FROM eclipse-temurin:25-jdk-alpine AS backend-build
+FROM docker.io/library/eclipse-temurin:25-jdk-alpine AS backend-build
 WORKDIR /workspace/backend
 ARG APP_VERSION
 COPY backend/ ./
@@ -19,7 +19,7 @@ RUN executable_jar="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name 
     && [ "$(printf '%s\n' "$executable_jar" | wc -l)" -eq 1 ] \
     && cp "$executable_jar" build/app.jar
 
-FROM eclipse-temurin:25-jre-alpine AS runtime
+FROM docker.io/library/eclipse-temurin:25-jre-alpine AS runtime
 WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
 COPY --from=backend-build /workspace/backend/build/app.jar /app/app.jar
