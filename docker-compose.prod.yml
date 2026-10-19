@@ -79,7 +79,7 @@ services:
       DOMAIN: ${DOMAIN:?required}
       ACME_EMAIL: ${ACME_EMAIL:?required}
     volumes:
-      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${HOST_WORKSPACE:-.}/docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ${DYWY_DATA_DIR:-/home/runner/dywy}/caddy/data:/data
       - ${DYWY_DATA_DIR:-/home/runner/dywy}/caddy/config:/config
     mem_limit: 256m

@@ -60,6 +60,7 @@ jobs:
         env:
           APP_IMAGE_TAG: ${{ env.VERSION }}
           DYWY_DATA_DIR: ${{ vars.DYWY_DATA_DIR }}
+          HOST_WORKSPACE_ROOT: ${{ vars.HOST_WORKSPACE_ROOT }}
           DOMAIN: ${{ vars.DOMAIN }}
           ACME_EMAIL: ${{ vars.ACME_EMAIL }}
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}
@@ -103,6 +104,13 @@ jobs:
             APP_DEEZER_ACCESS_TOKEN APP_DEEZER_PLAYLIST_ID; do
             emit "$name"
           done
+
+          if [ -n "${HOST_WORKSPACE_ROOT}" ]; then
+            HOST_WORKSPACE="${HOST_WORKSPACE_ROOT%/}${GITHUB_WORKSPACE#/workspace}"
+          else
+            HOST_WORKSPACE=""
+          fi
+          emit HOST_WORKSPACE
 
           echo "Deploying dywy ${VERSION}"
           docker compose -p dywy --env-file "$ENV_FILE" -f docker-compose.prod.yml pull
