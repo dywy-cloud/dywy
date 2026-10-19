@@ -180,7 +180,7 @@ expects; copy its names, never commit values.
 | `BREVO_SENDER_NAME`                                                                                            | variable | Optional                                                                                                      |
 | `APP_DEEZER_ACCESS_TOKEN`                                                                                      | secret   | See [Deezer integration](deezer-integration.md)                                                               |
 | `APP_DEEZER_PLAYLIST_ID`                                                                                       | variable |                                                                                                               |
-| `RESTIC_REPOSITORY`, `RESTIC_PASSWORD`, bucket access key and secret                                           | secret   | Used by the backup job only, not by `docker-compose.prod.yml`                                                 |
+| `BACKUP_PACKAGE_TOKEN`, `BACKUP_PASSPHRASE`, `ALERT_WEBHOOK_URL` | secret | Used by the backup job only, not by `docker-compose.prod.yml`: see [Backup and restore](backup-restore.md) |
 | `GHCR_READ_TOKEN`                                                                                              | secret   | See [Package visibility](#package-visibility)                                                                 |
 
 Rules:
@@ -202,7 +202,7 @@ Rules:
 | `POSTGRES_PASSWORD`                        | Also change it in the database first: `ALTER USER <user> PASSWORD '...'` (the env var only applies at first init). |
 | Google OAuth client secret                 | Add the new secret in Google Cloud, deploy, then delete the old one.                                               |
 | `BREVO_API_KEY`, `APP_DEEZER_ACCESS_TOKEN` | Create the new key or token, deploy, then revoke the old one.                                                      |
-| `RESTIC_PASSWORD`                          | Use `restic key add` then `restic key remove`; the repository is not re-encrypted.                                 |
+| `BACKUP_PASSPHRASE`                        | Existing backups stay encrypted with the old passphrase: keep it until they are pruned.                            |
 | `GHCR_READ_TOKEN`                          | Create the new token, update the secret, deploy (it logs in again), then delete the old token.                     |
 
 ### Acceptance check after a deploy
