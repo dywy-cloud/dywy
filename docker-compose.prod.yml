@@ -14,7 +14,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
     user: 1001:1001
     volumes:
-      - ${DYWY_DATA_DIR:-/home/runner/dywy}/postgres:/var/lib/postgresql
+      - ${DYWY_DATA_DIR:-/home/runner/dywy}/postgres/data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
