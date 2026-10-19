@@ -13,7 +13,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?required}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
     volumes:
-      - db-data:/var/lib/postgresql
+      - ${DYWY_DATA_DIR:-/home/docker/dywy}/postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -80,13 +80,9 @@ services:
       ACME_EMAIL: ${ACME_EMAIL:?required}
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
+      - ${DYWY_DATA_DIR:-/home/docker/dywy}/caddy/data:/data
+      - ${DYWY_DATA_DIR:-/home/docker/dywy}/caddy/config:/config
     mem_limit: 256m
     logging: *default-logging
 
-volumes:
-  db-data:
-  caddy-data:
-  caddy-config:
 
