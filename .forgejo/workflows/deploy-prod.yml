@@ -60,7 +60,6 @@ jobs:
         env:
           APP_IMAGE_TAG: ${{ env.VERSION }}
           DYWY_DATA_DIR: ${{ vars.DYWY_DATA_DIR }}
-          DYWY_DB_USER: ${{ vars.DYWY_DB_USER }}
           DOMAIN: ${{ vars.DOMAIN }}
           ACME_EMAIL: ${{ vars.ACME_EMAIL }}
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}
