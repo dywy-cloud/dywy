@@ -59,6 +59,7 @@ jobs:
       - name: Deploy to docker host
         env:
           APP_IMAGE_TAG: ${{ env.VERSION }}
+          DYWY_DATA_DIR: ${{ vars.DYWY_DATA_DIR }}
           DOMAIN: ${{ vars.DOMAIN }}
           ACME_EMAIL: ${{ vars.ACME_EMAIL }}
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}
@@ -93,7 +94,7 @@ jobs:
             printf "%s='%s'\n" "$name" "$value" >> "$ENV_FILE"
           }
 
-          for name in APP_IMAGE_TAG DOMAIN ACME_EMAIL POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD \
+          for name in APP_IMAGE_TAG DYWY_DATA_DIR DOMAIN ACME_EMAIL POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD \
             SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID \
             SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET \
             APP_AUTH_ADMIN_EMAILS APP_AUTH_READ_ONLY_EMAILS APP_AUTH_SUCCESS_REDIRECT_URL \
