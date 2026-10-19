@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22-alpine AS build-stage
+FROM docker.io/library/node:22-alpine AS build-stage
 RUN npm install -g pnpm
 WORKDIR /app
 COPY package*.json pnpm-lock.yaml* ./
@@ -8,7 +8,7 @@ COPY . .
 RUN pnpm run build
 
 # Production stage
-FROM nginx:stable-alpine AS production-stage
+FROM docker.io/library/nginx:stable-alpine AS production-stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
