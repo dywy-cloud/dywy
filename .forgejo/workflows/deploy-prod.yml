@@ -5,7 +5,8 @@ on:
   push:
     tags: ["[0-9]*.[0-9]*.[0-9]*"]
   # Manual run, to test the runner without waiting for a mirror sync: pick the release tag
-  # (X.Y.Z) as the run ref in the dialog. A branch is rejected by the version validation.
+  # (X.Y.Z) as the run ref in the dialog. The tag must contain this workflow file (tags cut before
+  # it was merged do not) and a branch is rejected by the version validation.
   workflow_dispatch:
 
 concurrency:
@@ -18,9 +19,6 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest-forge
-    permissions:
-      contents: read
-      packages: read
     steps:
       # The tag filter is a loose glob and the manual input is free text: the strict X.Y.Z check
       # happens here, before anything is checked out or deployed.
@@ -40,7 +38,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_READ_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       # The tag reaches the mirror before GitHub has finished publishing the image: wait for it.
       - name: Wait for the image on GHCR
