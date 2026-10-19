@@ -60,6 +60,7 @@ jobs:
         env:
           APP_IMAGE_TAG: ${{ env.VERSION }}
           DYWY_DATA_DIR: ${{ vars.DYWY_DATA_DIR }}
+          DYWY_DB_USER: ${{ vars.DYWY_DB_USER }}
           DOMAIN: ${{ vars.DOMAIN }}
           ACME_EMAIL: ${{ vars.ACME_EMAIL }}
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}
@@ -81,12 +82,13 @@ jobs:
           APP_DEEZER_PLAYLIST_ID: ${{ vars.APP_DEEZER_PLAYLIST_ID }}
         run: |
           umask 077
-          # The database container runs as the deploy user, which owns the data directory.
-          if [ "$(id -u)" = "0" ]; then
-            echo "The deploy step runs as root: postgres cannot run as uid 0, use a non-root runner user" >&2
+          # The database container runs as DYWY_DB_USER (uid:gid), or as the current user when unset.
+          # Postgres cannot run as uid 0, so a root step must name that user explicitly.
+          DB_USER="${DYWY_DB_USER:-$(id -u):$(id -g)}"
+          if [ "${DB_USER%%:*}" = "0" ]; then
+            echo "The step runs as root: set the variable DYWY_DB_USER (e.g. 1002:1002)" >&2
             exit 1
           fi
-          DB_USER="$(id -u):$(id -g)"
           DYWY_DATA_DIR="${DYWY_DATA_DIR:-$HOME/dywy}"
           ENV_FILE="$(mktemp)"
           trap 'rm -f "$ENV_FILE"' EXIT
@@ -117,6 +119,10 @@ jobs:
           mkdir -p -m 700 "${DATA_DIR}/postgres/data"
           mkdir -p "${DATA_DIR}/caddy/data" "${DATA_DIR}/caddy/config"
           install -D -m 644 docker/caddy/Caddyfile "${DATA_DIR}/caddy/Caddyfile"
+          # When the step runs as root, hand the postgres directory to the database user.
+          if [ "$(id -u)" = "0" ]; then
+            chown -R "$DB_USER" "${DATA_DIR}/postgres"
+          fi
 
           echo "Deploying dywy ${VERSION}"
           docker compose -p dywy --env-file "$ENV_FILE" -f docker-compose.prod.yml pull
