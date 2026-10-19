@@ -108,7 +108,7 @@ jobs:
           DATA_DIR="${DYWY_DATA_DIR}"
           # Rootless podman: the directories belong to the user running podman, which is root
           # inside the containers, so postgres can chown its data directory.
-          mkdir -p -m 700 "${DATA_DIR}/postgres/data"
+          mkdir -p -m 700 "${DATA_DIR}/postgres"
           mkdir -p "${DATA_DIR}/caddy/data" "${DATA_DIR}/caddy/config"
           install -D -m 644 docker/caddy/Caddyfile "${DATA_DIR}/caddy/Caddyfile"
 
