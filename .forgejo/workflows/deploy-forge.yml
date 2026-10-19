@@ -4,21 +4,16 @@ on:
   # The release tag (X.Y.Z) is the version to deploy; the mirror brings it from GitHub.
   push:
     tags: ["[0-9]*.[0-9]*.[0-9]*"]
-  # Manual run, to test the runner without waiting for a mirror sync. Either pick the release tag
-  # as the run ref, or type it in the version input (which takes precedence).
+  # Manual run, to test the runner without waiting for a mirror sync: pick the release tag
+  # (X.Y.Z) as the run ref in the dialog. A branch is rejected by the version validation.
   workflow_dispatch:
-    inputs:
-      version:
-        description: Release tag to deploy (X.Y.Z), defaults to the selected tag
-        required: false
-        default: ""
 
 concurrency:
   group: deploy-main
   cancel-in-progress: false
 
 env:
-  VERSION: ${{ github.event.inputs.version || github.ref_name }}
+  VERSION: ${{ github.ref_name }}
 
 jobs:
   deploy:
