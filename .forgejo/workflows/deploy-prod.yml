@@ -80,6 +80,7 @@ jobs:
           APP_DEEZER_ACCESS_TOKEN: ${{ secrets.APP_DEEZER_ACCESS_TOKEN }}
           APP_DEEZER_PLAYLIST_ID: ${{ vars.APP_DEEZER_PLAYLIST_ID }}
         run: |
+          echo $UID
           umask 077
           ENV_FILE="$(mktemp)"
           trap 'rm -f "$ENV_FILE"' EXIT
