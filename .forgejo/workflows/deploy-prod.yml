@@ -106,11 +106,15 @@ jobs:
           done
 
           DATA_DIR="${DYWY_DATA_DIR}"
-          # Rootless podman: the directories belong to the user running podman, which is root
-          # inside the containers, so postgres can chown its data directory.
-          mkdir -p -m 700 "${DATA_DIR}/postgres"
-          mkdir -p "${DATA_DIR}/caddy/data" "${DATA_DIR}/caddy/config"
-          install -D -m 644 docker/caddy/Caddyfile "${DATA_DIR}/caddy/Caddyfile"
+          # Created on the host through podman, whether or not the step itself runs in a container.
+          # Rootless podman: container root is the user running podman, so the files belong to it
+          # and postgres can chown its data directory.
+          docker run --rm -i -v "${DATA_DIR}:/data" caddy:2-alpine sh -c '
+            mkdir -p /data/postgres /data/caddy/data /data/caddy/config &&
+            chmod 700 /data/postgres &&
+            cat > /data/caddy/Caddyfile &&
+            chmod 644 /data/caddy/Caddyfile
+          ' < docker/caddy/Caddyfile
 
           echo "Deploying dywy ${VERSION}"
           docker compose -p dywy --env-file "$ENV_FILE" -f docker-compose.prod.yml pull
