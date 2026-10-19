@@ -81,13 +81,6 @@ jobs:
           APP_DEEZER_PLAYLIST_ID: ${{ vars.APP_DEEZER_PLAYLIST_ID }}
         run: |
           umask 077
-          # The database container runs as DYWY_DB_USER (uid:gid), or as the current user when unset.
-          # Postgres cannot run as uid 0, so a root step must name that user explicitly.
-          DB_USER="${DYWY_DB_USER:-$(id -u):$(id -g)}"
-          if [ "${DB_USER%%:*}" = "0" ]; then
-            echo "The step runs as root: set the variable DYWY_DB_USER (e.g. 1002:1002)" >&2
-            exit 1
-          fi
           DYWY_DATA_DIR="${DYWY_DATA_DIR:-$HOME/dywy}"
           ENV_FILE="$(mktemp)"
           trap 'rm -f "$ENV_FILE"' EXIT
@@ -111,17 +104,13 @@ jobs:
             APP_DEEZER_ACCESS_TOKEN APP_DEEZER_PLAYLIST_ID; do
             emit "$name"
           done
-          emit DB_USER
 
-          DATA_DIR="${DYWY_DATA_DIR:-$HOME/dywy}"
-          # Created here so they belong to the deploy user (docker would create them as root).
+          DATA_DIR="${DYWY_DATA_DIR}"
+          # Rootless podman: the directories belong to the user running podman, which is root
+          # inside the containers, so postgres can chown its data directory.
           mkdir -p -m 700 "${DATA_DIR}/postgres/data"
           mkdir -p "${DATA_DIR}/caddy/data" "${DATA_DIR}/caddy/config"
           install -D -m 644 docker/caddy/Caddyfile "${DATA_DIR}/caddy/Caddyfile"
-          # When the step runs as root, hand the postgres directory to the database user.
-          if [ "$(id -u)" = "0" ]; then
-            chown -R "$DB_USER" "${DATA_DIR}/postgres"
-          fi
 
           echo "Deploying dywy ${VERSION}"
           docker compose -p dywy --env-file "$ENV_FILE" -f docker-compose.prod.yml pull
