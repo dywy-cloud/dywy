@@ -5,7 +5,6 @@ import cloud.dywy.domain.invitation.entity.DeliveryMethod
 
 data class PublicInvitationResponse(
     val label: String,
-    val description: String,
     val deliveryMethod: DeliveryMethod? = null,
     val guests: List<PublicInvitationGuestResponse>,
     val guestCount: Int,
@@ -13,7 +12,6 @@ data class PublicInvitationResponse(
 
 internal fun Invitation.toPublicResponse() = PublicInvitationResponse(
     label = label,
-    description = description,
     deliveryMethod = deliveryMethod,
     guests = guests
         .sortedBy { it.id.toString() }

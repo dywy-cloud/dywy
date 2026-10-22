@@ -24,6 +24,9 @@ This document describes the end-to-end journey of a wedding guest through the pu
    link: `POST /api/guest-access/invitations/{token}/guests/{guestId}/magic-link-requests`. The
    backend validates the invitation/guest relationship and emails a link containing an opaque,
    one-time token (see [Email delivery](email-delivery.md) for the transport).
+   For an invitation with several guests, an **Answer for everyone** button switches the list to
+   "choose who receives the link": the request then carries the body `{"mode":"GROUP"}`. Without
+   it (single guest, or the button not used) the request has no body and stays individual.
 3. **Open the magic link.** `GET /api/guest-access/magic-links/{token}` verifies the token; on
    success it issues a short-lived, HttpOnly `guest_session` cookie and redirects the browser to
    `/guest-access/secured-area`.

@@ -10,7 +10,6 @@ test.describe('Guest access invitation page', () => {
     await page.route('**/api/guest-access/invitations/**', async (route) => {
       await fulfillJson(route, {
         label: 'Famille Martin',
-        description: 'Nous serions ravis de vous compter parmi nous.',
         guestCount: 2,
         guests: [
           { id: 'guest-1', firstName: 'Alice', lastName: 'Martin' },

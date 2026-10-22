@@ -2,7 +2,6 @@ import { getApiBaseUrl } from './http';
 
 export interface GuestInvitationResponse {
   label: string;
-  description: string;
   guests: GuestInvitationPerson[];
   guestCount: number;
 }
