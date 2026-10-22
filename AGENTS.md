@@ -16,7 +16,7 @@ And many other features to come
 - Frontend: `pnpm install` then `pnpm run dev:public` or `pnpm run dev:backoffice` from `frontend/` directory
 
 ## Workflow
-1. Update `main` and create a new branch for your work.
+1. Update the base branch and create a new branch for your work. The base is `main` for simple issues and bug fixes, and `release/X.Y.Z` for a sub-issue of a parent issue planned with sub-issues (see "Release branches").
 2. **Branch naming**: `feat/#<issue-number><short-description>` for features, `fix/#<issue-number><short-description>` for bug fixes (use a similarly descriptive prefix, e.g. `chore/#<issue-number><short-description>`, for other changes).
 3. Make your changes, following the coding conventions below.
 4. Stage the affected files with `git add` after each change.
@@ -29,6 +29,14 @@ And many other features to come
    Closes #233
    Closes #234
    ```
+
+## Release branches
+Only for a parent issue planned with sub-issues, so that a complete feature reaches `main` (preprod, then production) in one go. Simple issues and bug fixes keep the normal flow from `main`.
+- The parent issue has a GitHub milestone named `X.Y.Z`. The release branch is named after that milestone: `release/X.Y.Z` (not after the issue number).
+- Sub-issue branches (`feat/#<sub-issue>-...`) branch from `origin/release/X.Y.Z` and their PRs target it, never `main`.
+- The maintainer creates `release/X.Y.Z` from `main`, keeps it current by merging `main` into it, and merges it into `main` once the whole feature is complete. Then the milestone is closed, which tags `main`. Agents never create, merge, back-merge or push release branches.
+- A production hotfix branches from `main`, merges to `main` first, and is back-merged by the maintainer into open release branches.
+- See the `release-branch` skill.
 
 ## Tooling for automated agents
 - When the IntelliJ MCP server (`http://localhost:64342`) is available, prefer its tools (file reading, search, builds, inspections, git status) over raw terminal commands.

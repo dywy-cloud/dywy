@@ -132,6 +132,14 @@ minor snapshot of the latest tag (last release `1.2.3` gives `1.3.0-SNAPSHOT`, o
 Reading tags needs the full git history (`fetch-depth: 0` in CI). The Docker build context has no `.git`, so
 `APP_VERSION` must be passed explicitly (otherwise the image is `0.1.0-SNAPSHOT`, as on preprod).
 
+### Release branches
+
+A parent issue planned with sub-issues is developed on `release/X.Y.Z` (named after its milestone) and merged into
+`main` only when complete; see [CONTRIBUTING.md](../CONTRIBUTING.md#release-branches). CI runs on pushes and pull
+requests for `release/**`, but only `main` deploys to preprod (`deploy-preprod.yml` filters on `main`) and only a tag
+deploys to production. Merge `release/X.Y.Z` into `main` first, then close milestone `X.Y.Z` to tag the release.
+Builds on release branches get a snapshot version from reckon.
+
 ### Package visibility
 
 The GHCR package `ghcr.io/dywy-cloud/dywy` is kept **private** (package settings on GitHub, linked to the repository).

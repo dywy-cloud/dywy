@@ -16,6 +16,7 @@ dywy is split by issue along DDD layers (e.g. #233 domain + persistence, #235 AP
 5. Repo rule: never `git commit/merge/rebase/push`; staging with `git add` is fine.
 
 ## Related conventions
+- On a `release/X.Y.Z` branch, later layers land on the same release branch through their own sub-issues. `main` only receives the feature once every layer, test and sample-data extension is complete.
 - KISS/YAGNI: only what the current issue needs.
 - Business rules belong in the domain (`init` invariants, e.g. POSTED requires a postal address) and are mirrored by fixtures and, where useful, DB constraints.
 
