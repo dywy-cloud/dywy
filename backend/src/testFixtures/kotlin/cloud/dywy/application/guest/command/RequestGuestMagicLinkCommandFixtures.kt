@@ -2,6 +2,7 @@ package cloud.dywy.application.guest.command
 
 import cloud.dywy.domain.guest.entity.GuestFixtures.albertEinstein
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
+import cloud.dywy.domain.guest.entity.GuestMagicLinkMode
 import cloud.dywy.domain.invitation.entity.InvitationAccessToken
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.unknownToken
@@ -11,6 +12,8 @@ object RequestGuestMagicLinkCommandFixtures {
         invitationAccessToken = bridesMaidInvitation.accessToken,
         guestId = janeDoe.id,
     )
+
+    val groupJaneDoe = validJaneDoe.copy(mode = GuestMagicLinkMode.GROUP)
 
     val unknownInvitationForJaneDoe = RequestGuestMagicLinkCommand(
         invitationAccessToken = InvitationAccessToken.fromStringOrNull(unknownToken)

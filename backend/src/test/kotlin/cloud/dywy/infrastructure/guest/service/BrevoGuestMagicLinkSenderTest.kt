@@ -10,6 +10,7 @@ import io.mockk.slot
 import io.mockk.verify
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestMagicLinkFixtures.bridesMaidToJane
+import cloud.dywy.domain.guest.entity.GuestMagicLinkFixtures.groupBridesMaidToJane
 import cloud.dywy.infrastructure.config.BrevoProperties
 import cloud.dywy.infrastructure.config.GuestAccessPropertiesFixtures.testGuestAccessProperties
 import cloud.dywy.infrastructure.config.MailProperties
@@ -58,6 +59,17 @@ class BrevoGuestMagicLinkSenderTest {
         assertThat(request.htmlContent.contains(".svg")).isFalse()
         assertThat(request.htmlContent)
             .contains("https://test.dywy.cloud/api/guest-access/magic-links/53c2efcd-b4fc-42f3-a73b-fadf3725af3f")
+    }
+
+    @Test
+    fun `should mention the whole party in the text and html of a group magic-link email`() {
+        val requestSlot = slot<BrevoSendEmailRequest>()
+        every { brevoApi.sendTransactionalEmail(capture(requestSlot)) } returns Unit
+
+        brevoGuestMagicLinkSender.send(groupBridesMaidToJane, janeDoe)
+
+        assertThat(requestSlot.captured.textContent).contains("répondre pour l'ensemble des personnes de l'invitation")
+        assertThat(requestSlot.captured.htmlContent).contains("répondre pour l'ensemble des personnes de l'invitation")
     }
 
     @Test

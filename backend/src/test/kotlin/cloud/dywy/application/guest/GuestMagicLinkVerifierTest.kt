@@ -9,6 +9,7 @@ import cloud.dywy.domain.guest.entity.GuestFixtures.albertEinstein
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.ConsumedGuestMagicLinkToken
 import cloud.dywy.domain.guest.entity.GuestMagicLinkAccessToken
+import cloud.dywy.domain.guest.entity.GuestMagicLinkMode
 import cloud.dywy.domain.guest.repository.GuestMagicLinkTokens
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
 import cloud.dywy.domain.invitation.repository.Invitations
@@ -43,6 +44,27 @@ class GuestMagicLinkVerifierTest {
             GuestMagicLinkVerificationResult.Verified(
                 invitation = bridesMaidInvitation,
                 guestId = janeDoe.id,
+            )
+        )
+    }
+
+    @Test
+    fun `should carry the group mode of the consumed token into the verified result`() {
+        val token = GuestMagicLinkAccessToken.fromStringOrNull("53c2efcd-b4fc-42f3-a73b-fadf3725af3f")!!
+        every { guestMagicLinkTokens.consumeIfValid(token, any()) } returns ConsumedGuestMagicLinkToken(
+            invitationId = bridesMaidInvitation.id,
+            guestId = janeDoe.id,
+            mode = GuestMagicLinkMode.GROUP,
+        )
+        every { invitations.findById(bridesMaidInvitation.id) } returns bridesMaidInvitation
+
+        val result = guestMagicLinkVerifier.verify(token)
+
+        assertThat(result).isEqualTo(
+            GuestMagicLinkVerificationResult.Verified(
+                invitation = bridesMaidInvitation,
+                guestId = janeDoe.id,
+                mode = GuestMagicLinkMode.GROUP,
             )
         )
     }

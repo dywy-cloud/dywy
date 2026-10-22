@@ -11,4 +11,6 @@ object GuestMagicLinkFixtures {
         token = GuestMagicLinkAccessToken(value = "53c2efcd-b4fc-42f3-a73b-fadf3725af3f"),
         expiresAt = Dates.nowUtc().plusMinutes(15)
     )
+
+    val groupBridesMaidToJane = bridesMaidToJane.copy(mode = GuestMagicLinkMode.GROUP)
 }

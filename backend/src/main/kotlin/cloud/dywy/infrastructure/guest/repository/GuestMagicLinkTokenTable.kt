@@ -1,5 +1,6 @@
 package cloud.dywy.infrastructure.guest.repository
 
+import cloud.dywy.domain.guest.entity.GuestMagicLinkMode
 import cloud.dywy.infrastructure.invitation.repository.InvitationTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
@@ -13,6 +14,7 @@ object GuestMagicLinkTokenTable : Table("guest_magic_link_token") {
     val creationDate = datetime("creation_date")
     val expiresAt = datetime("expires_at")
     val usedAt = datetime("used_at").nullable()
+    val mode = enumerationByName<GuestMagicLinkMode>("mode", 20)
 
     override val primaryKey = PrimaryKey(id)
 }

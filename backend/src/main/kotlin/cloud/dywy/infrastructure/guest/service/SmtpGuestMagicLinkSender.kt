@@ -34,12 +34,18 @@ class SmtpGuestMagicLinkSender(
             setTo(guest.email)
             setSubject(guestMagicLinkEmailTemplate.subject(guest.language, mailProperties.coupleDisplayName))
             setText(
-                guestMagicLinkEmailTemplate.textBody(guestFirstName = guest.firstName, magicLinkUrl = magicLinkUrl, language = guest.language),
+                guestMagicLinkEmailTemplate.textBody(
+                    guestFirstName = guest.firstName,
+                    magicLinkUrl = magicLinkUrl,
+                    language = guest.language,
+                    mode = guestMagicLink.mode,
+                ),
                 guestMagicLinkEmailTemplate.htmlBody(
                     guestFirstName = guest.firstName,
                     magicLinkUrl = magicLinkUrl,
                     language = guest.language,
                     coupleDisplayName = mailProperties.coupleDisplayName,
+                    mode = guestMagicLink.mode,
                 ),
             )
             addInline(

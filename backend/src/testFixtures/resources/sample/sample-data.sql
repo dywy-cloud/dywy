@@ -111,14 +111,15 @@ on conflict (id) do update set
     attendance = excluded.attendance,
     answers = excluded.answers;
 
-insert into guest_magic_link_token (id, token_hash, invitation_id, guest_id, creation_date, expires_at, used_at) values
-    ('01a10058-99bd-751e-be9e-d592b75a4142', encode(sha256(convert_to('3f6c2b8e-9a41-4d7a-8c52-1e0b7d5a9f34', 'UTF8')), 'hex'), '01a0fba0-19e3-7050-993d-e898eb856439', '01a0f642-cddf-7ffa-b00a-ac5f949b020e', '2026-10-03 05:59:28.957', '2026-10-03 06:14:28.975', null),
-    ('01a10b9c-7f71-75e3-96d4-0ece8a177105', encode(sha256(convert_to('b81d4e07-5c3a-4f92-a6d8-72c9e0f1b3a5', 'UTF8')), 'hex'), '01a0fba4-ad0c-70d2-9084-11997d6d0207', '01a0f647-62c4-70ff-9fe9-646dd9b7c2b2', '2026-10-05 10:29:28.049', '2026-10-05 10:44:28.949', '2026-10-05 10:34:28.191')
+insert into guest_magic_link_token (id, token_hash, invitation_id, guest_id, creation_date, expires_at, used_at, mode) values
+    ('01a10058-99bd-751e-be9e-d592b75a4142', encode(sha256(convert_to('3f6c2b8e-9a41-4d7a-8c52-1e0b7d5a9f34', 'UTF8')), 'hex'), '01a0fba0-19e3-7050-993d-e898eb856439', '01a0f642-cddf-7ffa-b00a-ac5f949b020e', '2026-10-03 05:59:28.957', '2026-10-03 06:14:28.975', null, 'INDIVIDUAL'),
+    ('01a10b9c-7f71-75e3-96d4-0ece8a177105', encode(sha256(convert_to('b81d4e07-5c3a-4f92-a6d8-72c9e0f1b3a5', 'UTF8')), 'hex'), '01a0fba4-ad0c-70d2-9084-11997d6d0207', '01a0f647-62c4-70ff-9fe9-646dd9b7c2b2', '2026-10-05 10:29:28.049', '2026-10-05 10:44:28.949', '2026-10-05 10:34:28.191', 'GROUP')
 on conflict (id) do update set
     token_hash = excluded.token_hash,
     invitation_id = excluded.invitation_id,
     guest_id = excluded.guest_id,
     creation_date = excluded.creation_date,
     expires_at = excluded.expires_at,
-    used_at = excluded.used_at;
+    used_at = excluded.used_at,
+    mode = excluded.mode;
 

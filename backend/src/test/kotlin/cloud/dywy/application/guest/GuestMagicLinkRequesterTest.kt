@@ -7,6 +7,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import cloud.dywy.application.guest.command.RequestGuestMagicLinkCommandFixtures.groupJaneDoe
 import cloud.dywy.application.guest.command.RequestGuestMagicLinkCommandFixtures.guestNotInInvitation
 import cloud.dywy.application.guest.command.RequestGuestMagicLinkCommandFixtures.unknownInvitationForJaneDoe
 import cloud.dywy.application.guest.command.RequestGuestMagicLinkCommandFixtures.validJaneDoe
@@ -15,6 +16,7 @@ import cloud.dywy.application.invitation.InvitationTokenResolver
 import cloud.dywy.domain.guest.entity.Guest
 import cloud.dywy.domain.guest.entity.GuestFixtures
 import cloud.dywy.domain.guest.entity.GuestMagicLink
+import cloud.dywy.domain.guest.entity.GuestMagicLinkMode
 import cloud.dywy.domain.guest.repository.GuestMagicLinkTokens
 import cloud.dywy.domain.guest.service.GuestMagicLinkSender
 import cloud.dywy.domain.invitation.entity.InvitationFixtures
@@ -60,6 +62,28 @@ class GuestMagicLinkRequesterTest {
         assertThat(guest.captured.firstName).isEqualTo(GuestFixtures.janeDoe.firstName)
         assertThat(guestMagicLink.captured.token.value.isNotBlank()).isEqualTo(true)
         assertThat(guestMagicLink.captured.expiresAt).isGreaterThan(Dates.nowUtc())
+    }
+
+    @Test
+    fun `should create an individual magic link by default`() {
+        every { invitationTokenResolver.resolve(InvitationFixtures.bridesMaidInvitation.accessToken) } returns InvitationFixtures.bridesMaidInvitation
+
+        val guestMagicLink = slot<GuestMagicLink>()
+        guestMagicLinkRequester.request(validJaneDoe)
+
+        verify(exactly = 1) { guestMagicLinkSender.send(capture(guestMagicLink), any()) }
+        assertThat(guestMagicLink.captured.mode).isEqualTo(GuestMagicLinkMode.INDIVIDUAL)
+    }
+
+    @Test
+    fun `should create a group magic link when requested`() {
+        every { invitationTokenResolver.resolve(InvitationFixtures.bridesMaidInvitation.accessToken) } returns InvitationFixtures.bridesMaidInvitation
+
+        val guestMagicLink = slot<GuestMagicLink>()
+        guestMagicLinkRequester.request(groupJaneDoe)
+
+        verify(exactly = 1) { guestMagicLinkTokens.create(capture(guestMagicLink)) }
+        assertThat(guestMagicLink.captured.mode).isEqualTo(GuestMagicLinkMode.GROUP)
     }
 
     @Test
