@@ -18,13 +18,26 @@ dependencies (PostgreSQL, Mailpit) locally.
 
 ## Workflow
 
-1. Update `main` and create a new branch for your work.
+1. Update the base branch and create a new branch for your work. The base is `main`, except for a
+   sub-issue of a parent issue planned with sub-issues: its base is `release/X.Y.Z`, named after
+   the parent issue's milestone (see [Release branches](#release-branches)).
 2. **Branch naming**: `feat/#<issue-number><short-description>` for features,
    `fix/#<issue-number><short-description>` for bug fixes (use a similarly descriptive prefix, e.g.
    `chore/#<issue-number><short-description>`, for other changes).
 3. Make your changes, following the coding conventions below.
 4. Stage the affected files with `git add` after each change.
 5. Do not commit or push — leave that to the maintainer.
+
+## Release branches
+
+Used only for a parent issue planned with sub-issues, so that a complete feature reaches `main`
+(preprod, then production) in one go. Simple issues and bug fixes go through `main` as usual.
+
+- The parent issue has a GitHub milestone named `X.Y.Z`; the branch is `release/X.Y.Z`.
+- Sub-issue branches start from `release/X.Y.Z` and their pull requests target it.
+- The maintainer keeps the release branch current with `main`, merges it into `main` when the
+  feature is complete, then closes the milestone (which tags the release).
+- A production hotfix goes to `main` first, then is back-merged into open release branches.
 
 ## Versioning
 
@@ -81,6 +94,6 @@ or hard-code a version in an issue (neither in `backend/build.gradle.kts` nor in
 ## Pull requests
 
 - Keep changes scoped to the linked issue.
+- Target `main`, or `release/X.Y.Z` for a sub-issue.
 - Reference the issue number in the PR description.
 - Ensure `./gradlew check` and `pnpm run test` pass before requesting review.
-
