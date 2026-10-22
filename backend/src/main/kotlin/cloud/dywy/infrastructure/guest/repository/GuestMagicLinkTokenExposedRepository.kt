@@ -73,11 +73,13 @@ class GuestMagicLinkTokenExposedRepository : GuestMagicLinkTokens {
             it[creationDate] = now
             it[GuestMagicLinkTokenTable.expiresAt] = guestMagicLink.expiresAt
             it[usedAt] = null
+            it[GuestMagicLinkTokenTable.mode] = guestMagicLink.mode
         }
     }
 
     private fun ResultRow.toConsumedToken() = ConsumedGuestMagicLinkToken(
         invitationId = InvitationId(this[GuestMagicLinkTokenTable.invitationId]),
         guestId = GuestId(this[GuestMagicLinkTokenTable.guestId]),
+        mode = this[GuestMagicLinkTokenTable.mode],
     )
 }

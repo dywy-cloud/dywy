@@ -25,4 +25,5 @@ databaseChangeLog:
       file: classpath:db/changelog/012-add-guest-rsvp-answers.sql
   - include:
       file: classpath:db/changelog/013-add-invitation-data-jsonb.sql
-
+  - include:
+      file: classpath:db/changelog/014-add-guest-magic-link-token-mode.sql

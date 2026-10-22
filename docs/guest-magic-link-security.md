@@ -33,6 +33,18 @@ This document summarizes the security controls behind the guest-safe authenticat
 - Validated server-side on every `/api/guest-access/secured/**` request. `401` is returned for an
   unauthenticated request and `403` when the session is valid but the guest no longer belongs to the invitation.
 
+## Mode (individual or group)
+
+- The request body is optional: `{"mode": "INDIVIDUAL" | "GROUP"}`. A missing body or missing `mode` means
+  `INDIVIDUAL`, exactly as before. An unknown value returns `400`.
+- The mode is stored on the token (`guest_magic_link_token.mode`, default `INDIVIDUAL`). A group email also
+  states that the link lets the recipient answer for the whole party.
+- On a successful verification, a `GROUP` token redirects to the secured area with `?mode=group`; an
+  `INDIVIDUAL` token redirects without it.
+- **The redirect is a UX hint only.** The guest session is identical in both modes (`guestId` +
+  `invitationId`) and authorization never depends on the `mode` query parameter.
+- The `202` response stays non-enumerating in both modes.
+
 ## Abuse & enumeration controls
 
 - **Rate limiting**: magic-link requests are throttled per client via the shared rate limiter
@@ -47,4 +59,3 @@ Outcomes are logged without PII (only `invitationId` / `guestId` UUIDs — never
 
 - Request: accepted, rejected (invitation not found / guest not in invitation), delivery failed.
 - Verification: verified, invalid/expired/used token, invitation not found, guest not in invitation.
-

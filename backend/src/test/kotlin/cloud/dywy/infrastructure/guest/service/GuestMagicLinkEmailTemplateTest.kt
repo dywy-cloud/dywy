@@ -3,9 +3,11 @@ package cloud.dywy.infrastructure.guest.service
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.contains
+import assertk.assertions.doesNotContain
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestFixtures.oliverBennett
 import cloud.dywy.domain.guest.entity.GuestMagicLinkFixtures.bridesMaidToJane
+import cloud.dywy.domain.guest.entity.GuestMagicLinkMode
 import cloud.dywy.domain.guest.entity.Language
 import org.springframework.context.support.ResourceBundleMessageSource
 import kotlin.test.BeforeTest
@@ -85,6 +87,37 @@ class GuestMagicLinkEmailTemplateTest {
             contains("Access my invitation")
             contains(magicLinkUrl)
         }
+    }
+
+    @Test
+    fun `should mention answering for the whole party in a group text body`() {
+        val magicLinkUrl = "https://test.dywy.cloud${bridesMaidToJane.guestAccessPath()}"
+
+        val french = guestMagicLinkEmailTemplate.textBody(janeDoe.firstName, magicLinkUrl, Language.FR, GuestMagicLinkMode.GROUP)
+        val english = guestMagicLinkEmailTemplate.textBody(oliverBennett.firstName, magicLinkUrl, Language.EN, GuestMagicLinkMode.GROUP)
+
+        assertThat(french).contains("répondre pour l'ensemble des personnes de l'invitation")
+        assertThat(english).contains("answer for the whole party")
+    }
+
+    @Test
+    fun `should mention answering for the whole party in a group html body`() {
+        val magicLinkUrl = "https://test.dywy.cloud${bridesMaidToJane.guestAccessPath()}"
+
+        val htmlBody = guestMagicLinkEmailTemplate.htmlBody(
+            oliverBennett.firstName, magicLinkUrl, Language.EN, coupleDisplayName, mode = GuestMagicLinkMode.GROUP,
+        )
+
+        assertThat(htmlBody).contains("answer for the whole party")
+    }
+
+    @Test
+    fun `should not mention the whole party in an individual body`() {
+        val magicLinkUrl = "https://test.dywy.cloud${bridesMaidToJane.guestAccessPath()}"
+
+        val textBody = guestMagicLinkEmailTemplate.textBody(oliverBennett.firstName, magicLinkUrl, Language.EN)
+
+        assertThat(textBody).doesNotContain("whole party")
     }
 
     @Test

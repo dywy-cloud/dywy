@@ -16,6 +16,7 @@ import jakarta.mail.internet.MimeMessage
 import jakarta.mail.internet.MimeMultipart
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestMagicLinkFixtures.bridesMaidToJane
+import cloud.dywy.domain.guest.entity.GuestMagicLinkFixtures.groupBridesMaidToJane
 import cloud.dywy.infrastructure.config.GuestAccessPropertiesFixtures.testGuestAccessProperties
 import cloud.dywy.infrastructure.config.MailProperties
 import org.springframework.mail.MailSendException
@@ -71,6 +72,20 @@ class SmtpGuestMagicLinkSenderTest {
             .contains("Accéder à mon invitation")
         assertThat(findBodyPartByContentId(sentMessage, GuestMagicLinkEmailAssets.ICON_CONTENT_ID)?.contentType.orEmpty())
             .contains(GuestMagicLinkEmailAssets.ICON_CONTENT_TYPE)
+    }
+
+    @Test
+    fun `should mention the whole party in a group magic-link email`() {
+        val messageSlot = slot<MimeMessage>()
+        every { javaMailSender.createMimeMessage() } returns MimeMessage(Session.getInstance(Properties()))
+        every { javaMailSender.send(capture(messageSlot)) } returns Unit
+
+        smtpGuestMagicLinkSender.send(groupBridesMaidToJane, janeDoe)
+
+        val sentMessage = messageSlot.captured
+        sentMessage.saveChanges()
+        assertThat(flattenMimeContent(sentMessage.content))
+            .contains("répondre pour l'ensemble des personnes de l'invitation")
     }
 
     @Test

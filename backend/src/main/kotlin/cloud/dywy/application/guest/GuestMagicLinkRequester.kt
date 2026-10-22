@@ -41,6 +41,7 @@ class GuestMagicLinkRequester(
                 invitationId = invitation.id,
                 guestId = guest.id,
                 expiresAt = nowUtcMillis().plusSeconds(guestAccessProperties.magicLinkTtlSeconds),
+                mode = command.mode,
             ).also(guestMagicLinkTokens::create)
 
             guestMagicLinkSender.send(guestMagicLink, guest)

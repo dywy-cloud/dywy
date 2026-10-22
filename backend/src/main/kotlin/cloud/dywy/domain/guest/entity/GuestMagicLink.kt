@@ -7,7 +7,8 @@ data class GuestMagicLink(
     val invitationId: InvitationId,
     val guestId: GuestId,
     val token: GuestMagicLinkAccessToken = GuestMagicLinkAccessToken(),
-    val expiresAt: LocalDateTime
+    val expiresAt: LocalDateTime,
+    val mode: GuestMagicLinkMode = GuestMagicLinkMode.INDIVIDUAL,
 ) {
     fun guestAccessPath() = "/api/guest-access/magic-links/${token.value}"
 }
