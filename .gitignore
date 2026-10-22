@@ -34,3 +34,6 @@ frontend/.playwright/
 # Database persistence
 /postgres_data/
 /opencode.json
+
+# Sub-issue drafts
+docs/issues/
