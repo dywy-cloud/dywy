@@ -180,6 +180,10 @@ describe('InvitationDetailsView', () => {
     expect(wrapper.get('[data-test="invitation-details-rsvp"]').text()).toContain('Partially accepted 1/3');
     expect(wrapper.get('[data-test="invitation-details-rsvp"]').attributes('data-status')).toBe('PARTIALLY_ACCEPTED');
 
+    const labelRow = wrapper.get('[data-test="invitation-details-label"]').element.parentElement;
+
+    expect(labelRow?.contains(wrapper.get('[data-test="invitation-details-rsvp"]').element)).toBe(true);
+
     const guestBadges = wrapper.findAll('[data-test="invitation-details-guest-rsvp"]');
 
     expect(guestBadges.map((badge) => badge.attributes('data-status'))).toEqual([
