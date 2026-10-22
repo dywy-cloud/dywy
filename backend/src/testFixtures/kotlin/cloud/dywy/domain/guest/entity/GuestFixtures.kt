@@ -57,6 +57,26 @@ object GuestFixtures {
         email = "jane.doe@example.com"
     )
 
+    val sofiaMartin = Guest(
+        id = GuestId.fromString("019f3001-a1b2-7c3d-8e4f-5a6b7c8d9e01"),
+        version = 1L,
+        creationDate = creationDate,
+        updateDate = creationDate,
+        firstName = "Sofia",
+        lastName = "Martin",
+        email = "sofia.martin@example.com"
+    )
+
+    val lucasMartin = Guest(
+        id = GuestId.fromString("019f3001-a1b2-7c3d-8e4f-5a6b7c8d9e02"),
+        version = 1L,
+        creationDate = creationDate,
+        updateDate = creationDate,
+        firstName = "Lucas",
+        lastName = "Martin",
+        email = "lucas.martin@example.com"
+    )
+
     val emmaWilson = Guest(
         id = GuestId.fromString("019f0e86-ccad-7cd2-b419-81c40b3dda3e"),
         version = 2L,

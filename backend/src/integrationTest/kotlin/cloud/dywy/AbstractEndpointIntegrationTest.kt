@@ -5,6 +5,7 @@ import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.guest.entity.GuestSession
 import cloud.dywy.domain.guest.service.GuestSessionTokens
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
+import cloud.dywy.domain.invitation.entity.InvitationId
 import cloud.dywy.infrastructure.guest.security.GUEST_SESSION_COOKIE
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
@@ -76,9 +77,9 @@ abstract class AbstractEndpointIntegrationTest : AbstractIntegrationTest() {
         return csrfContext(sessionId)
     }
 
-    protected fun guestSessionCookie(guestId: GuestId): String {
+    protected fun guestSessionCookie(guestId: GuestId, invitationId: InvitationId = bridesMaidInvitation.id): String {
         val token = guestSessionTokens.issue(
-            GuestSession(guestId = guestId, invitationId = bridesMaidInvitation.id)
+            GuestSession(guestId = guestId, invitationId = invitationId)
         )
 
         return "$GUEST_SESSION_COOKIE=$token"

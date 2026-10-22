@@ -1,7 +1,9 @@
 package cloud.dywy.domain.rsvp.entity
 
+import cloud.dywy.domain.guest.entity.GuestFixtures.sofiaMartin
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
+import cloud.dywy.domain.guest.entity.GuestFixtures.lucasMartin
 import java.time.LocalDateTime
 
 object GuestRsvpFixtures {
@@ -56,6 +58,25 @@ object GuestRsvpFixtures {
     val johnDoeRsvpWithSyncedChoices = johnDoeRsvp.copy(answers = RsvpAnswers(meal = Meal.MEAT, song = laVieEnRoseSynced))
 
     val johnDoeRsvpMealOnly = johnDoeRsvp.copy(answers = veggieAnswers)
+
+    val sofiaMartinRsvp = GuestRsvp(
+        id = GuestRsvpId.fromString("019fb445-4209-75ad-9370-e16ff6140b39"),
+        guestId = sofiaMartin.id,
+        version = 1L,
+        creationDate = creationDate,
+        updateDate = creationDate,
+        attendance = RsvpAttendance.ATTENDING,
+        answers = johnDoeAnswers,
+    )
+
+    val lucasMartinRsvpDeclined = GuestRsvp(
+        id = GuestRsvpId.fromString("019fb445-4209-75ad-9370-e16ff6140b3a"),
+        guestId = lucasMartin.id,
+        version = 1L,
+        creationDate = creationDate,
+        updateDate = creationDate,
+        attendance = RsvpAttendance.DECLINED,
+    )
 
     val janeDoeRsvpWithSameSyncedChoicesAsJohnDoe = GuestRsvp(
         id = GuestRsvpId.fromString("019fb445-4209-75ad-9370-e16ff6140b38"),

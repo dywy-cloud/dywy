@@ -45,6 +45,17 @@ object InvitationFixtures {
         guests = setOf(GuestFixtures.johnDoe),
     )
 
+    val martinFamilyInvitation = Invitation(
+        id = InvitationId.fromString("019f3002-b2c3-7d4e-9f50-6b7c8d9e0f11"),
+        creationDate = creationDate,
+        updateDate = creationDate,
+        label = "Martin Family",
+        description = "Martin family invitation",
+        deliveryMethod = DeliveryMethod.HAND_DELIVERED,
+        guests = setOf(GuestFixtures.sofiaMartin, GuestFixtures.lucasMartin),
+        accessToken = InvitationAccessToken("6d1f0a52-3c8e-4b7a-9e21-8f4c5a7b9d30"),
+    )
+
     val friendsInvitation = Invitation(
         id = InvitationId.fromString("019f2284-4e31-7a24-be81-1e3affe8b95f"),
         creationDate = creationDate,
