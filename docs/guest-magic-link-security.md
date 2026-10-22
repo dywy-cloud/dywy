@@ -45,6 +45,19 @@ This document summarizes the security controls behind the guest-safe authenticat
   `invitationId`) and authorization never depends on the `mode` query parameter.
 - The `202` response stays non-enumerating in both modes.
 
+## Invitation-scoped RSVP authorization
+
+- `GET`/`POST /api/guest-access/secured/invitation/rsvps` let a guest read and answer for every guest of
+  their own invitation. The invitation always comes from the session (`session.invitationId`), never from
+  the request.
+- **Authorization rule**: every `guestId` in the body must belong to `session.invitationId`. A guest outside
+  that invitation returns `403` and nothing is saved, even for the other guests of the same request.
+- The submission is atomic: all the guests are saved in one transaction, or none. Invalid payloads
+  (unknown attendance, missing meal, malformed or duplicated `guestId`, empty list, more than 50 entries) return `400` before any write.
+- Song sync and un-sync stay per guest and only start after the transaction commits, so a rejected
+  submission never touches the shared playlist.
+- Like the single-guest endpoint, the rule does not depend on the magic-link `mode`.
+
 ## Abuse & enumeration controls
 
 - **Rate limiting**: magic-link requests are throttled per client via the shared rate limiter
