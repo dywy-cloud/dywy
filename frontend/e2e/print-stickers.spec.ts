@@ -53,5 +53,48 @@ test.describe('Print stickers', () => {
     expect(download.suggestedFilename()).toBe('invitation-stickers.pdf');
     expect([...new Set(requestedPages)].sort()).toEqual([0, 1]);
   });
+
+  test('prints only the selected invitations and offers to select every invitation', async ({ page }) => {
+    await allowAdminSession(page);
+
+    await page.route('**/api/invitations*', async (route) => {
+      const requestedPage = Number(new URL(route.request().url()).searchParams.get('page') ?? '0');
+
+      await fulfillJson(route, {
+        items: [buildInvitation(requestedPage * 2 + 1), buildInvitation(requestedPage * 2 + 2)],
+        page: requestedPage,
+        size: 2,
+        totalItems: TOTAL_PAGES * 2,
+        totalPages: TOTAL_PAGES
+      });
+    });
+
+    await page.goto('/invitations');
+
+    await expect(page.locator('[data-test="invitation-card"]')).toHaveCount(2, { timeout: UI_TIMEOUT_MS });
+
+    await page.locator('[data-test="print-stickers-cta"]').click();
+    await expect(page.locator('[data-test="print-stickers-scope"]')).toHaveText('All 4 invitations will be printed.');
+    await page.locator('[data-test="print-stickers-cancel"]').click();
+
+    await page.locator('[data-test="invitation-select"]').first().check();
+    await expect(page.locator('[data-test="invitation-selection-count"]')).toHaveText('1 selected');
+
+    await page.locator('[data-test="select-all-invitations"]').click();
+    await expect(page.locator('[data-test="invitation-selection-count"]')).toHaveText('All 4 selected');
+
+    await page.locator('[data-test="invitation-select"]').nth(1).uncheck();
+    await expect(page.locator('[data-test="invitation-selection-count"]')).toHaveText('3 selected');
+
+    await page.locator('[data-test="print-stickers-cta"]').click();
+    await expect(page.locator('[data-test="print-stickers-confirm"]')).toHaveText('Print 3 stickers');
+
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator('[data-test="print-stickers-confirm"]').click();
+    const download = await downloadPromise;
+
+    expect(download.suggestedFilename()).toBe('invitation-stickers.pdf');
+  });
 });
+
 

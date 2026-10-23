@@ -8,7 +8,7 @@
       <div class="flex items-center gap-3 justify-self-end">
         <button
           :aria-busy="isPrinting"
-          :disabled="invitationPage.totalItems === 0 || isPrinting"
+          :disabled="invitationPage.totalItems === 0 || isPrinting || isSelectionEmpty"
           aria-label="Print stickers"
           class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-gradient text-white shadow transition hover:scale-105 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
           data-test="print-stickers-cta"
@@ -37,7 +37,13 @@
       {{ printErrorMessage }}
     </p>
 
-    <PrintStickersDialog v-if="isPrintDialogOpen" @cancel="isPrintDialogOpen = false" @print="printStickers" />
+    <PrintStickersDialog
+      v-if="isPrintDialogOpen"
+      :count="hasSelection ? selectedCount : invitationPage.totalItems"
+      :is-selection="hasSelection"
+      @cancel="isPrintDialogOpen = false"
+      @print="printStickers"
+    />
 
     <p v-if="isLoading" class="py-8 text-center text-sm" aria-live="polite">Loading invitations...</p>
 
@@ -78,19 +84,57 @@
     </p>
 
     <template v-else>
-      <div class="mb-4 flex items-center justify-between text-sm text-text/80">
-        <p>Showing {{ invitationPage.items.length }} of {{ invitationPage.totalItems }} invitations</p>
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm text-text/80">
+        <p data-test="invitation-list-summary">
+          Showing {{ invitationPage.items.length }} of {{ invitationPage.totalItems }} invitations
+          <template v-if="hasSelection">
+            <span aria-hidden="true"> · </span>
+            <strong data-test="invitation-selection-count">{{ selectionLabel }}</strong>
+          </template>
+        </p>
+        <div class="flex items-center gap-3">
+          <button
+            v-if="selectedCount < invitationPage.totalItems"
+            :disabled="isPrinting"
+            class="rounded-md bg-accent-gradient px-3 py-1 text-white shadow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            data-test="select-all-invitations"
+            type="button"
+            @click="selectAll"
+          >
+            Select all ({{ invitationPage.totalItems }})
+          </button>
+          <button
+            v-if="hasSelection"
+            :disabled="isPrinting"
+            class="rounded-md border border-secondary/40 bg-white px-3 py-1 text-text transition hover:bg-background/60 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            data-test="clear-invitation-selection"
+            type="button"
+            @click="clearSelection"
+          >
+            Clear
+          </button>
+        </div>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2" data-test="invitation-card-list">
         <article
           v-for="invitation in invitationPage.items"
         :key="invitation.id"
-        class="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-secondary/30 bg-white p-4 shadow-sm"
+        :class="isSelected(invitation.id) ? 'border-primary ring-2 ring-primary/40' : 'border-secondary/30'"
+        class="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border bg-white p-4 shadow-sm"
         data-test="invitation-card"
       >
         <div class="-mx-4 -mt-4 mb-3 flex items-center justify-between gap-2 rounded-t-xl border-b border-secondary/40 bg-background/60 px-4 py-2">
-          <h3 class="min-w-0 truncate text-lg font-medium text-text" data-test="invitation-card-label">{{ invitation.label }}</h3>
+          <input
+            :aria-label="`Select ${invitation.label}`"
+            :checked="isSelected(invitation.id)"
+            :disabled="isPrinting"
+            class="h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed"
+            data-test="invitation-select"
+            type="checkbox"
+            @change="toggleSelection(invitation.id)"
+          />
+          <h3 class="min-w-0 flex-1 truncate text-lg font-medium text-text" data-test="invitation-card-label">{{ invitation.label }}</h3>
           <RsvpStatusBadge :summary="invitation.rsvpSummary" class="shrink-0" />
         </div>
 
@@ -146,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import InvitationQrCodePanel from '../components/InvitationQrCodePanel.vue';
 import PrintStickersDialog from '../components/PrintStickersDialog.vue';
 import RsvpStatusBadge from '../components/RsvpStatusBadge.vue';
@@ -158,7 +202,7 @@ import viewInvitationIcon from '../assets/icons/view.svg';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { buildGuestAccessUrl } from '../services/guestAccessUrl';
 import { listGuests } from '../services/guestApi';
-import { listAllInvitations, listInvitations, type InvitationPageResponse } from '../services/invitationApi';
+import { listAllInvitations, listInvitations, type InvitationPageResponse, type InvitationResponse } from '../services/invitationApi';
 import { formatDeliveryMethod } from '../services/deliveryMethod';
 
 const STICKERS_FILENAME = 'invitation-stickers.pdf';
@@ -176,6 +220,66 @@ const errorMessage = ref('');
 const isPrintDialogOpen = ref(false);
 const isPrinting = ref(false);
 const printErrorMessage = ref('');
+const allSelected = ref(false);
+const selectedIds = ref<Set<string>>(new Set());
+const excludedIds = ref<Set<string>>(new Set());
+
+const selectedCount = computed(() => allSelected.value
+  ? invitationPage.value.totalItems - excludedIds.value.size
+  : selectedIds.value.size);
+// "Select all" is an explicit selection even when every invitation is then deselected:
+// it must not fall back to the default "nothing selected prints everything".
+const hasSelection = computed(() => allSelected.value || selectedIds.value.size > 0);
+const isSelectionEmpty = computed(() => hasSelection.value && selectedCount.value === 0);
+const selectionLabel = computed(() => selectedCount.value === invitationPage.value.totalItems
+  ? `All ${selectedCount.value} selected`
+  : `${selectedCount.value} selected`);
+
+const isSelected = (id: string) => allSelected.value ? !excludedIds.value.has(id) : selectedIds.value.has(id);
+
+const toggleSelection = (id: string) => {
+  const ids = allSelected.value ? excludedIds.value : selectedIds.value;
+
+  if (ids.has(id)) {
+    ids.delete(id);
+  } else {
+    ids.add(id);
+  }
+};
+
+const selectAll = () => {
+  allSelected.value = true;
+  selectedIds.value = new Set();
+  excludedIds.value = new Set();
+};
+
+const clearSelection = () => {
+  allSelected.value = false;
+  selectedIds.value = new Set();
+  excludedIds.value = new Set();
+};
+
+// Captures the selection when printing is confirmed, so that it cannot drift while the invitations are fetched.
+const snapshotPrintSelection = () => {
+  const isSelectionActive = hasSelection.value;
+  const isEverySelected = allSelected.value;
+  const orderedSelectedIds = [...selectedIds.value];
+  const excluded = new Set(excludedIds.value);
+
+  return (invitations: InvitationResponse[]) => {
+    if (!isSelectionActive) {
+      return invitations;
+    }
+
+    if (isEverySelected) {
+      return invitations.filter((invitation) => !excluded.has(invitation.id));
+    }
+
+    const invitationsById = new Map(invitations.map((invitation) => [invitation.id, invitation]));
+
+    return orderedSelectedIds.flatMap((id) => invitationsById.get(id) ?? []);
+  };
+};
 
 const loadData = async () => {
   isLoading.value = true;
@@ -202,13 +306,21 @@ const loadData = async () => {
 
 const printStickers = async (color: string) => {
   isPrintDialogOpen.value = false;
+
+  if (isSelectionEmpty.value) {
+    return;
+  }
+
+  const selectInvitationsToPrint = snapshotPrintSelection();
+
   isPrinting.value = true;
   printErrorMessage.value = '';
 
   try {
     const invitations = await listAllInvitations();
+    const invitationsToPrint = selectInvitationsToPrint(invitations);
     const { buildStickerPdf } = await import('../services/stickerPdf');
-    const pdf = await buildStickerPdf(invitations, color);
+    const pdf = await buildStickerPdf(invitationsToPrint, color);
 
     pdf.save(STICKERS_FILENAME);
   } catch (error: unknown) {
