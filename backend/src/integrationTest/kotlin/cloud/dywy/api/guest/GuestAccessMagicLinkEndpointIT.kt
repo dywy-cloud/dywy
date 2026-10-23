@@ -5,14 +5,18 @@ import assertk.assertions.contains
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isNotNull
-import assertk.assertions.isTrue
 import cloud.dywy.AbstractEndpointIntegrationTest
+import cloud.dywy.api.guest.request.GuestMagicLinkRequestFixtures.groupModeJson
+import cloud.dywy.api.guest.request.GuestMagicLinkRequestFixtures.unknownModeJson
+import cloud.dywy.api.guest.request.GuestMagicLinkRequestFixtures.withoutModeJson
 import cloud.dywy.domain.guest.entity.GuestFixtures.albertEinstein
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.guest.entity.GuestMagicLink
 import cloud.dywy.domain.guest.entity.GuestMagicLinkAccessToken
+import cloud.dywy.domain.guest.entity.GuestMagicLinkMode
+import cloud.dywy.domain.guest.entity.GuestSession
 import cloud.dywy.domain.guest.repository.GuestMagicLinkTokens
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.unknownToken
@@ -31,8 +35,8 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.LocalDateTime
 import java.time.Duration
-import kotlin.text.Regex
 import kotlin.test.Test
+import kotlin.uuid.toJavaUuid
 
 @TestPropertySource(
     properties = [
@@ -84,8 +88,8 @@ class GuestAccessMagicLinkEndpointIT : AbstractEndpointIntegrationTest() {
             .valueEquals(HttpHeaders.LOCATION, "http://localhost:5174/guest-access/secured-area?linkStatus=invalid")
 
         assertThat(consumedTokenCount(token)).isEqualTo(1)
-        assertThat(
-            response.responseHeaders[HttpHeaders.SET_COOKIE].orEmpty().any { it.startsWith("guest_session=") }).isTrue()
+        assertThat(guestSessionFrom(response.responseHeaders))
+            .isEqualTo(GuestSession(janeDoe.id, bridesMaidInvitation.id))
     }
 
     @Test
@@ -154,6 +158,58 @@ class GuestAccessMagicLinkEndpointIT : AbstractEndpointIntegrationTest() {
     }
 
     @Test
+    fun `should redirect a group magic-link token with the group mode hint and an unchanged session`() {
+        val token = createMagicLink(expiresAt = nowUtcMillis().plusMinutes(15), mode = GuestMagicLinkMode.GROUP)
+
+        val response = restTestClient.get().uri("/api/guest-access/magic-links/$token")
+            .exchange()
+            .expectStatus().is3xxRedirection
+            .expectHeader().valueEquals(HttpHeaders.LOCATION, "http://localhost:5174/guest-access/secured-area?mode=group")
+            .expectBody()
+            .returnResult()
+
+        assertThat(guestSessionFrom(response.responseHeaders))
+            .isEqualTo(GuestSession(janeDoe.id, bridesMaidInvitation.id))
+    }
+
+    @Test
+    fun `should store the requested group mode`() {
+        val csrf = csrfContext()
+
+        postMagicLinkRequest(csrf, bridesMaidInvitation.accessToken.value, janeDoe.id.toString(), groupModeJson)
+            .expectStatus().isEqualTo(HttpStatus.ACCEPTED)
+
+        assertThat(storedMode(janeDoe.id)).isEqualTo("GROUP")
+    }
+
+    @Test
+    fun `should default to individual mode without a body`() {
+        val csrf = csrfContext()
+
+        postMagicLinkRequest(csrf, bridesMaidInvitation.accessToken.value, janeDoe.id.toString())
+            .expectStatus().isEqualTo(HttpStatus.ACCEPTED)
+
+        assertThat(storedMode(janeDoe.id)).isEqualTo("INDIVIDUAL")
+    }
+
+    @Test
+    fun `should default to individual mode without a mode`() {
+        val csrf = csrfContext()
+
+        postMagicLinkRequest(csrf, bridesMaidInvitation.accessToken.value, janeDoe.id.toString(), withoutModeJson)
+            .expectStatus().isEqualTo(HttpStatus.ACCEPTED)
+        assertThat(storedMode(janeDoe.id)).isEqualTo("INDIVIDUAL")
+    }
+
+    @Test
+    fun `should return bad request for an unknown mode`() {
+        val csrf = csrfContext()
+
+        postMagicLinkRequest(csrf, bridesMaidInvitation.accessToken.value, janeDoe.id.toString(), unknownModeJson)
+            .expectStatus().isBadRequest
+    }
+
+    @Test
     fun `should return bad request for malformed guest id or token`() {
         val csrf = csrfContext()
 
@@ -178,12 +234,27 @@ class GuestAccessMagicLinkEndpointIT : AbstractEndpointIntegrationTest() {
             .expectHeader().exists("Retry-After")
     }
 
-    private fun postMagicLinkRequest(csrf: CsrfContext, token: String, guestId: String) =
+    private fun consumedTokenCount(token: String): Int =
+        jdbcTemplate.queryForObject(
+            "select count(*) from guest_magic_link_token where token_hash = ? and used_at is not null",
+            Int::class.java,
+            GuestMagicLinkAccessToken(token).hashed(),
+        ) ?: 0
+
+    private fun guestSessionFrom(headers: HttpHeaders): GuestSession? =
+        headers[HttpHeaders.SET_COOKIE].orEmpty()
+            .firstOrNull { it.startsWith("guest_session=") }
+            ?.substringAfter("guest_session=")
+            ?.substringBefore(";")
+            ?.let(guestSessionTokens::verify)
+
+    private fun postMagicLinkRequest(csrf: CsrfContext, token: String, guestId: String, body: String? = null) =
         restTestClient.post().uri("/api/guest-access/invitations/$token/guests/$guestId/magic-link-requests")
             .header(HttpHeaders.COOKIE, csrf.cookies)
             .header("X-XSRF-TOKEN", csrf.csrfToken)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
+            .let { if (body != null) it.body(body) else it }
             .exchange()
 
     private fun waitForMailpitMessagePayload(): String {
@@ -231,19 +302,24 @@ class GuestAccessMagicLinkEndpointIT : AbstractEndpointIntegrationTest() {
         return if (messageResponse.statusCode() == 200) messageResponse.body() else ""
     }
 
-    private fun createMagicLink(guestId: GuestId = janeDoe.id, expiresAt: LocalDateTime): String =
+    private fun createMagicLink(
+        guestId: GuestId = janeDoe.id,
+        expiresAt: LocalDateTime,
+        mode: GuestMagicLinkMode = GuestMagicLinkMode.INDIVIDUAL,
+    ): String =
         GuestMagicLink(
             invitationId = bridesMaidInvitation.id,
             guestId = guestId,
             expiresAt = expiresAt,
+            mode = mode,
         )
             .also(guestMagicLinkTokens::create)
             .token.value
 
-    private fun consumedTokenCount(token: String): Int =
+    private fun storedMode(guestId: GuestId): String? =
         jdbcTemplate.queryForObject(
-            "select count(*) from guest_magic_link_token where token_hash = ? and used_at is not null",
-            Int::class.java,
-            GuestMagicLinkAccessToken(token).hashed(),
-        ) ?: 0
+            "select mode from guest_magic_link_token where guest_id = ? and used_at is null",
+            String::class.java,
+            guestId.value.toJavaUuid(),
+        )
 }

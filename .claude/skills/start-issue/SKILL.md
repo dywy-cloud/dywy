@@ -16,7 +16,7 @@ Follow the AGENTS.md workflow literally. Run every git command with `--no-pager`
 4. Branch from the base, never from another feature branch:
    `git --no-pager switch -c <type>/#<issue>-<short-description> <base> && git --no-pager branch --unset-upstream`
    - If the issue depends on an earlier issue, check it is already in the base (`git --no-pager log --oneline <base> -10`). Squash merges rewrite commits, so an old feature branch is not a valid base.
-   - Branch names follow AGENTS.md: `feat/#<issue>-...`, `fix/#<issue>-...`, `chore/#<issue>-...`. Never create the `release/X.Y.Z` branch yourself.
+   - Branch names follow AGENTS.md: `feat/#<issue>-...`, `fix/#<issue>-...`, `chore/#<issue>-...`. Create `release/X.Y.Z` only locally, from `origin/main`, and never push it.
 5. Look for parked work from an earlier session: `git --no-pager stash list`, then `git --no-pager log -g --oneline stash` and `git --no-pager reflog` filtered on `#<issue>` if the list is empty. Apply with `git --no-pager stash pop` on the new branch (conflicts mean the stash was based on an older base: apply only the relevant files).
 6. Do not bump any version: the release tag is the source of truth (see AGENTS.md, Versioning).
 7. Stage with `git add` after each change.

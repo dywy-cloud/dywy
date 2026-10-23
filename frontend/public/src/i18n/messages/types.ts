@@ -17,6 +17,11 @@ export type TranslationKey =
   | 'invitation.magicLink.rateLimited'
   | 'invitation.magicLink.error'
   | 'invitation.magicLink.back'
+  | 'invitation.magicLink.sentGroup'
+  | 'invitation.group.or'
+  | 'invitation.group.answerForEveryone'
+  | 'invitation.group.chooseRecipient'
+  | 'invitation.group.backToIndividual'
   | 'securedArea.title'
   | 'securedArea.loading'
   | 'securedArea.greeting'
@@ -47,7 +52,13 @@ export type TranslationKey =
   | 'rsvp.submitting'
   | 'rsvp.saved'
   | 'rsvp.loadError'
-  | 'rsvp.submitError';
+  | 'rsvp.submitError'
+  | 'groupRsvp.guests'
+  | 'groupRsvp.of'
+  | 'groupRsvp.answered'
+  | 'groupRsvp.complete'
+  | 'groupRsvp.incomplete'
+  | 'groupRsvp.submit';
 
 export type LocaleMessages = Record<TranslationKey, string>;
 

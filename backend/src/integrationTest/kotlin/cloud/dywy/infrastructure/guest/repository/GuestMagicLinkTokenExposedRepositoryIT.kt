@@ -10,6 +10,7 @@ import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
 import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.guest.entity.GuestMagicLink
 import cloud.dywy.domain.guest.entity.GuestMagicLinkAccessToken
+import cloud.dywy.domain.guest.entity.GuestMagicLinkMode
 import cloud.dywy.domain.guest.repository.GuestMagicLinkTokens
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
 import cloud.dywy.domain.shared.Dates.nowUtcMillis
@@ -35,16 +36,12 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
     fun `should persist magic-link token`() {
         val token = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
 
-        guestMagicLinkTokens.create(token)
-
         assertThat(tokenCount(token.token.value)).isEqualTo(1)
     }
 
     @Test
     fun `should store the token hashed at rest`() {
         val token = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-
-        guestMagicLinkTokens.create(token)
 
         assertThat(tokenHashCount(token.token.hashed())).isEqualTo(1)
         assertThat(tokenHashCount(token.token.value)).isEqualTo(0)
@@ -53,10 +50,8 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
     @Test
     fun `should keep only one active token per guest when creating a new one`() {
         val firstToken = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(firstToken)
 
         val secondToken = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(secondToken)
 
         val consumedFirstToken = guestMagicLinkTokens.consumeIfValid(firstToken.token, nowUtcMillis())
         val consumedSecondToken = guestMagicLinkTokens.consumeIfValid(secondToken.token, nowUtcMillis())
@@ -74,10 +69,8 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
     @Test
     fun `should mark previous token as used when creating a new token for same guest`() {
         val firstToken = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(firstToken)
 
-        val secondToken = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(secondToken)
+        newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
 
         assertThat(usedTokenCount(firstToken.token.value)).isEqualTo(1)
         assertThat(activeTokenCountForGuest(janeDoe.id)).isEqualTo(1)
@@ -86,10 +79,8 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
     @Test
     fun `should not invalidate active tokens of other guests`() {
         val johnToken = newMagicLinkToken(guestId = johnDoe.id, expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(johnToken)
 
-        val janeToken = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(janeToken)
+        newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
 
         val consumedJohnToken = guestMagicLinkTokens.consumeIfValid(johnToken.token, nowUtcMillis())
 
@@ -104,7 +95,6 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
     @Test
     fun `should consume valid token and return invitation and guest`() {
         val token = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(token)
 
         val consumed = guestMagicLinkTokens.consumeIfValid(token.token, nowUtcMillis())
 
@@ -117,9 +107,23 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should return the stored mode when consuming a group token`() {
+        val token = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15), mode = GuestMagicLinkMode.GROUP)
+
+        val consumed = guestMagicLinkTokens.consumeIfValid(token.token, nowUtcMillis())
+
+        assertThat(consumed).isEqualTo(
+            ConsumedGuestMagicLinkToken(
+                invitationId = bridesMaidInvitation.id,
+                guestId = janeDoe.id,
+                mode = GuestMagicLinkMode.GROUP,
+            )
+        )
+    }
+
+    @Test
     fun `should mark token as used when consumed`() {
         val token = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(token)
 
         guestMagicLinkTokens.consumeIfValid(token.token, nowUtcMillis())
 
@@ -129,7 +133,6 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
     @Test
     fun `should return null when token is already used`() {
         val token = newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
-        guestMagicLinkTokens.create(token)
         guestMagicLinkTokens.consumeIfValid(token.token, nowUtcMillis())
 
         val consumedAgain = guestMagicLinkTokens.consumeIfValid(token.token, nowUtcMillis())
@@ -140,7 +143,6 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
     @Test
     fun `should return null when token is expired`() {
         val token = newMagicLinkToken(expiresAt = nowUtcMillis().minusSeconds(1))
-        guestMagicLinkTokens.create(token)
 
         val consumed = guestMagicLinkTokens.consumeIfValid(token.token, nowUtcMillis())
 
@@ -157,7 +159,7 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
             executor.submit {
                 startGate.await()
                 runCatching {
-                    guestMagicLinkTokens.create(newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15)))
+                    newMagicLinkToken(expiresAt = nowUtcMillis().plusMinutes(15))
                 }.onFailure(errors::add)
             }
         }
@@ -169,11 +171,16 @@ class GuestMagicLinkTokenExposedRepositoryIT : AbstractIntegrationTest() {
         assertThat(errors.isEmpty() && activeTokenCountForGuest(janeDoe.id) == 1).isEqualTo(true)
     }
 
-    private fun newMagicLinkToken(guestId: GuestId = janeDoe.id, expiresAt: LocalDateTime) = GuestMagicLink(
+    private fun newMagicLinkToken(
+        guestId: GuestId = janeDoe.id,
+        expiresAt: LocalDateTime,
+        mode: GuestMagicLinkMode = GuestMagicLinkMode.INDIVIDUAL,
+    ) = GuestMagicLink(
         invitationId = bridesMaidInvitation.id,
         guestId = guestId,
         expiresAt = expiresAt,
-    )
+        mode = mode,
+    ).also(guestMagicLinkTokens::create)
 
     private fun tokenCount(token: String) =
         jdbcTemplate.queryForObject(

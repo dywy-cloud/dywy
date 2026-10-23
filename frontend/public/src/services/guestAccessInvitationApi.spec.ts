@@ -8,7 +8,7 @@ describe('guestAccessInvitationApi', () => {
   });
 
   it('resolves an invitation from the guest-access API', async () => {
-    const invitation = { label: 'Bridesmaid', description: 'Welcome', guests: [], guestCount: 0 };
+    const invitation = { label: 'Bridesmaid', guests: [], guestCount: 0 };
     const fetchMock = mockFetchResponse({ ok: true, body: invitation });
 
     const result = await resolveInvitationByToken('a b/c');

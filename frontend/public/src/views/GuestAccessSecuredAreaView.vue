@@ -17,7 +17,8 @@
           <p v-if="session" class="text-base font-semibold text-text">
             {{ t('securedArea.greeting') }} {{ session.firstName }}
           </p>
-          <GuestRsvpForm class="flex min-h-0 flex-1 flex-col" />
+          <GuestGroupRsvpForm v-if="groupMode" class="flex min-h-0 flex-1 flex-col" />
+          <GuestRsvpForm v-else class="flex min-h-0 flex-1 flex-col" />
         </section>
 
         <section v-else>
@@ -49,8 +50,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
+import GuestGroupRsvpForm from '../components/GuestGroupRsvpForm.vue';
 import GuestRsvpForm from '../components/GuestRsvpForm.vue';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 import { fetchGuestSession, type GuestLanguage, type GuestSessionResponse } from '../services/guestAccessSecuredApi';
@@ -61,6 +63,7 @@ type SessionState = 'loading' | 'verified' | 'unverified' | 'error';
 const state = ref<SessionState>('loading');
 const session = ref<GuestSessionResponse | null>(null);
 const route = useRoute();
+const groupMode = computed(() => route.query.mode === 'group');
 const { t, applyGuestLocale } = useGuestAccessI18n();
 
 const guestLanguageToLocale = (language: GuestLanguage): GuestAccessLocale =>

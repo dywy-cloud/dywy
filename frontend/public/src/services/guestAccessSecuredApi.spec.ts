@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { GuestAccessSecuredApiError, fetchGuestSession, fetchRsvp, searchSongs, securedGuestFetch, submitRsvp } from './guestAccessSecuredApi';
+import {
+  GuestAccessSecuredApiError,
+  fetchGuestSession,
+  fetchInvitationRsvps,
+  fetchRsvp,
+  searchSongs,
+  securedGuestFetch,
+  submitInvitationRsvps,
+  submitRsvp,
+} from './guestAccessSecuredApi';
 import {
   clearCsrfCookie,
   expectCsrfHeader,
@@ -229,6 +238,61 @@ describe('guestAccessSecuredApi', () => {
 
     await expect(fetchGuestSession()).rejects.toBeInstanceOf(GuestAccessSecuredApiError);
     await expect(fetchGuestSession()).rejects.toThrow('Unable to load the guest session.');
+  });
+
+  it('lists the guests of the invitation with their first name and rsvp', async () => {
+    const guests = [
+      { guestId: 'guest-1', firstName: 'Sofia', rsvp: null },
+      { guestId: 'guest-2', firstName: 'Lucas', rsvp: null },
+    ];
+    const fetchMock = mockFetchResponse({ ok: true, body: { guests } });
+
+    const result = await fetchInvitationRsvps();
+
+    const [url, options] = getFirstRequest(fetchMock);
+    expect(url).toBe(`${securedBaseUrl}/invitation/rsvps`);
+    expect(options).toMatchObject({ method: 'GET', credentials: 'include' });
+    expect(result).toEqual(guests);
+  });
+
+  it('throws a typed error when the invitation rsvps cannot be loaded', async () => {
+    mockFetchResponse({ ok: false, status: 403 });
+
+    await expect(fetchInvitationRsvps()).rejects.toBeInstanceOf(GuestAccessSecuredApiError);
+  });
+
+  it('submits the answer of every guest in one request and returns every guest of the invitation', async () => {
+    const song = { deezerId: 3135556, title: 'La Vie en rose', artist: 'Edith Piaf', link: 'https://www.deezer.com/track/3135556' };
+    const saved = [{ guestId: 'guest-1', firstName: 'Sofia', rsvp: { id: 'rsvp-1', attendance: 'ATTENDING' } }];
+    const fetchMock = mockFetchResponse({ ok: true, body: { guests: saved } });
+    setCsrfCookie();
+
+    const result = await submitInvitationRsvps([
+      { guestId: 'guest-1', answer: { attendance: 'ATTENDING', meal: 'FISH', song } },
+      { guestId: 'guest-2', answer: { attendance: 'ATTENDING', meal: 'MEAT', song: null } },
+      { guestId: 'guest-3', answer: { attendance: 'DECLINED' } },
+    ]);
+
+    const [url, options] = getFirstRequest(fetchMock);
+    expect(url).toBe(`${securedBaseUrl}/invitation/rsvps`);
+    expect(options).toMatchObject({ method: 'POST', credentials: 'include' });
+    expectCsrfHeader(options);
+    expect(JSON.parse(options.body as string)).toEqual({
+      rsvps: [
+        { guestId: 'guest-1', rsvp: { attendance: 'ATTENDING', meal: 'FISH', song } },
+        { guestId: 'guest-2', rsvp: { attendance: 'ATTENDING', meal: 'MEAT', song: null } },
+        { guestId: 'guest-3', rsvp: { attendance: 'DECLINED' } },
+      ],
+    });
+    expect(result).toEqual(saved);
+  });
+
+  it('throws a typed error when the invitation rsvps cannot be saved', async () => {
+    mockFetchResponse({ ok: false, status: 403 });
+
+    await expect(submitInvitationRsvps([{ guestId: 'guest-1', answer: { attendance: 'DECLINED' } }])).rejects.toBeInstanceOf(
+      GuestAccessSecuredApiError,
+    );
   });
 });
 

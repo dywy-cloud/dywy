@@ -45,8 +45,9 @@ class BrevoGuestMagicLinkSender(
                 language = guest.language,
                 coupleDisplayName = mailProperties.coupleDisplayName,
                 iconSrc = iconUrl,
+                mode = guestMagicLink.mode,
             ),
-            textContent = guestMagicLinkEmailTemplate.textBody(guest.firstName, magicLinkUrl, guest.language),
+            textContent = guestMagicLinkEmailTemplate.textBody(guest.firstName, magicLinkUrl, guest.language, guestMagicLink.mode),
         )
 
         try {

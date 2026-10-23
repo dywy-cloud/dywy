@@ -1,6 +1,7 @@
 package cloud.dywy.api.guest
 
 import cloud.dywy.api.rsvp.GuestRsvpEndpoint
+import cloud.dywy.api.rsvp.InvitationRsvpEndpoint
 import cloud.dywy.api.song.SongSearchEndpoint
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -9,6 +10,7 @@ import org.springframework.web.servlet.function.router
 @Configuration
 class GuestSecuredRouter(
     private val guestRsvpEndpoint: GuestRsvpEndpoint,
+    private val invitationRsvpEndpoint: InvitationRsvpEndpoint,
     private val guestSessionEndpoint: GuestSessionEndpoint,
     private val songSearchEndpoint: SongSearchEndpoint,
 ) {
@@ -18,6 +20,8 @@ class GuestSecuredRouter(
         GET("/api/guest-access/secured/me", guestSessionEndpoint::me)
         POST("/api/guest-access/secured/rsvp", guestRsvpEndpoint::submit)
         GET("/api/guest-access/secured/rsvp", guestRsvpEndpoint::fetch)
+        POST("/api/guest-access/secured/invitation/rsvps", invitationRsvpEndpoint::submit)
+        GET("/api/guest-access/secured/invitation/rsvps", invitationRsvpEndpoint::fetch)
         GET("/api/guest-access/secured/song-search", songSearchEndpoint::search)
     }
 }

@@ -38,7 +38,6 @@ class GuestAccessInvitationEndpointIT : AbstractEndpointIntegrationTest() {
 
         assertThat(response).all {
             prop(PublicInvitationResponse::label).isEqualTo(bridesMaidInvitation.label)
-            prop(PublicInvitationResponse::description).isEqualTo(bridesMaidInvitation.description)
             prop(PublicInvitationResponse::guestCount).isEqualTo(bridesMaidInvitation.guests.size)
             prop(PublicInvitationResponse::guests).isEqualTo(expectedGuests)
         }

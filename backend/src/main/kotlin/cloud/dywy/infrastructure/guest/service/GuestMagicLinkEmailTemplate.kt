@@ -1,5 +1,6 @@
 package cloud.dywy.infrastructure.guest.service
 
+import cloud.dywy.domain.guest.entity.GuestMagicLinkMode
 import cloud.dywy.domain.guest.entity.Language
 import org.springframework.context.MessageSource
 import org.springframework.stereotype.Component
@@ -17,12 +18,17 @@ class GuestMagicLinkEmailTemplate(
     fun subject(language: Language, coupleDisplayName: String) =
         message("email.magic-link.subject", language.toLocale(), coupleDisplayName)
 
-    fun textBody(guestFirstName: String, magicLinkUrl: String, language: Language): String {
+    fun textBody(
+        guestFirstName: String,
+        magicLinkUrl: String,
+        language: Language,
+        mode: GuestMagicLinkMode = GuestMagicLinkMode.INDIVIDUAL,
+    ): String {
         val locale = language.toLocale()
         return """
             ${message("email.magic-link.greeting", locale, guestFirstName)}
 
-            ${message("email.magic-link.intro", locale)}
+            ${intro(locale, mode)}
             $magicLinkUrl
 
             ${message("email.magic-link.ignore", locale)}
@@ -38,12 +44,13 @@ class GuestMagicLinkEmailTemplate(
         language: Language,
         coupleDisplayName: String,
         iconSrc: String = ICON_CID_SRC,
+        mode: GuestMagicLinkMode = GuestMagicLinkMode.INDIVIDUAL,
     ): String {
         val locale = language.toLocale()
         return htmlTemplate(
             lang = locale.language,
             greeting = message("email.magic-link.greeting", locale, htmlEscape(guestFirstName)),
-            intro = message("email.magic-link.intro", locale),
+            intro = intro(locale, mode),
             cta = message("email.magic-link.cta", locale),
             fallback = message("email.magic-link.fallback", locale),
             ignore = message("email.magic-link.ignore", locale),
@@ -53,6 +60,13 @@ class GuestMagicLinkEmailTemplate(
             magicLinkUrl = magicLinkUrl,
         )
     }
+
+    private fun intro(locale: Locale, mode: GuestMagicLinkMode): String =
+        when (mode) {
+            GuestMagicLinkMode.INDIVIDUAL -> message("email.magic-link.intro", locale)
+            GuestMagicLinkMode.GROUP ->
+                "${message("email.magic-link.intro", locale)} ${message("email.magic-link.group-note", locale)}"
+        }
 
     private fun message(code: String, locale: Locale, vararg args: Any): String =
         messages.getMessage(code, args.takeIf { it.isNotEmpty() }, locale)

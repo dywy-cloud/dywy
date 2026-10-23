@@ -42,6 +42,16 @@ internal fun guestIdsOverlap(guestIds: Collection<String>): Op<Boolean> = object
     }
 }
 
+internal fun guestBelongsToInvitation(guestId: Expression<*>): Op<Boolean> = object : Op<Boolean>() {
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
+        queryBuilder.append("jsonb_exists(")
+        queryBuilder.append(InvitationTable.invitationData)
+        queryBuilder.append(" -> 'guestIds', CAST(")
+        queryBuilder.append(guestId)
+        queryBuilder.append(" AS TEXT))")
+    }
+}
+
 internal fun guestIsNotAssigned(guestId: Expression<*>): Op<Boolean> = object : Op<Boolean>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) {
         queryBuilder.append("NOT EXISTS (SELECT 1 FROM ")

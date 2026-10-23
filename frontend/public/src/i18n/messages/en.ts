@@ -17,6 +17,11 @@ export const en: LocaleMessages = {
   'invitation.magicLink.rateLimited': 'Too many requests. Please try again in a few moments.',
   'invitation.magicLink.error': 'We could not send the link right now. Please try again.',
   'invitation.magicLink.back': 'Back to the invitation',
+  'invitation.magicLink.sentGroup': 'Great, the link is on its way! Once they open the email, they can answer for the whole party.',
+  'invitation.group.or': 'or',
+  'invitation.group.answerForEveryone': 'Answer for everyone',
+  'invitation.group.chooseRecipient': 'Pick your name to receive the answer email ❤️',
+  'invitation.group.backToIndividual': 'I\'d rather answer only for myself',
   'securedArea.title': 'Confirm your attendance',
   'securedArea.loading': 'Verifying your link…',
   'securedArea.greeting': 'Hello',
@@ -48,5 +53,11 @@ export const en: LocaleMessages = {
   'rsvp.saved': 'Thank you from the bottom of our hearts ❤️',
   'rsvp.loadError': 'Oops, we couldn\'t load your answer. Try again?',
   'rsvp.submitError': 'Oops, we couldn\'t save your answer. Try again?',
+  'groupRsvp.guests': 'Guests',
+  'groupRsvp.of': 'of',
+  'groupRsvp.answered': 'answered',
+  'groupRsvp.complete': 'Answer complete',
+  'groupRsvp.incomplete': 'Answer to complete',
+  'groupRsvp.submit': 'Send everyone\'s answers',
 };
 

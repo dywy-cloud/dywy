@@ -9,6 +9,8 @@ import cloud.dywy.domain.rsvp.entity.RsvpAnswers
 import cloud.dywy.domain.rsvp.entity.SongChoice
 import cloud.dywy.domain.rsvp.repository.GuestRsvps
 import org.springframework.stereotype.Service
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
 @Service
 class GuestRsvpSubmitter(
@@ -45,7 +47,7 @@ class GuestRsvpSubmitter(
         val song = saved.answers?.song ?: return
         if (song.synchronized) return
 
-        playlistSynchronizer.syncAsync(guestId, song)
+        afterCommit { playlistSynchronizer.syncAsync(guestId, song) }
     }
 
     // When a previously-synced song is dropped (removed, replaced or the guest declined), ask the
@@ -55,7 +57,17 @@ class GuestRsvpSubmitter(
         if (previousSong == null || !previousSong.synchronized) return
         if (previousSong.deezerId == currentSong?.deezerId) return
 
-        playlistSynchronizer.unsyncAsync(previousSong.deezerId)
+        afterCommit { playlistSynchronizer.unsyncAsync(previousSong.deezerId) }
+    }
+
+    private fun afterCommit(action: () -> Unit) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+                override fun afterCommit() = action()
+            })
+        } else {
+            action()
+        }
     }
 }
 

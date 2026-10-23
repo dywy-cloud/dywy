@@ -10,7 +10,8 @@ Only for a parent issue planned with sub-issues. Simple issues and bug fixes use
 ## Rules
 - The parent issue has a GitHub milestone `X.Y.Z`; the branch is `release/X.Y.Z`, named after the milestone, not the issue number.
 - Sub-issue branches start from `origin/release/X.Y.Z` and their PRs target it.
-- The maintainer creates the branch from `main`, merges `main` into it (including hotfix back-merges) and merges it into `main`. Agents never run `git merge`, `rebase`, `push` or create the release branch; they tell the maintainer what to run.
+- The maintainer creates the branch from `main`, merges `main` into it (including hotfix back-merges) and merges it into `main`. Agents never run `git merge`, `rebase` or `push`; they tell the maintainer what to run.
+- When `origin/release/X.Y.Z` does not exist, the agent creates it locally only, without switching: `git --no-pager fetch origin` then `git --no-pager branch release/X.Y.Z origin/main`. It then tells the maintainer to push it (`git push -u origin release/X.Y.Z`). Never push it.
 - Never bump a version: the tag created by closing the milestone is the source of truth.
 - Only `main` deploys to preprod; only a tag deploys to production.
 

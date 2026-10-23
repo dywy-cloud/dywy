@@ -1,6 +1,8 @@
 package cloud.dywy.application.rsvp.command
 
+import cloud.dywy.domain.guest.entity.GuestFixtures.sofiaMartin
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
+import cloud.dywy.domain.guest.entity.GuestFixtures.lucasMartin
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.bohemianRhapsodyAnswers
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeAnswers
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.veggieAnswers
@@ -28,6 +30,17 @@ object SubmitGuestRsvpCommandFixtures {
 
     val johnDoeDeclined = SubmitGuestRsvpCommand(
         guestId = johnDoe.id,
+        attendance = RsvpAttendance.DECLINED,
+    )
+
+    val sofiaMartinAttending = SubmitGuestRsvpCommand(
+        guestId = sofiaMartin.id,
+        attendance = RsvpAttendance.ATTENDING,
+        answers = johnDoeAnswers,
+    )
+
+    val lucasMartinDeclined = SubmitGuestRsvpCommand(
+        guestId = lucasMartin.id,
         attendance = RsvpAttendance.DECLINED,
     )
 }

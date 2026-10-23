@@ -41,11 +41,11 @@
              <p v-if="magicLinkResult.status === 'sent'" class="confirmation-title font-semibold text-text">
                {{ t('invitation.magicLink.sentTitle') }}
              </p>
-             <p class="confirmation-message mt-2 text-text/85">{{ messageForStatus(magicLinkResult.status) }}</p>
+             <p class="confirmation-message mt-2 text-text/85">{{ messageForResult(magicLinkResult) }}</p>
              <button
                class="confirmation-back mt-5 rounded-xl bg-badge-gradient font-semibold text-white transition hover:opacity-90"
                type="button"
-               @click="magicLinkResult = null"
+               @click="backToGuestList"
              >
                {{ t('invitation.magicLink.back') }}
              </button>
@@ -53,10 +53,12 @@
 
            <template v-else>
              <h2 class="card-label font-semibold text-text">{{ invitation.label }}</h2>
-             <p class="mt-2 card-text text-text/85">{{ invitation.description }}</p>
+             <p v-if="groupMode" class="mt-2 card-text text-text/85">
+               {{ t('invitation.group.chooseRecipient') }}
+             </p>
 
              <div class="guest-list-stage mt-4">
-               <p class="guest-count text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
+               <p v-if="!groupMode" class="guest-count text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
                  {{ guestCountLabel(invitation.guestCount) }}
               </p>
 
@@ -72,10 +74,32 @@
                     :guest-id="guest.id"
                     :first-name="guest.firstName"
                     :last-name="guest.lastName"
+                    :mode="groupMode ? 'GROUP' : 'INDIVIDUAL'"
                     @requested="onMagicLinkRequested"
                   />
                 </li>
               </ul>
+
+              <template v-if="invitation.guestCount > 1">
+                <button
+                  v-if="groupMode"
+                  class="group-toggle mt-4 text-text/75 underline"
+                  type="button"
+                  @click="groupMode = false"
+                >
+                  {{ t('invitation.group.backToIndividual') }}
+                </button>
+                <template v-else>
+                  <p class="group-or mt-1 text-center italic text-text/75">{{ t('invitation.group.or') }}</p>
+                  <button
+                    class="guest-button mt-1 whitespace-nowrap bg-accent-gradient"
+                    type="button"
+                    @click="groupMode = true"
+                  >
+                    {{ t('invitation.group.answerForEveryone') }}
+                  </button>
+                </template>
+              </template>
             </div>
           </template>
         </section>
@@ -92,7 +116,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
-import GuestMagicLinkRequest, { type MagicLinkRequestStatus } from '../components/GuestMagicLinkRequest.vue';
+import GuestMagicLinkRequest, { type MagicLinkRequested } from '../components/GuestMagicLinkRequest.vue';
 import {
   GuestAccessInvitationApiError,
   type GuestInvitationResponse,
@@ -110,7 +134,8 @@ const errorKey = ref<InvitationErrorKey | null>(null);
 const flapOpened = ref(false);
 const invitationVisible = ref(false);
 const cardRevealed = ref(false);
-const magicLinkResult = ref<{ status: MagicLinkRequestStatus; firstName: string } | null>(null);
+const magicLinkResult = ref<MagicLinkRequested | null>(null);
+const groupMode = ref(false);
 
 const { t, guestCountLabel } = useGuestAccessI18n();
 
@@ -119,10 +144,10 @@ const showGuestList = computed(() => invitationVisible.value && Boolean(invitati
 // The explanatory intro is shown only once the card's slide-out transition has ended.
 const instructionsVisible = computed(() => cardRevealed.value && Boolean(invitation.value) && !isLoading.value);
 
-const messageForStatus = (status: MagicLinkRequestStatus): string => {
+const messageForResult = ({ status, mode }: MagicLinkRequested): string => {
   switch (status) {
     case 'sent':
-      return t('invitation.magicLink.sent');
+      return t(mode === 'GROUP' ? 'invitation.magicLink.sentGroup' : 'invitation.magicLink.sent');
     case 'rateLimited':
       return t('invitation.magicLink.rateLimited');
     case 'error':
@@ -130,7 +155,12 @@ const messageForStatus = (status: MagicLinkRequestStatus): string => {
   }
 };
 
-const onMagicLinkRequested = (result: { status: MagicLinkRequestStatus; firstName: string }): void => {
+const backToGuestList = (): void => {
+  magicLinkResult.value = null;
+  groupMode.value = false;
+};
+
+const onMagicLinkRequested = (result: MagicLinkRequested): void => {
   magicLinkResult.value = result;
 };
 
@@ -177,6 +207,7 @@ const loadInvitation = async (): Promise<void> => {
   invitationVisible.value = false;
   cardRevealed.value = false;
   magicLinkResult.value = null;
+  groupMode.value = false;
 
   if (!normalizedToken.value) {
     errorKey.value = 'invalidLink';
@@ -269,6 +300,18 @@ watch(normalizedToken, () => {
   margin-inline: auto;
   font-size: clamp(0.82rem, 3.2vw, 0.95rem);
   padding: clamp(0.4rem, 1.5vw, 0.6rem) 1.1rem;
+}
+
+.group-toggle {
+  display: block;
+  width: fit-content;
+  margin-inline: auto;
+  font-size: clamp(0.78rem, 3vw, 0.9rem);
+  padding: 0.35rem 1rem;
+}
+
+.group-or {
+  font-size: clamp(0.82rem, 3.2vw, 0.95rem);
 }
 
 /* Small phones (iPhone SE, Galaxy S8 / S9+, …) where the card content still
@@ -448,6 +491,7 @@ watch(normalizedToken, () => {
   position: relative;
   overflow: hidden;
   padding-top: 0.2rem;
+  padding-bottom: 0.6rem;
 }
 
 .guest-list-stage::before {

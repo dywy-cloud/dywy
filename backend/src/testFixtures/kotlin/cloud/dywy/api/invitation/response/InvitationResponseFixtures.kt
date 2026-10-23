@@ -91,7 +91,6 @@ object InvitationResponseFixtures {
 
     val brideFamilyPublic = PublicInvitationResponse(
         label = brideFamilyInvitation.label,
-        description = brideFamilyInvitation.description,
         deliveryMethod = brideFamilyInvitation.deliveryMethod,
         guests = listOf(brideFamilyPublicGuest),
         guestCount = 1,
@@ -99,7 +98,6 @@ object InvitationResponseFixtures {
 
     val friendsPublic = PublicInvitationResponse(
         label = friendsInvitation.label,
-        description = friendsInvitation.description,
         deliveryMethod = friendsInvitation.deliveryMethod,
         guests = friendsInvitation.guests
             .sortedBy { it.id.toString() }

@@ -34,7 +34,7 @@ class GuestMagicLinkVerifier(
             .firstOrNull { it.id == consumedToken.guestId }
             ?.let {
                 logger.infoWithDetails("Magic-link verified") { "Magic-link verified (invitationId=${invitation.id}, guestId=${it.id})" }
-                GuestMagicLinkVerificationResult.Verified(invitation = invitation, guestId = it.id)
+                GuestMagicLinkVerificationResult.Verified(invitation = invitation, guestId = it.id, mode = consumedToken.mode)
             }
             ?: run {
                 logger.warnWithDetails(message = "Magic-link verification failed: guest not in invitation") { "Magic-link verification failed: guest not in invitation (invitationId=${invitation.id}, guestId=${consumedToken.guestId})" }
