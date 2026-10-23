@@ -5,6 +5,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
 import assertk.assertions.prop
+import assertk.assertions.extracting
 import cloud.dywy.AbstractIntegrationTest
 import cloud.dywy.domain.guest.entity.Guest
 import cloud.dywy.domain.guest.entity.GuestFixtures
@@ -25,6 +26,7 @@ import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitati
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.communityDinnerInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.handDeliveredInvitation
+import cloud.dywy.domain.invitation.entity.InvitationFixtures.martinFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.nonExistingInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.scienceConferenceInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.scienceConferenceInvitationUpdated
@@ -174,25 +176,29 @@ class InvitationsExposedRepositoryIT : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should list invitations with pagination and id ordering`() {
+    fun `should list invitations by last updated then id across pages`() {
         val itemCount = invitationCount()
-        val firstPage: InvitationPage = invitationsRepository.list(InvitationListCriteria(page = 0, size = 1))
-        val secondPage = invitationsRepository.list(InvitationListCriteria(page = 1, size = 1))
+        val originalDates = listOf(bestManInvitation, bridesMaidInvitation, martinFamilyInvitation)
+            .associate { it.id to it.updateDate }
+        setUpdateDate(bestManInvitation.id, "2100-01-02 00:00:00")
+        setUpdateDate(bridesMaidInvitation.id, "2100-01-01 00:00:00")
+        setUpdateDate(martinFamilyInvitation.id, "2100-01-01 00:00:00")
 
-        assertThat(firstPage).all {
-            prop(InvitationPage::items).isEqualTo(listOf(bridesMaidInvitation))
-            prop(InvitationPage::page).isEqualTo(0)
-            prop(InvitationPage::size).isEqualTo(1)
-            prop(InvitationPage::totalItems).isEqualTo(itemCount.toLong())
-            prop(InvitationPage::totalPages).isEqualTo(itemCount)
-        }
+        try {
+            val firstPage = invitationsRepository.list(InvitationListCriteria(page = 0, size = 2))
+            val secondPage = invitationsRepository.list(InvitationListCriteria(page = 1, size = 2))
 
-        assertThat(secondPage).all {
-            prop(InvitationPage::items).isEqualTo(listOf(bestManInvitation))
-            prop(InvitationPage::page).isEqualTo(1)
-            prop(InvitationPage::size).isEqualTo(1)
-            prop(InvitationPage::totalItems).isEqualTo(itemCount.toLong())
-            prop(InvitationPage::totalPages).isEqualTo(itemCount)
+            assertThat(firstPage).all {
+                prop(InvitationPage::items).extracting { it.id }
+                    .isEqualTo(listOf(bestManInvitation.id, bridesMaidInvitation.id))
+                prop(InvitationPage::page).isEqualTo(0)
+                prop(InvitationPage::size).isEqualTo(2)
+                prop(InvitationPage::totalItems).isEqualTo(itemCount.toLong())
+                prop(InvitationPage::totalPages).isEqualTo((itemCount + 1) / 2)
+            }
+            assertThat(secondPage.items.first().id).isEqualTo(martinFamilyInvitation.id)
+        } finally {
+            originalDates.forEach { (id, date) -> setUpdateDate(id, "$date") }
         }
     }
 
@@ -317,12 +323,20 @@ class InvitationsExposedRepositoryIT : AbstractIntegrationTest() {
         jdbcTemplate.update(
             """
             insert into invitation (id, version, creation_date, update_date, invitation_data)
-            values (?, 1, now(), now(), ?::jsonb)
+            values (?, 1, now(), '2026-07-01 10:45:28', ?::jsonb)
             """.trimIndent(),
             id,
             json,
         )
         return id
+    }
+
+    private fun setUpdateDate(id: InvitationId, date: String) {
+        jdbcTemplate.update(
+            "update invitation set update_date = ?::timestamp where id = ?",
+            date,
+            id.value.toJavaUuid(),
+        )
     }
 
     private fun invitationCount() =

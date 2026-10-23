@@ -28,7 +28,10 @@ class InvitationsExposedRepository(
     private val guestProperties: GuestProperties,
 ) : Invitations {
 
-    private val listOrder = arrayOf(InvitationTable.id to SortOrder.ASC)
+    private val listOrder = arrayOf(
+        InvitationTable.updateDate to SortOrder.DESC,
+        InvitationTable.id to SortOrder.ASC,
+    )
 
     @Transactional
     override fun add(invitation: Invitation): Invitation =
