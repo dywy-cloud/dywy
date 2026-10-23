@@ -111,5 +111,50 @@
       padding: 0.35rem 0.75rem;
     }
   }
+
+  /* All form sizing is driven by these variables so the device tiers below retune the whole
+     form at once. Base values target older phones (~360-375px). */
+  .rsvp-form {
+    width: 100%;
+    --rsvp-legend-size: 0.85rem;
+    --rsvp-text-size: 0.8rem;
+    --rsvp-status-size: 0.78rem;
+    --rsvp-hint-size: 0.75rem;
+    --rsvp-pad-y: 0.45rem;
+    --rsvp-pad-x: 0.7rem;
+    --rsvp-icon-size: 1.9rem;
+    --rsvp-add-size: 1.3rem;
+  }
+
+  @media (min-width: 390px) {
+    .rsvp-form {
+      --rsvp-legend-size: 0.95rem;
+      --rsvp-text-size: 0.9rem;
+      --rsvp-status-size: 0.85rem;
+      --rsvp-hint-size: 0.8rem;
+      --rsvp-pad-y: 0.55rem;
+      --rsvp-pad-x: 0.85rem;
+      --rsvp-icon-size: 2.15rem;
+      --rsvp-add-size: 1.45rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .rsvp-form {
+      --rsvp-legend-size: 1.05rem;
+      --rsvp-text-size: 0.95rem;
+      --rsvp-status-size: 0.9rem;
+      --rsvp-hint-size: 0.85rem;
+      --rsvp-pad-y: 0.6rem;
+      --rsvp-pad-x: 0.9rem;
+      --rsvp-icon-size: 2.4rem;
+      --rsvp-add-size: 1.6rem;
+    }
+  }
+
+  .rsvp-submit {
+    font-size: var(--rsvp-text-size);
+    padding: var(--rsvp-pad-y) 0.9rem;
+  }
 }
 

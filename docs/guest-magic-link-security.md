@@ -50,6 +50,9 @@ This document summarizes the security controls behind the guest-safe authenticat
 - `GET`/`POST /api/guest-access/secured/invitation/rsvps` let a guest read and answer for every guest of
   their own invitation. The invitation always comes from the session (`session.invitationId`), never from
   the request.
+- `GET` lists every guest of the invitation (`guestId`, `firstName`, ordered by `guestId`) with their `rsvp`,
+  `null` until they answered. `POST` returns the same list once the answers are saved. The first name is read
+  from the guest, never stored in the RSVP. No other personal data is exposed.
 - **Authorization rule**: every `guestId` in the body must belong to `session.invitationId`. A guest outside
   that invitation returns `403` and nothing is saved, even for the other guests of the same request.
 - The submission is atomic: all the guests are saved in one transaction, or none. Invalid payloads

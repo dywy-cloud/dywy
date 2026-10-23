@@ -10,7 +10,11 @@ import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import cloud.dywy.AbstractIntegrationTest
 import cloud.dywy.domain.guest.entity.GuestFixtures.janeDoe
+import cloud.dywy.domain.guest.entity.GuestFixtures.lucasMartin
+import cloud.dywy.domain.guest.entity.GuestFixtures.sofiaMartin
 import cloud.dywy.domain.guest.entity.GuestId
+import cloud.dywy.domain.invitation.entity.InvitationFixtures.martinFamilyInvitation
+import cloud.dywy.domain.invitation.entity.InvitationFixtures.nonExistingInvitationId
 import cloud.dywy.domain.rsvp.entity.GuestRsvp
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.janeDoeRsvpWithSameSyncedChoicesAsJohnDoe
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvp
@@ -19,7 +23,10 @@ import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvpMealOnly
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvpWithChoices
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvpWithSyncedChoices
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.laVieEnRose
+import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.sofiaMartinRsvp
 import cloud.dywy.domain.rsvp.entity.GuestRsvpId
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvpFixtures.lucasMartinPending
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvpFixtures.sofiaMartinAnswered
 import cloud.dywy.domain.rsvp.entity.RsvpAttendance
 import cloud.dywy.domain.rsvp.repository.PendingSongSync
 import org.springframework.beans.factory.annotation.Autowired
@@ -143,6 +150,30 @@ class GuestRsvpExposedRepositoryIT : AbstractIntegrationTest() {
         guestRsvpsRepository.save(johnDoeRsvp)
 
         assertThat(guestRsvpsRepository.findByGuestIds(emptySet())).isEmpty()
+    }
+
+    @Test
+    fun `should list every guest of an invitation with the first name and the rsvp only when answered in a single query`() {
+        guestRsvpsRepository.save(sofiaMartinRsvp)
+        val (found, statements) = withExecutedSql {
+            guestRsvpsRepository.findInvitationGuestRsvps(martinFamilyInvitation.id)
+        }
+
+        assertThat(found).containsExactly(*listOf(sofiaMartinAnswered, lucasMartinPending).sortedBy { it.guestId.toString() }.toTypedArray())
+        assertThat(statements.size).isEqualTo(1)
+    }
+
+    @Test
+    fun `should not list the guests or the rsvps of another invitation`() {
+        guestRsvpsRepository.save(johnDoeRsvp)
+
+        assertThat(guestRsvpsRepository.findInvitationGuestRsvps(martinFamilyInvitation.id).map { it.guestId })
+            .containsOnly(sofiaMartin.id, lucasMartin.id)
+    }
+
+    @Test
+    fun `should list nothing for an unknown invitation`() {
+        assertThat(guestRsvpsRepository.findInvitationGuestRsvps(nonExistingInvitationId)).isEmpty()
     }
 
     @Test

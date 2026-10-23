@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEmpty
+import assertk.assertions.isEqualTo
 import cloud.dywy.AbstractEndpointIntegrationTest
 import cloud.dywy.api.rsvp.request.SubmitInvitationRsvpsRequest
 import cloud.dywy.api.rsvp.request.SubmitInvitationRsvpsRequestFixtures.sofiaAndForeignGuest
@@ -13,6 +14,7 @@ import cloud.dywy.api.rsvp.request.SubmitInvitationRsvpsRequestFixtures.sofiaWit
 import cloud.dywy.api.rsvp.request.SubmitInvitationRsvpsRequestFixtures.malformedGuestId
 import cloud.dywy.api.rsvp.request.SubmitInvitationRsvpsRequestFixtures.noRsvps
 import cloud.dywy.api.rsvp.response.InvitationRsvpsResponse
+import cloud.dywy.api.rsvp.response.InvitationRsvpsResponseFixtures.martinFamilyUnanswered
 import cloud.dywy.domain.guest.entity.GuestFixtures.sofiaMartin
 import cloud.dywy.domain.guest.entity.GuestFixtures.lucasMartin
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.martinFamilyInvitation
@@ -68,6 +70,11 @@ class InvitationRsvpEndpointIT : AbstractEndpointIntegrationTest() {
     }
 
     @Test
+    fun `should list every guest of the invitation with the first name and no rsvp until answered`() {
+        assertThat(fetchRsvps()).isEqualTo(martinFamilyUnanswered)
+    }
+
+    @Test
     fun `should save the rsvp of every guest of the invitation`() {
         submit(sofiaAndLucas).expectStatus().isOk
 
@@ -75,15 +82,15 @@ class InvitationRsvpEndpointIT : AbstractEndpointIntegrationTest() {
     }
 
     @Test
-    fun `should return the saved rsvps in the submission response`() {
+    fun `should return every guest with the first name and the saved rsvp in the submission response`() {
         val response = submit(sofiaAndLucas)
             .expectStatus().isOk
             .expectBody(InvitationRsvpsResponse::class.java)
             .returnResult()
             .responseBody
 
-        assertThat(response?.rsvps?.map { it.guestId }.orEmpty())
-            .containsExactlyInAnyOrder(sofiaMartin.id.toString(), lucasMartin.id.toString())
+        assertThat(response?.guests?.map { it.firstName to (it.rsvp != null) }.orEmpty())
+            .containsExactlyInAnyOrder(sofiaMartin.firstName to true, lucasMartin.firstName to true)
     }
 
     @Test
@@ -173,7 +180,7 @@ class InvitationRsvpEndpointIT : AbstractEndpointIntegrationTest() {
             .exchange()
     }
 
-    private fun fetchSubmittedGuestIds(): List<String> =
+    private fun fetchRsvps(): InvitationRsvpsResponse =
         restTestClient.get().uri(RSVPS_URI)
             .header(HttpHeaders.COOKIE, friendsSessionCookie())
             .accept(MediaType.APPLICATION_JSON)
@@ -182,9 +189,10 @@ class InvitationRsvpEndpointIT : AbstractEndpointIntegrationTest() {
             .expectBody(InvitationRsvpsResponse::class.java)
             .returnResult()
             .responseBody
-            ?.rsvps
-            ?.map { it.guestId }
-            ?: error("Expected rsvps in response body")
+            ?: error("Expected the invitation rsvps in response body")
+
+    private fun fetchSubmittedGuestIds(): List<String> =
+        fetchRsvps().guests.filter { it.rsvp != null }.map { it.guestId }
 
     private fun friendsSessionCookie() = guestSessionCookie(sofiaMartin.id, martinFamilyInvitation.id)
 
@@ -192,7 +200,3 @@ class InvitationRsvpEndpointIT : AbstractEndpointIntegrationTest() {
         const val RSVPS_URI = "/api/guest-access/secured/invitation/rsvps"
     }
 }
-
-
-
-
