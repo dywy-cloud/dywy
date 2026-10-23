@@ -61,6 +61,26 @@ export interface GuestRsvpResponse {
   song?: Song | null;
 }
 
+export type RsvpAnswer =
+  | { attendance: 'ATTENDING'; meal: Meal; song?: Song | null }
+  | { attendance: 'DECLINED' };
+
+export interface InvitationGuestRsvp {
+  guestId: string;
+  firstName: string;
+  rsvp: GuestRsvpResponse | null;
+}
+
+const rsvpPayload = (answer: RsvpAnswer) => {
+  if (answer.attendance === 'DECLINED') {
+    return { attendance: answer.attendance };
+  }
+
+  return answer.song !== undefined
+    ? { attendance: answer.attendance, meal: answer.meal, song: answer.song }
+    : { attendance: answer.attendance, meal: answer.meal };
+};
+
 /**
  * Performs a request against the secured guest API (`/api/guest-access/secured/**`).
  *
@@ -148,12 +168,7 @@ export async function submitRsvp(
   meal?: Meal,
   song?: Song | null,
 ): Promise<GuestRsvpResponse> {
-  const payload =
-    attendance === 'ATTENDING'
-      ? song !== undefined
-        ? { attendance, meal, song }
-        : { attendance, meal }
-      : { attendance };
+  const payload = rsvpPayload(attendance === 'ATTENDING' ? { attendance, meal: meal as Meal, song } : { attendance });
 
   const response = await securedGuestFetch('/rsvp', {
     method: 'POST',
@@ -169,6 +184,42 @@ export async function submitRsvp(
 
   return response.json() as Promise<GuestRsvpResponse>;
 }
+
+const parseInvitationGuests = async (response: Response) => {
+  const { guests } = (await response.json()) as { guests: InvitationGuestRsvp[] };
+
+  return guests;
+};
+
+export const fetchInvitationRsvps = async (): Promise<InvitationGuestRsvp[]> => {
+  const response = await securedGuestFetch('/invitation/rsvps');
+
+  if (!response.ok) {
+    throw new GuestAccessSecuredApiError('Unable to load the invitation RSVPs at the moment.', response.status);
+  }
+
+  return parseInvitationGuests(response);
+};
+
+export const submitInvitationRsvps = async (
+  answers: ReadonlyArray<{ guestId: string; answer: RsvpAnswer }>,
+): Promise<InvitationGuestRsvp[]> => {
+  const response = await securedGuestFetch('/invitation/rsvps', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      rsvps: answers.map(({ guestId, answer }) => ({ guestId, rsvp: rsvpPayload(answer) })),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new GuestAccessSecuredApiError('Unable to submit the invitation RSVPs at the moment.', response.status);
+  }
+
+  return parseInvitationGuests(response);
+};
 
 /**
  * Searches the Deezer catalog through the proxy

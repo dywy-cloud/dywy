@@ -2,16 +2,16 @@ package cloud.dywy.api.rsvp.response
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import cloud.dywy.api.rsvp.response.InvitationRsvpsResponseFixtures.sofiaAndLucas
-import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.lucasMartinRsvpDeclined
-import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.sofiaMartinRsvp
+import cloud.dywy.api.rsvp.response.InvitationRsvpsResponseFixtures.sofiaAnsweredLucasPending
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvpFixtures.lucasMartinPending
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvpFixtures.sofiaMartinAnswered
 import kotlin.test.Test
 
 class InvitationRsvpsResponseTest {
 
     @Test
-    fun `should map the rsvps to a response keyed by guest id`() {
-        assertThat(listOf(sofiaMartinRsvp, lucasMartinRsvpDeclined).toInvitationResponse()).isEqualTo(sofiaAndLucas)
+    fun `should map every guest with the first name and the rsvp only when answered`() {
+        assertThat(listOf(sofiaMartinAnswered, lucasMartinPending).toInvitationResponse()).isEqualTo(sofiaAnsweredLucasPending)
     }
 }
 

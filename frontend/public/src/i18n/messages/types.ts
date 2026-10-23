@@ -52,7 +52,13 @@ export type TranslationKey =
   | 'rsvp.submitting'
   | 'rsvp.saved'
   | 'rsvp.loadError'
-  | 'rsvp.submitError';
+  | 'rsvp.submitError'
+  | 'groupRsvp.guests'
+  | 'groupRsvp.of'
+  | 'groupRsvp.answered'
+  | 'groupRsvp.complete'
+  | 'groupRsvp.incomplete'
+  | 'groupRsvp.submit';
 
 export type LocaleMessages = Record<TranslationKey, string>;
 

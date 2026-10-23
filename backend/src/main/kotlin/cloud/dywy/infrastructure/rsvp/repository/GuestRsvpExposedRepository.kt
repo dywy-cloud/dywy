@@ -1,14 +1,21 @@
 package cloud.dywy.infrastructure.rsvp.repository
 
 import cloud.dywy.domain.guest.entity.GuestId
+import cloud.dywy.domain.invitation.entity.InvitationId
 import cloud.dywy.domain.rsvp.entity.GuestRsvp
 import cloud.dywy.domain.rsvp.entity.GuestRsvpId
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvp
 import cloud.dywy.domain.rsvp.entity.RsvpAttendance
 import cloud.dywy.domain.rsvp.repository.GuestRsvps
 import cloud.dywy.domain.rsvp.repository.PendingSongSync
+import cloud.dywy.infrastructure.guest.repository.GuestTable
+import cloud.dywy.infrastructure.invitation.repository.InvitationTable
+import cloud.dywy.infrastructure.invitation.repository.guestBelongsToInvitation
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.jetbrains.exposed.v1.jdbc.upsert
@@ -28,6 +35,22 @@ class GuestRsvpExposedRepository : GuestRsvps {
         else GuestRsvpTable.selectAll()
             .where { GuestRsvpTable.guestId inList guestIds.map(GuestId::value) }
             .map { it.toGuestRsvp() }
+
+    @Transactional(readOnly = true)
+    override fun findInvitationGuestRsvps(invitationId: InvitationId): List<InvitationGuestRsvp> =
+        InvitationTable
+            .join(GuestTable, JoinType.INNER, additionalConstraint = { guestBelongsToInvitation(GuestTable.id) })
+            .join(GuestRsvpTable, JoinType.LEFT, GuestTable.id, GuestRsvpTable.guestId)
+            .select(listOf(GuestTable.id, GuestTable.firstName) + GuestRsvpTable.columns)
+            .where { InvitationTable.id eq invitationId.value }
+            .orderBy(GuestTable.id)
+            .map { row ->
+                InvitationGuestRsvp(
+                    guestId = GuestId(row[GuestTable.id]),
+                    firstName = row[GuestTable.firstName],
+                    rsvp = row.getOrNull(GuestRsvpTable.id)?.let { row.toGuestRsvp() },
+                )
+            }
 
     @Transactional(readOnly = true)
     override fun isSongOnPlaylist(deezerId: Long): Boolean =

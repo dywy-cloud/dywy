@@ -53,5 +53,11 @@ export const fr: LocaleMessages = {
   'rsvp.saved': 'Merci du fond du cœur, c\'est noté ❤️',
   'rsvp.loadError': 'Oups, impossible de charger ta réponse. On réessaie ?',
   'rsvp.submitError': 'Oups, ta réponse n\'a pas été enregistrée. On réessaie ?',
+  'groupRsvp.guests': 'Invités',
+  'groupRsvp.of': 'sur',
+  'groupRsvp.answered': 'ont répondu',
+  'groupRsvp.complete': 'Réponse complète',
+  'groupRsvp.incomplete': 'Réponse à compléter',
+  'groupRsvp.submit': 'Envoyer les réponses de tout le monde',
 };
 

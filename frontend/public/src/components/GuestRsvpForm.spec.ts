@@ -650,6 +650,20 @@ describe('GuestRsvpForm', () => {
 
     expect(searchSongsMock).toHaveBeenCalledTimes(1);
   });
+
+  it('ignores an edit made while the answer is being saved', async () => {
+    fetchRsvpMock.mockResolvedValue(savedRsvp('ATTENDING', 'MEAT'));
+    submitRsvpMock.mockReturnValue(new Promise(() => {}));
+    const wrapper = mountForm();
+    await flushPromises();
+    await wrapper.find('input[value="FISH"]').trigger('change');
+    await wrapper.find('form').trigger('submit');
+
+    await wrapper.find('input[value="VEGGIE"]').trigger('change');
+
+    expect((wrapper.find('input[value="FISH"]').element as HTMLInputElement).checked).toBe(true);
+    expect((wrapper.find('input[value="VEGGIE"]').element as HTMLInputElement).checked).toBe(false);
+  });
 });
 
 

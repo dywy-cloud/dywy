@@ -19,12 +19,21 @@ import { fetchGuestSession } from '../services/guestAccessSecuredApi';
 const fetchGuestSessionMock = vi.mocked(fetchGuestSession);
 const { t } = useGuestAccessI18n();
 
+const verifiedSession = {
+  guestId: 'guest-1',
+  invitationId: 'invitation-1',
+  firstName: 'Alice',
+  lastName: 'Martin',
+  language: 'FR' as const,
+};
+
 const mountView = () =>
   mount(GuestAccessSecuredAreaView, {
     global: {
       stubs: {
         LanguageSwitcher: true,
         GuestRsvpForm: true,
+        GuestGroupRsvpForm: true,
         RouterLink: { template: '<a><slot /></a>' },
       },
     },
@@ -64,6 +73,37 @@ describe('GuestAccessSecuredAreaView', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain(`${t('securedArea.greeting')} Alice`);
+  });
+
+  it('shows the individual form by default', async () => {
+    fetchGuestSessionMock.mockResolvedValue(verifiedSession);
+    const wrapper = mountView();
+
+    await flushPromises();
+
+    expect(wrapper.findComponent({ name: 'GuestRsvpForm' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'GuestGroupRsvpForm' }).exists()).toBe(false);
+  });
+
+  it('shows the group form instead of the individual one when the mode is group', async () => {
+    routeMock.query = { mode: 'group' };
+    fetchGuestSessionMock.mockResolvedValue(verifiedSession);
+    const wrapper = mountView();
+
+    await flushPromises();
+
+    expect(wrapper.findComponent({ name: 'GuestGroupRsvpForm' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'GuestRsvpForm' }).exists()).toBe(false);
+  });
+
+  it.each<Record<string, string>>([{}, { mode: 'group' }])('does not let the guest switch mode from the secured area (%o)', async (query) => {
+    routeMock.query = query;
+    fetchGuestSessionMock.mockResolvedValue(verifiedSession);
+    const wrapper = mountView();
+
+    await flushPromises();
+
+    expect(wrapper.find('a').exists()).toBe(false);
   });
 
   it('applies the guest language to the active locale', async () => {

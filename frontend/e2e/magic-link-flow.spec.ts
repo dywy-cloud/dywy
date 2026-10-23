@@ -16,6 +16,12 @@ const CREDENTIALED_CORS = {
   'access-control-allow-credentials': 'true',
 };
 
+const PREFLIGHT_CORS = {
+  ...CREDENTIALED_CORS,
+  'access-control-allow-methods': 'GET,POST,OPTIONS',
+  'access-control-allow-headers': 'content-type,x-xsrf-token',
+};
+
 const invitationBody = {
   label: 'Famille Martin',
   guestCount: 2,
@@ -90,6 +96,80 @@ test.describe('Magic-link UX flow', () => {
 
     expect((await requestPromise).postDataJSON()).toEqual({ mode: 'GROUP' });
     await expect(page.getByText(/répondre pour tout le groupe|answer for the whole party/i)).toBeVisible();
+  });
+
+  test('answers for everyone through the group magic link', async ({ page }) => {
+    await mockInvitation(page);
+    await page.route('**/magic-link-requests', async (route) => {
+      await fulfillJson(route, {}, 202, CREDENTIALED_CORS);
+    });
+
+    await page.goto(`${PUBLIC_BASE_URL}/guest-access/${VALID_TOKEN}`);
+    await page.getByRole('button', { name: /Répondre pour tout le monde|Answer for everyone/ }).click();
+    const linkRequest = page.waitForRequest('**/magic-link-requests');
+    await page.getByRole('button', { name: /Alice Martin/ }).click();
+    expect((await linkRequest).postDataJSON()).toEqual({ mode: 'GROUP' });
+
+    await page.route('**/api/guest-access/secured/me', async (route) => {
+      await fulfillJson(
+        route,
+        { guestId: 'guest-1', invitationId: 'invitation-1', firstName: 'Alice', lastName: 'Martin', language: 'FR' },
+        200,
+        CREDENTIALED_CORS,
+      );
+    });
+    const answered = (attendance: 'ATTENDING' | 'DECLINED', meal: 'MEAT' | null) => ({
+      id: 'rsvp-1',
+      version: 1,
+      creationDate: '2026-06-13T10:00:00',
+      updateDate: '2026-06-13T10:00:00',
+      attendance,
+      meal,
+    });
+    await page.route('**/api/guest-access/secured/invitation/rsvps', async (route) => {
+      const method = route.request().method();
+
+      if (method === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: PREFLIGHT_CORS });
+        return;
+      }
+
+      const guests =
+        method === 'GET'
+          ? [
+              { guestId: 'guest-1', firstName: 'Alice', rsvp: null },
+              { guestId: 'guest-2', firstName: 'Bob', rsvp: null },
+            ]
+          : [
+              { guestId: 'guest-1', firstName: 'Alice', rsvp: answered('ATTENDING', 'MEAT') },
+              { guestId: 'guest-2', firstName: 'Bob', rsvp: answered('DECLINED', null) },
+            ];
+      await fulfillJson(route, { guests }, 200, CREDENTIALED_CORS);
+    });
+
+    await page.goto(`${PUBLIC_BASE_URL}/guest-access/secured-area?mode=group`);
+
+    const guestTab = (name: string) => page.getByRole('navigation').getByRole('button', { name: new RegExp(name) });
+    const submit = page.getByRole('button', { name: /Envoyer les réponses de tout le monde|Send everyone's answers/ });
+    await expect(guestTab('Bob')).toBeVisible({ timeout: UI_TIMEOUT_MS });
+    await expect(submit).toBeDisabled();
+
+    await page.locator('input[value="ATTENDING"]').check();
+    await page.locator('input[value="MEAT"]').check();
+    await guestTab('Bob').click();
+    await page.locator('input[value="DECLINED"]').check();
+    await expect(submit).toBeEnabled();
+
+    const submission = page.waitForRequest((request) => request.method() === 'POST');
+    await submit.click();
+
+    expect((await submission).postDataJSON()).toEqual({
+      rsvps: [
+        { guestId: 'guest-1', rsvp: { attendance: 'ATTENDING', meal: 'MEAT', song: null } },
+        { guestId: 'guest-2', rsvp: { attendance: 'DECLINED' } },
+      ],
+    });
+    await expect(page.getByText(/Merci du fond du cœur|Thank you from the bottom of our hearts/i)).toBeVisible();
   });
 
   test('shows a recoverable message when the magic-link request is rate limited', async ({ page }) => {

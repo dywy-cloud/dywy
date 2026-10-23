@@ -12,6 +12,9 @@ import cloud.dywy.domain.invitation.entity.InvitationId
 import cloud.dywy.domain.invitation.repository.Invitations
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.sofiaMartinRsvp
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.lucasMartinRsvpDeclined
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvpFixtures.lucasMartinPending
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvpFixtures.sofiaMartinAnswered
+import cloud.dywy.domain.rsvp.repository.GuestRsvps
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -23,24 +26,27 @@ class InvitationRsvpSubmitterTest {
 
     private lateinit var invitations: Invitations
     private lateinit var guestRsvpSubmitter: GuestRsvpSubmitter
+    private lateinit var guestRsvps: GuestRsvps
     private lateinit var invitationRsvpSubmitter: InvitationRsvpSubmitter
 
     @BeforeTest
     fun setUp() {
         invitations = mockk()
         guestRsvpSubmitter = mockk()
-        invitationRsvpSubmitter = InvitationRsvpSubmitter(invitations, guestRsvpSubmitter)
+        guestRsvps = mockk()
+        invitationRsvpSubmitter = InvitationRsvpSubmitter(invitations, guestRsvpSubmitter, guestRsvps)
         every { invitations.findById(martinFamilyInvitation.id) } returns martinFamilyInvitation
+        every { guestRsvps.findInvitationGuestRsvps(martinFamilyInvitation.id) } returns listOf(sofiaMartinAnswered, lucasMartinPending)
     }
 
     @Test
-    fun `should submit the rsvp of every guest of the invitation`() {
+    fun `should submit the rsvp of every guest of the invitation and return every guest of the invitation`() {
         every { guestRsvpSubmitter.submit(sofiaMartinAttending) } returns SubmitGuestRsvpResult.Created(sofiaMartinRsvp)
         every { guestRsvpSubmitter.submit(lucasMartinDeclined) } returns SubmitGuestRsvpResult.Updated(lucasMartinRsvpDeclined)
 
         val result = invitationRsvpSubmitter.submit(martinFamilyInvitation.id, listOf(sofiaMartinAttending, lucasMartinDeclined))
 
-        assertThat(result).isEqualTo(SubmitInvitationRsvpsResult.Submitted(listOf(sofiaMartinRsvp, lucasMartinRsvpDeclined)))
+        assertThat(result).isEqualTo(SubmitInvitationRsvpsResult.Submitted(listOf(sofiaMartinAnswered, lucasMartinPending)))
     }
 
     @Test
@@ -79,4 +85,3 @@ class InvitationRsvpSubmitterTest {
         assertThat(result).isEqualTo(SubmitInvitationRsvpsResult.InvitationNotFound)
     }
 }
-

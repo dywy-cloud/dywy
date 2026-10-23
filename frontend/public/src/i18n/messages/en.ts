@@ -53,5 +53,11 @@ export const en: LocaleMessages = {
   'rsvp.saved': 'Thank you from the bottom of our hearts ❤️',
   'rsvp.loadError': 'Oops, we couldn\'t load your answer. Try again?',
   'rsvp.submitError': 'Oops, we couldn\'t save your answer. Try again?',
+  'groupRsvp.guests': 'Guests',
+  'groupRsvp.of': 'of',
+  'groupRsvp.answered': 'answered',
+  'groupRsvp.complete': 'Answer complete',
+  'groupRsvp.incomplete': 'Answer to complete',
+  'groupRsvp.submit': 'Send everyone\'s answers',
 };
 

@@ -26,7 +26,7 @@ class InvitationRsvpEndpoint(
             payload.toCommands()
                 ?.let { commands ->
                     when (val result = invitationRsvpSubmitter.submit(request.requireGuestSession().invitationId, commands)) {
-                        is SubmitInvitationRsvpsResult.Submitted -> ServerResponse.ok().body(result.rsvps.toInvitationResponse())
+                        is SubmitInvitationRsvpsResult.Submitted -> ServerResponse.ok().body(result.guests.toInvitationResponse())
                         SubmitInvitationRsvpsResult.InvitationNotFound,
                         SubmitInvitationRsvpsResult.GuestNotInInvitation,
                         -> ServerResponse.status(HttpStatus.FORBIDDEN).build()
@@ -36,7 +36,7 @@ class InvitationRsvpEndpoint(
 
     fun fetch(request: ServerRequest): ServerResponse =
         when (val result = invitationRsvpGetter.get(request.requireGuestSession().invitationId)) {
-            is GetInvitationRsvpsResult.Found -> ServerResponse.ok().body(result.rsvps.toInvitationResponse())
+            is GetInvitationRsvpsResult.Found -> ServerResponse.ok().body(result.guests.toInvitationResponse())
             GetInvitationRsvpsResult.InvitationNotFound -> ServerResponse.status(HttpStatus.FORBIDDEN).build()
         }
 }

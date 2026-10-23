@@ -13,8 +13,8 @@ import cloud.dywy.application.rsvp.result.SubmitInvitationRsvpsResult
 import cloud.dywy.domain.guest.entity.GuestFixtures.sofiaMartin
 import cloud.dywy.domain.guest.entity.GuestSession
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.martinFamilyInvitation
-import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.lucasMartinRsvpDeclined
-import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.sofiaMartinRsvp
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvpFixtures.lucasMartinPending
+import cloud.dywy.domain.rsvp.entity.InvitationGuestRsvpFixtures.sofiaMartinAnswered
 import cloud.dywy.infrastructure.guest.security.GuestSessionAuthenticationToken
 import io.mockk.every
 import io.mockk.mockk
@@ -47,7 +47,7 @@ class InvitationRsvpEndpointTest {
     @Test
     fun `should return ok when every rsvp is saved`() {
         every { invitationRsvpSubmitter.submit(martinFamilyInvitation.id, any()) } returns
-            SubmitInvitationRsvpsResult.Submitted(listOf(sofiaMartinRsvp, lucasMartinRsvpDeclined))
+            SubmitInvitationRsvpsResult.Submitted(listOf(sofiaMartinAnswered, lucasMartinPending))
 
         assertThat(invitationRsvpEndpoint.submit(submitRequest(sofiaAndLucas)).statusCode()).isEqualTo(HttpStatus.OK)
     }
@@ -82,7 +82,7 @@ class InvitationRsvpEndpointTest {
     @Test
     fun `should return the rsvps of the session invitation`() {
         every { invitationRsvpGetter.get(martinFamilyInvitation.id) } returns
-            GetInvitationRsvpsResult.Found(listOf(sofiaMartinRsvp))
+            GetInvitationRsvpsResult.Found(listOf(sofiaMartinAnswered))
 
         assertThat(invitationRsvpEndpoint.fetch(authenticatedRequest()).statusCode()).isEqualTo(HttpStatus.OK)
     }
@@ -103,5 +103,3 @@ class InvitationRsvpEndpointTest {
         every { principal() } returns Optional.of(GuestSessionAuthenticationToken.authenticated(session))
     }
 }
-
-
