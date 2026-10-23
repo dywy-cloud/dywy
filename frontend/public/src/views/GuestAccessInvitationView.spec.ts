@@ -20,7 +20,6 @@ const REVEAL_MS = 2000;
 
 const invitation = {
   label: 'Famille Martin',
-  description: 'Bienvenue',
   guestCount: 2,
   guests: [
     { id: 'guest-1', firstName: 'Alice', lastName: 'Martin' },
@@ -159,7 +158,7 @@ describe('GuestAccessInvitationView', () => {
     const wrapper = mountView();
     await vi.advanceTimersByTimeAsync(REVEAL_MS);
 
-    wrapper.findAllComponents(GuestMagicLinkRequest)[0].vm.$emit('requested', { status: 'sent', firstName: 'Alice' });
+    wrapper.findAllComponents(GuestMagicLinkRequest)[0].vm.$emit('requested', { status: 'sent', firstName: 'Alice', mode: 'INDIVIDUAL' });
     await flushPromises();
 
     expect(wrapper.text()).toContain(t('invitation.magicLink.sentTitle'));
@@ -171,12 +170,68 @@ describe('GuestAccessInvitationView', () => {
     expect(wrapper.findAllComponents(GuestMagicLinkRequest)).toHaveLength(2);
   });
 
+  it('hides the answer-for-everyone button for a single-guest invitation', async () => {
+    resolveMock.mockResolvedValue({ ...invitation, guestCount: 1, guests: [invitation.guests[0]] });
+    const wrapper = mountView();
+
+    await vi.advanceTimersByTimeAsync(REVEAL_MS);
+
+    expect(wrapper.text()).not.toContain(t('invitation.group.answerForEveryone'));
+  });
+
+  it('requests magic links in GROUP mode only after answer-for-everyone is used, and can go back', async () => {
+    resolveMock.mockResolvedValue(invitation);
+    const wrapper = mountView();
+    await vi.advanceTimersByTimeAsync(REVEAL_MS);
+    const modes = () => wrapper.findAllComponents(GuestMagicLinkRequest).map((request) => request.props('mode'));
+
+    expect(modes()).toEqual(['INDIVIDUAL', 'INDIVIDUAL']);
+    expect(wrapper.find('.guest-count').exists()).toBe(true);
+
+    await wrapper.findAll('button').find((button) => button.text() === t('invitation.group.answerForEveryone'))!.trigger('click');
+
+    expect(modes()).toEqual(['GROUP', 'GROUP']);
+    expect(wrapper.text()).toContain(t('invitation.group.chooseRecipient'));
+    expect(wrapper.find('.guest-count').exists()).toBe(false);
+
+    await wrapper.findAll('button').find((button) => button.text() === t('invitation.group.backToIndividual'))!.trigger('click');
+
+    expect(modes()).toEqual(['INDIVIDUAL', 'INDIVIDUAL']);
+    expect(wrapper.find('.guest-count').exists()).toBe(true);
+  });
+
+  it('shows the group confirmation after a GROUP request was sent', async () => {
+    resolveMock.mockResolvedValue(invitation);
+    const wrapper = mountView();
+    await vi.advanceTimersByTimeAsync(REVEAL_MS);
+
+    await wrapper.findAll('button').find((button) => button.text() === t('invitation.group.answerForEveryone'))!.trigger('click');
+    wrapper.findAllComponents(GuestMagicLinkRequest)[0].vm.$emit('requested', { status: 'sent', firstName: 'Alice', mode: 'GROUP' });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain(t('invitation.magicLink.sentGroup'));
+  });
+
+  it('shows the confirmation of the mode the request was sent with, even if the mode changed meanwhile', async () => {
+    resolveMock.mockResolvedValue(invitation);
+    const wrapper = mountView();
+    await vi.advanceTimersByTimeAsync(REVEAL_MS);
+
+    await wrapper.findAll('button').find((button) => button.text() === t('invitation.group.answerForEveryone'))!.trigger('click');
+    const request = wrapper.findAllComponents(GuestMagicLinkRequest)[0];
+    await wrapper.findAll('button').find((button) => button.text() === t('invitation.group.backToIndividual'))!.trigger('click');
+    request.vm.$emit('requested', { status: 'sent', firstName: 'Alice', mode: 'GROUP' });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain(t('invitation.magicLink.sentGroup'));
+  });
+
   it('shows the rate-limited message in the confirmation without a sent title', async () => {
     resolveMock.mockResolvedValue(invitation);
     const wrapper = mountView();
     await vi.advanceTimersByTimeAsync(REVEAL_MS);
 
-    wrapper.findAllComponents(GuestMagicLinkRequest)[0].vm.$emit('requested', { status: 'rateLimited', firstName: 'Alice' });
+    wrapper.findAllComponents(GuestMagicLinkRequest)[0].vm.$emit('requested', { status: 'rateLimited', firstName: 'Alice', mode: 'INDIVIDUAL' });
     await flushPromises();
 
     expect(wrapper.text()).toContain(t('invitation.magicLink.rateLimited'));
@@ -188,7 +243,7 @@ describe('GuestAccessInvitationView', () => {
     const wrapper = mountView();
     await vi.advanceTimersByTimeAsync(REVEAL_MS);
 
-    wrapper.findAllComponents(GuestMagicLinkRequest)[0].vm.$emit('requested', { status: 'error', firstName: 'Alice' });
+    wrapper.findAllComponents(GuestMagicLinkRequest)[0].vm.$emit('requested', { status: 'error', firstName: 'Alice', mode: 'INDIVIDUAL' });
     await flushPromises();
 
     expect(wrapper.text()).toContain(t('invitation.magicLink.error'));

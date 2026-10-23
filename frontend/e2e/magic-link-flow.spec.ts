@@ -18,7 +18,6 @@ const CREDENTIALED_CORS = {
 
 const invitationBody = {
   label: 'Famille Martin',
-  description: 'Nous serions ravis de vous compter parmi nous.',
   guestCount: 2,
   guests: [
     { id: 'guest-1', firstName: 'Alice', lastName: 'Martin' },
@@ -74,6 +73,23 @@ test.describe('Magic-link UX flow', () => {
 
     await expect(page.getByText(/Bonjour Alice|Hello Alice/)).toBeVisible({ timeout: UI_TIMEOUT_MS });
     await expect(page.getByText(/célébrer notre amour|celebrate our love/i)).toBeVisible();
+  });
+
+  test('requests the magic link in GROUP mode after choosing to answer for everyone', async ({ page }) => {
+    await mockInvitation(page);
+    await page.route('**/magic-link-requests', async (route) => {
+      await fulfillJson(route, {}, 202, CREDENTIALED_CORS);
+    });
+
+    await page.goto(`${PUBLIC_BASE_URL}/guest-access/${VALID_TOKEN}`);
+    await expect(page.getByRole('button', { name: /Alice Martin/ })).toBeVisible({ timeout: UI_TIMEOUT_MS });
+
+    await page.getByRole('button', { name: /Répondre pour tout le monde|Answer for everyone/ }).click();
+    const requestPromise = page.waitForRequest('**/magic-link-requests');
+    await page.getByRole('button', { name: /Alice Martin/ }).click();
+
+    expect((await requestPromise).postDataJSON()).toEqual({ mode: 'GROUP' });
+    await expect(page.getByText(/répondre pour tout le groupe|answer for the whole party/i)).toBeVisible();
   });
 
   test('shows a recoverable message when the magic-link request is rate limited', async ({ page }) => {

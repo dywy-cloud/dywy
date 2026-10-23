@@ -28,6 +28,17 @@ describe('guestAccessMagicLinkApi', () => {
     expect(options).toMatchObject({ method: 'POST', credentials: 'include' });
     expectCsrfHeader(options);
     expect(result).toEqual({ status: 'accepted' });
+    expect(options.body).toBeUndefined();
+  });
+
+  it('sends the GROUP mode in the request body', async () => {
+    const fetchMock = mockFetchResponse({ ok: true, status: 202 });
+
+    await requestMagicLink('token', 'guest-1', 'GROUP');
+
+    const [, options] = getFirstRequest(fetchMock);
+    expect(options.body).toBe(JSON.stringify({ mode: 'GROUP' }));
+    expect((options.headers as Headers).get('Content-Type')).toBe('application/json');
   });
 
   it('reports a rate-limited result with the Retry-After delay', async () => {

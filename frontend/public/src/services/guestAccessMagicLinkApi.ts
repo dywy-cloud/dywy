@@ -5,6 +5,8 @@ const CSRF_HEADER = 'X-XSRF-TOKEN';
 
 const guestAccessApiBaseUrl = getApiBaseUrl({ includeApiPath: true });
 
+export type MagicLinkMode = 'INDIVIDUAL' | 'GROUP';
+
 export type MagicLinkRequestResult =
   | { status: 'accepted' }
   | { status: 'rateLimited'; retryAfterSeconds: number | null };
@@ -31,12 +33,19 @@ export class GuestAccessMagicLinkApiError extends Error {
 export const requestMagicLink = async (
   invitationToken: string,
   guestId: string,
+  mode: MagicLinkMode = 'INDIVIDUAL',
 ): Promise<MagicLinkRequestResult> => {
   const headers = new Headers({ Accept: 'application/json' });
   const csrfToken = readCookie(CSRF_COOKIE);
 
   if (csrfToken) {
     headers.set(CSRF_HEADER, csrfToken);
+  }
+
+  const body = mode === 'GROUP' ? JSON.stringify({ mode }) : undefined;
+
+  if (body) {
+    headers.set('Content-Type', 'application/json');
   }
 
   const url =
@@ -47,6 +56,7 @@ export const requestMagicLink = async (
     method: 'POST',
     credentials: 'include',
     headers,
+    body,
   });
 
   if (response.status === 429) {
