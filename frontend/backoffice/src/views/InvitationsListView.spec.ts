@@ -413,4 +413,186 @@ describe('InvitationsListView', () => {
       expect(wrapper.get('[data-test="print-stickers-cta"]').attributes('disabled')).toBeUndefined();
     });
   });
+
+  describe('invitation selection', () => {
+    const invitations = [
+      createInvitationResponse({ id: 'inv-1', label: 'Table 1' }),
+      createInvitationResponse({ id: 'inv-2', label: 'Table 2' })
+    ];
+    const everyInvitation = [...invitations, createInvitationResponse({ id: 'inv-3', label: 'Table 3' })];
+    const listedPage = { items: invitations, page: 0, size: 20, totalItems: 3, totalPages: 1 };
+
+    const printWithDefaultColor = async (wrapper: Awaited<ReturnType<typeof mountView>>['wrapper']) => {
+      await wrapper.get('[data-test="print-stickers-cta"]').trigger('click');
+      await wrapper.get('[data-test="print-stickers-confirm"]').trigger('click');
+      await flushPromises();
+    };
+
+    beforeEach(() => {
+      listInvitationsMock.mockResolvedValue(listedPage);
+      listAllInvitationsMock.mockResolvedValue(everyInvitation);
+      buildStickerPdfMock.mockResolvedValue({ save: vi.fn() });
+    });
+
+    it('shows an unchecked checkbox on each card and no selection count', async () => {
+      const { wrapper } = await mountView();
+      const checkboxes = wrapper.findAll('[data-test="invitation-select"]');
+
+      expect(checkboxes).toHaveLength(2);
+      expect(checkboxes.every((checkbox) => !(checkbox.element as HTMLInputElement).checked)).toBe(true);
+      expect(wrapper.find('[data-test="invitation-selection-count"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="clear-invitation-selection"]').exists()).toBe(false);
+      expect(wrapper.get('[data-test="select-all-invitations"]').text()).toBe('Select all (3)');
+    });
+
+    it('keeps the list summary and adds the selection count', async () => {
+      const { wrapper } = await mountView();
+
+      await wrapper.findAll('[data-test="invitation-select"]')[0].setValue(true);
+
+      expect(wrapper.get('[data-test="invitation-list-summary"]').text()).toContain('Showing 2 of 3 invitations');
+      expect(wrapper.get('[data-test="invitation-selection-count"]').text()).toBe('1 selected');
+    });
+
+    it('is available in read-only mode', async () => {
+      resetCapabilities();
+
+      const { wrapper } = await mountView();
+
+      expect(wrapper.findAll('[data-test="invitation-select"]')).toHaveLength(2);
+    });
+
+    it('selects every invitation, including the ones that are not listed', async () => {
+      const { wrapper } = await mountView();
+
+      await wrapper.get('[data-test="select-all-invitations"]').trigger('click');
+
+      expect(wrapper.get('[data-test="invitation-selection-count"]').text()).toBe('All 3 selected');
+      expect(wrapper.find('[data-test="select-all-invitations"]').exists()).toBe(false);
+      expect(wrapper.findAll('[data-test="invitation-select"]').every((checkbox) => (checkbox.element as HTMLInputElement).checked)).toBe(true);
+    });
+
+    it('clears the selection', async () => {
+      const { wrapper } = await mountView();
+
+      await wrapper.get('[data-test="select-all-invitations"]').trigger('click');
+      await wrapper.get('[data-test="clear-invitation-selection"]').trigger('click');
+
+      expect(wrapper.find('[data-test="invitation-selection-count"]').exists()).toBe(false);
+      expect(wrapper.findAll('[data-test="invitation-select"]').some((checkbox) => (checkbox.element as HTMLInputElement).checked)).toBe(false);
+    });
+
+    it('prints every invitation when nothing is selected', async () => {
+      const { wrapper } = await mountView();
+
+      await wrapper.get('[data-test="print-stickers-cta"]').trigger('click');
+
+      expect(wrapper.get('[data-test="print-stickers-scope"]').text()).toBe('All 3 invitations will be printed.');
+
+      await wrapper.get('[data-test="print-stickers-confirm"]').trigger('click');
+      await flushPromises();
+
+      expect(buildStickerPdfMock).toHaveBeenCalledWith(everyInvitation, expect.any(String));
+    });
+
+    it('prints only the selected invitations', async () => {
+      const { wrapper } = await mountView();
+
+      await wrapper.findAll('[data-test="invitation-select"]')[1].setValue(true);
+      await wrapper.get('[data-test="print-stickers-cta"]').trigger('click');
+
+      expect(wrapper.get('[data-test="print-stickers-confirm"]').text()).toBe('Print 1 sticker');
+
+      await wrapper.get('[data-test="print-stickers-confirm"]').trigger('click');
+      await flushPromises();
+
+      expect(buildStickerPdfMock).toHaveBeenCalledWith([invitations[1]], expect.any(String));
+    });
+
+    it('prints the selected invitations in the order they were selected', async () => {
+      const { wrapper } = await mountView();
+      const checkboxes = wrapper.findAll('[data-test="invitation-select"]');
+
+      await checkboxes[1].setValue(true);
+      await checkboxes[0].setValue(true);
+      await printWithDefaultColor(wrapper);
+
+      expect(buildStickerPdfMock).toHaveBeenCalledWith([invitations[1], invitations[0]], expect.any(String));
+    });
+
+    it('prints a re-selected invitation last', async () => {
+      const { wrapper } = await mountView();
+      const checkboxes = wrapper.findAll('[data-test="invitation-select"]');
+
+      await checkboxes[0].setValue(true);
+      await checkboxes[1].setValue(true);
+      await checkboxes[0].setValue(false);
+      await checkboxes[0].setValue(true);
+      await printWithDefaultColor(wrapper);
+
+      expect(buildStickerPdfMock).toHaveBeenCalledWith([invitations[1], invitations[0]], expect.any(String));
+    });
+
+    it('does not fall back to printing everything when select all is followed by deselecting every invitation', async () => {
+      const onePage = { ...listedPage, totalItems: 2 };
+      listInvitationsMock.mockResolvedValue(onePage);
+
+      const { wrapper } = await mountView();
+
+      await wrapper.get('[data-test="select-all-invitations"]').trigger('click');
+      for (const checkbox of wrapper.findAll('[data-test="invitation-select"]')) {
+        await checkbox.setValue(false);
+      }
+
+      expect(wrapper.get('[data-test="invitation-selection-count"]').text()).toBe('0 selected');
+      expect(wrapper.get('[data-test="print-stickers-cta"]').attributes('disabled')).toBeDefined();
+
+      await wrapper.get('[data-test="print-stickers-cta"]').trigger('click');
+
+      expect(wrapper.find('[data-test="print-stickers-confirm"]').exists()).toBe(false);
+      expect(listAllInvitationsMock).not.toHaveBeenCalled();
+      expect(buildStickerPdfMock).not.toHaveBeenCalled();
+
+      await wrapper.get('[data-test="select-all-invitations"]').trigger('click');
+
+      expect(wrapper.get('[data-test="print-stickers-cta"]').attributes('disabled')).toBeUndefined();
+    });
+
+    it('locks the selection controls while the stickers are generated', async () => {
+      let resolveInvitations: (value: unknown) => void = () => undefined;
+      listAllInvitationsMock.mockReturnValue(new Promise((resolve) => {
+        resolveInvitations = resolve;
+      }));
+
+      const { wrapper } = await mountView();
+
+      await wrapper.findAll('[data-test="invitation-select"]')[0].setValue(true);
+      await printWithDefaultColor(wrapper);
+
+      const isDisabled = (selector: string) => wrapper.get(selector).attributes('disabled') !== undefined;
+
+      expect(wrapper.findAll('[data-test="invitation-select"]').every((checkbox) => checkbox.attributes('disabled') !== undefined)).toBe(true);
+      expect(isDisabled('[data-test="select-all-invitations"]')).toBe(true);
+      expect(isDisabled('[data-test="clear-invitation-selection"]')).toBe(true);
+
+      resolveInvitations(everyInvitation);
+      await flushPromises();
+
+      expect(buildStickerPdfMock).toHaveBeenCalledWith([invitations[0]], expect.any(String));
+      expect(wrapper.findAll('[data-test="invitation-select"]').some((checkbox) => checkbox.attributes('disabled') !== undefined)).toBe(false);
+    });
+
+    it('prints every invitation except the deselected ones after select all', async () => {
+      const { wrapper } = await mountView();
+
+      await wrapper.get('[data-test="select-all-invitations"]').trigger('click');
+      await wrapper.findAll('[data-test="invitation-select"]')[0].setValue(false);
+
+      expect(wrapper.get('[data-test="invitation-selection-count"]').text()).toBe('2 selected');
+
+      await printWithDefaultColor(wrapper);
+
+      expect(buildStickerPdfMock).toHaveBeenCalledWith([invitations[1], everyInvitation[2]], expect.any(String));
+    });
+  });
 });

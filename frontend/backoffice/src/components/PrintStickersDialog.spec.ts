@@ -11,8 +11,9 @@ const QrcodeCanvasStub = defineComponent({
   setup: (props) => () => h('canvas', { 'data-foreground': props.foreground })
 });
 
-const mountDialog = () =>
+const mountDialog = (props: { count?: number; isSelection?: boolean } = {}) =>
   mount(PrintStickersDialog, {
+    props: { count: 42, isSelection: false, ...props },
     global: { stubs: { QrcodeCanvas: QrcodeCanvasStub, teleport: true } }
   });
 
@@ -20,6 +21,33 @@ const previewColor = (wrapper: ReturnType<typeof mountDialog>) =>
   wrapper.get('[data-test="sticker-preview-qr"]').attributes('data-foreground');
 
 describe('PrintStickersDialog', () => {
+  it('announces that every invitation will be printed when nothing is selected', () => {
+    const wrapper = mountDialog({ count: 42, isSelection: false });
+
+    expect(wrapper.get('[data-test="print-stickers-scope"]').text()).toBe('All 42 invitations will be printed.');
+    expect(wrapper.get('[data-test="print-stickers-confirm"]').text()).toBe('Print 42 stickers');
+  });
+
+  it('announces the selected invitations that will be printed', () => {
+    const wrapper = mountDialog({ count: 3, isSelection: true });
+
+    expect(wrapper.get('[data-test="print-stickers-scope"]').text()).toBe('3 selected invitations will be printed.');
+    expect(wrapper.get('[data-test="print-stickers-confirm"]').text()).toBe('Print 3 stickers');
+  });
+
+  it('disables Print when no invitation is selected', () => {
+    const wrapper = mountDialog({ count: 0, isSelection: true });
+
+    expect(wrapper.get('[data-test="print-stickers-confirm"]').attributes('disabled')).toBeDefined();
+  });
+
+  it('uses the singular form for a single invitation', () => {
+    const wrapper = mountDialog({ count: 1, isSelection: true });
+
+    expect(wrapper.get('[data-test="print-stickers-scope"]').text()).toBe('1 selected invitation will be printed.');
+    expect(wrapper.get('[data-test="print-stickers-confirm"]').text()).toBe('Print 1 sticker');
+  });
+
   it('selects the default color', () => {
     const wrapper = mountDialog();
 

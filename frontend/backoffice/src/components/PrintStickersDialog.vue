@@ -1,5 +1,6 @@
 <template>
   <BaseDialog title="Print stickers" @cancel="emit('cancel')">
+    <p class="mt-2 text-sm font-medium" data-test="print-stickers-scope">{{ scopeLabel }}</p>
     <p class="mt-2 text-sm text-text/80">Choose the color of the QR codes and labels.</p>
 
     <div class="mt-4 flex flex-wrap items-center gap-2" data-test="color-swatches">
@@ -39,8 +40,8 @@
 
     <template #actions>
       <BaseButton data-test="print-stickers-cancel" type="button" variant="solid" @click="emit('cancel')">Cancel</BaseButton>
-      <BaseButton :disabled="!scannable" data-test="print-stickers-confirm" type="button" @click="emit('print', color)">
-        Print
+      <BaseButton :disabled="!scannable || count === 0" data-test="print-stickers-confirm" type="button" @click="emit('print', color)">
+        {{ confirmLabel }}
       </BaseButton>
     </template>
   </BaseDialog>
@@ -58,6 +59,11 @@ const COLOR_SWATCHES = [DEFAULT_QR_COLOR, '#000000', '#1e3a8a', '#166534', '#7f1
 const PREVIEW_QR_VALUE = 'https://dywy.cloud';
 const PREVIEW_QR_SIZE = 120;
 
+const props = defineProps<{
+  count: number;
+  isSelection: boolean;
+}>();
+
 const emit = defineEmits<{
   print: [color: string];
   cancel: [];
@@ -65,5 +71,10 @@ const emit = defineEmits<{
 
 const color = ref(DEFAULT_QR_COLOR);
 const scannable = computed(() => isScannableOnWhite(color.value));
+const invitationNoun = computed(() => props.count === 1 ? 'invitation' : 'invitations');
+const scopeLabel = computed(() => props.isSelection
+  ? `${props.count} selected ${invitationNoun.value} will be printed.`
+  : `All ${props.count} ${invitationNoun.value} will be printed.`);
+const confirmLabel = computed(() => `Print ${props.count} ${props.count === 1 ? 'sticker' : 'stickers'}`);
 </script>
 
