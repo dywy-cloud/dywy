@@ -51,6 +51,7 @@ export const en: LocaleMessages = {
   'rsvp.submit': 'Send my answer',
   'rsvp.submitting': 'Sending…',
   'rsvp.saved': 'Thank you from the bottom of our hearts ❤️',
+  'rsvp.weddingWebsite': 'Discover everything we\'ve prepared for you',
   'rsvp.loadError': 'Oops, we couldn\'t load your answer. Try again?',
   'rsvp.submitError': 'Oops, we couldn\'t save your answer. Try again?',
   'groupRsvp.guests': 'Guests',

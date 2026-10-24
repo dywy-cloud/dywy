@@ -29,9 +29,18 @@
           {{ submitState === 'submitting' ? t('rsvp.submitting') : submitLabel }}
         </button>
 
-        <p v-if="submitState === 'success'" class="mt-2 text-sm font-semibold text-text" role="status">
-          {{ t('rsvp.saved') }}
-        </p>
+        <div v-if="submitState === 'success'" class="mt-2 text-center text-sm text-text" role="status">
+          <p class="font-semibold">{{ t('rsvp.saved') }}</p>
+          <a
+            class="mt-1 inline-block font-semibold underline hover:opacity-80"
+            data-test="wedding-website-link"
+            :href="WEDDING_WEBSITE_URL"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ t('rsvp.weddingWebsite') }}
+          </a>
+        </div>
         <p v-else-if="submitState === 'error'" class="mt-2 text-sm text-red-600" role="alert">
           {{ t('rsvp.submitError') }}
         </p>
@@ -48,5 +57,7 @@ defineProps<{ loadState: LoadState; submitState: SubmitState; canSubmit: boolean
 const emit = defineEmits<{ retry: []; submit: [] }>();
 
 const { t } = useGuestAccessI18n();
+
+const WEDDING_WEBSITE_URL = 'https://thecla-gregory.dywy.cloud';
 </script>
 
