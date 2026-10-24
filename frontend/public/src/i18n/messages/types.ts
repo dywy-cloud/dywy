@@ -51,6 +51,7 @@ export type TranslationKey =
   | 'rsvp.submit'
   | 'rsvp.submitting'
   | 'rsvp.saved'
+  | 'rsvp.weddingWebsite'
   | 'rsvp.loadError'
   | 'rsvp.submitError'
   | 'groupRsvp.guests'

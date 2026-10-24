@@ -175,6 +175,9 @@ describe('GuestGroupRsvpForm', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain(t('rsvp.saved'));
+    expect(wrapper.find('[data-test="wedding-website-link"]').attributes('href')).toBe(
+      'https://thecla-gregory.dywy.cloud',
+    );
   });
 
   it('keeps the submit disabled while nothing changed across all the guests', async () => {
