@@ -2,6 +2,7 @@ package cloud.dywy.application.invitation
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
 import io.mockk.every
 import io.mockk.mockk
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
@@ -44,13 +45,16 @@ class InvitationListerTest {
         val expectedPage = InvitationPage(
             items = emptyList(),
             page = 0,
-            size = 20,
+            size = 10,
             totalItems = 0,
             totalPages = 0,
         )
 
         every { invitations.list(defaultCriteria) } returns expectedPage
 
+        assertThat(defaultCriteria.page).isEqualTo(0)
+        assertThat(defaultCriteria.size).isEqualTo(10)
+        assertThat(defaultCriteria.label).isNull()
         assertThat(invitationLister.list(defaultCriteria)).isEqualTo(expectedPage)
     }
 }

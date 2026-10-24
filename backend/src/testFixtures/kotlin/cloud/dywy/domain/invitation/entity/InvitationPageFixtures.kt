@@ -7,7 +7,7 @@ object InvitationPageFixtures {
     val firstPage = InvitationPage(
         items = listOf(brideFamilyInvitation, friendsInvitation),
         page = 0,
-        size = 20,
+        size = 10,
         totalItems = 2,
         totalPages = 1,
     )

@@ -37,8 +37,9 @@ class InvitationEndpoint(
 ) {
     fun listInvitations(request: ServerRequest): ServerResponse =
         request.intQueryParam("page", default = 0)?.takeIf { it >= 0 }?.let { page ->
-            request.intQueryParam("size", default = 20)?.takeIf { it > 0 }?.let { size ->
-                invitationLister.list(InvitationListCriteria(page = page, size = size)).let { invitationPage ->
+            request.intQueryParam("size", default = InvitationListCriteria.DEFAULT_SIZE)?.takeIf { it > 0 }?.let { size ->
+                val label = request.param("label").orElse(null)?.trim()?.takeIf { it.isNotEmpty() }
+                invitationLister.list(InvitationListCriteria(page = page, size = size, label = label)).let { invitationPage ->
                     ServerResponse.ok()
                         .body(invitationPage.toResponse(invitationRsvpLoader.load(invitationPage.items)))
                 }

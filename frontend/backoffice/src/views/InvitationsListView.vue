@@ -45,6 +45,18 @@
       @print="printStickers"
     />
 
+    <div v-if="showFilter" class="mb-4">
+      <label class="sr-only" for="invitation-label-filter">Filter invitations by label</label>
+      <input
+        id="invitation-label-filter"
+        v-model="filterText"
+        class="w-full rounded-md border border-secondary/40 bg-white px-3 py-2 text-sm text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        data-test="invitation-label-filter"
+        placeholder="Filter by label"
+        type="search"
+      />
+    </div>
+
     <p v-if="isLoading" class="py-8 text-center text-sm" aria-live="polite">Loading invitations...</p>
 
     <div v-else-if="errorMessage" class="space-y-3 py-8 text-center">
@@ -57,6 +69,14 @@
         Try again
       </button>
     </div>
+
+    <p
+      v-else-if="invitationPage.items.length === 0 && trimmedFilter"
+      class="py-8 text-center text-sm text-text/80"
+      data-test="empty-no-match"
+    >
+      No invitations match "{{ trimmedFilter }}".
+    </p>
 
     <div
       v-else-if="invitationPage.items.length === 0 && guestTotalItems === 0"
@@ -185,12 +205,36 @@
         </div>
       </article>
       </div>
+
+      <div v-if="hasMore" ref="sentinel" class="py-6 text-center" data-test="invitation-load-more-sentinel">
+        <p v-if="isLoadingMore" class="text-sm" aria-live="polite">Loading more invitations...</p>
+        <div v-else-if="loadMoreErrorMessage" class="space-y-2">
+          <p class="text-sm text-red-700" role="alert">{{ loadMoreErrorMessage }}</p>
+          <button
+            class="rounded-md bg-accent-gradient px-4 py-2 text-white shadow transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            data-test="invitation-load-more-retry"
+            type="button"
+            @click="loadMore"
+          >
+            Try again
+          </button>
+        </div>
+        <button
+          v-else
+          class="rounded-md border border-secondary/40 bg-white px-4 py-2 text-sm text-text transition hover:bg-background/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          data-test="invitation-load-more"
+          type="button"
+          @click="loadMore"
+        >
+          Load more
+        </button>
+      </div>
     </template>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import InvitationQrCodePanel from '../components/InvitationQrCodePanel.vue';
 import PrintStickersDialog from '../components/PrintStickersDialog.vue';
 import RsvpStatusBadge from '../components/RsvpStatusBadge.vue';
@@ -206,23 +250,35 @@ import { listAllInvitations, listInvitations, type InvitationPageResponse, type 
 import { formatDeliveryMethod } from '../services/deliveryMethod';
 
 const STICKERS_FILENAME = 'invitation-stickers.pdf';
+const PAGE_SIZE = 10;
+const FILTER_DEBOUNCE_MS = 300;
 
 const invitationPage = ref<InvitationPageResponse>({
   items: [],
   page: 0,
-  size: 20,
+  size: PAGE_SIZE,
   totalItems: 0,
   totalPages: 0
 });
 const guestTotalItems = ref(0);
 const isLoading = ref(false);
+const isLoadingMore = ref(false);
 const errorMessage = ref('');
+const loadMoreErrorMessage = ref('');
+const filterText = ref('');
+const sentinel = ref<HTMLElement | null>(null);
 const isPrintDialogOpen = ref(false);
 const isPrinting = ref(false);
 const printErrorMessage = ref('');
 const allSelected = ref(false);
 const selectedIds = ref<Set<string>>(new Set());
 const excludedIds = ref<Set<string>>(new Set());
+
+let latestRequestId = 0;
+
+const trimmedFilter = computed(() => filterText.value.trim());
+const hasMore = computed(() => invitationPage.value.page + 1 < invitationPage.value.totalPages);
+const showFilter = computed(() => trimmedFilter.value !== '' || invitationPage.value.totalItems > 0);
 
 const selectedCount = computed(() => allSelected.value
   ? invitationPage.value.totalItems - excludedIds.value.size
@@ -282,27 +338,123 @@ const snapshotPrintSelection = () => {
 };
 
 const loadData = async () => {
+  const requestId = ++latestRequestId;
+  const label = trimmedFilter.value;
+
   isLoading.value = true;
+  isLoadingMore.value = false;
   errorMessage.value = '';
+  loadMoreErrorMessage.value = '';
 
   try {
-    const invitations = await listInvitations({ page: 0, size: 20 });
+    const invitations = await listInvitations({ page: 0, size: PAGE_SIZE, label });
+
+    if (requestId !== latestRequestId) {
+      return;
+    }
 
     invitationPage.value = invitations;
 
-    if (invitations.items.length === 0) {
+    if (invitations.items.length === 0 && !label) {
       const guests = await listGuests({ page: 0, size: 1, status: 'active' });
 
       guestTotalItems.value = guests.totalItems;
     }
   } catch (error: unknown) {
+    if (requestId !== latestRequestId) {
+      return;
+    }
+
     errorMessage.value = error instanceof Error
       ? error.message
       : 'Unexpected error while loading invitations.';
   } finally {
-    isLoading.value = false;
+    if (requestId === latestRequestId) {
+      isLoading.value = false;
+    }
   }
 };
+
+const loadMore = async () => {
+  if (isLoading.value || isLoadingMore.value || !hasMore.value) {
+    return;
+  }
+
+  const requestId = latestRequestId;
+
+  isLoadingMore.value = true;
+  loadMoreErrorMessage.value = '';
+
+  try {
+    const nextPage = await listInvitations({
+      page: invitationPage.value.page + 1,
+      size: PAGE_SIZE,
+      label: trimmedFilter.value
+    });
+
+    if (requestId !== latestRequestId) {
+      return;
+    }
+
+    const knownIds = new Set(invitationPage.value.items.map((invitation) => invitation.id));
+
+    invitationPage.value = {
+      ...nextPage,
+      items: [
+        ...invitationPage.value.items,
+        ...nextPage.items.filter((invitation) => !knownIds.has(invitation.id))
+      ]
+    };
+  } catch (error: unknown) {
+    if (requestId === latestRequestId) {
+      loadMoreErrorMessage.value = error instanceof Error
+        ? error.message
+        : 'Unexpected error while loading more invitations.';
+    }
+  } finally {
+    if (requestId === latestRequestId) {
+      isLoadingMore.value = false;
+      void nextTick(observeSentinel);
+    }
+  }
+};
+
+let observer: IntersectionObserver | null = null;
+
+const observeSentinel = () => {
+  observer?.disconnect();
+
+  if (observer && sentinel.value && !loadMoreErrorMessage.value) {
+    observer.observe(sentinel.value);
+  }
+};
+
+watch(sentinel, () => {
+  if (!observer && typeof IntersectionObserver !== 'undefined') {
+    observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        void loadMore();
+      }
+    }, { rootMargin: '200px' });
+  }
+
+  observeSentinel();
+});
+
+let filterTimer: ReturnType<typeof setTimeout> | undefined;
+
+watch(trimmedFilter, () => {
+  clearTimeout(filterTimer);
+  filterTimer = setTimeout(() => {
+    clearSelection();
+    void loadData();
+  }, FILTER_DEBOUNCE_MS);
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(filterTimer);
+  observer?.disconnect();
+});
 
 const printStickers = async (color: string) => {
   isPrintDialogOpen.value = false;
@@ -312,12 +464,13 @@ const printStickers = async (color: string) => {
   }
 
   const selectInvitationsToPrint = snapshotPrintSelection();
+  const printLabel = trimmedFilter.value || undefined;
 
   isPrinting.value = true;
   printErrorMessage.value = '';
 
   try {
-    const invitations = await listAllInvitations();
+    const invitations = await listAllInvitations({ label: printLabel });
     const invitationsToPrint = selectInvitationsToPrint(invitations);
     const { buildStickerPdf } = await import('../services/stickerPdf');
     const pdf = await buildStickerPdf(invitationsToPrint, color);

@@ -78,6 +78,19 @@ describe('invitationApi', () => {
     await expect(listInvitations()).rejects.toThrow('Unable to retrieve invitations at the moment.');
   });
 
+  it('sends the trimmed label filter and defaults to a page size of 10', async () => {
+    const fetchMock = mockFetchResponse({
+      ok: true,
+      body: { items: [], page: 0, size: 10, totalItems: 0, totalPages: 0 }
+    });
+
+    await listInvitations({ label: '  Family ' });
+
+    const [url] = getFirstRequest(fetchMock);
+
+    expect(url).toBe(`${backofficeApiBaseUrl}/invitations?page=0&size=10&label=Family`);
+  });
+
   it('calls backend invitation details endpoint with csrf header', async () => {
     setCsrfCookie();
 
@@ -257,7 +270,7 @@ describe('invitationApi', () => {
       const invitations = await listAllInvitations();
 
       expect(invitations.map((invitation) => invitation.id)).toEqual(['inv-1', 'inv-2', 'inv-3', 'inv-4', 'inv-5']);
-      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([0, 1, 2].map((page) => `${backofficeApiBaseUrl}/invitations?page=${page}&size=20`));
+      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([0, 1, 2].map((page) => `${backofficeApiBaseUrl}/invitations?page=${page}&size=100`));
     });
 
     it('rejects with the error of a later page', async () => {

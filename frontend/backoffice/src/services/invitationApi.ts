@@ -116,7 +116,7 @@ export const getInvitationById = async (id: string): Promise<InvitationResponse>
 const invitationApiBaseUrl = getApiBaseUrl({ includeApiPath: true });
 
 export const listInvitations = async (
-  { page = 0, size = 20 }: { page?: number; size?: number } = {}
+  { page = 0, size = 10, label }: { page?: number; size?: number; label?: string } = {}
 ): Promise<InvitationPageResponse> => {
   const csrfToken = readCookie('XSRF-TOKEN');
   const headers = new Headers();
@@ -129,6 +129,10 @@ export const listInvitations = async (
     page: String(page),
     size: String(size)
   });
+
+  if (label?.trim()) {
+    queryParams.set('label', label.trim());
+  }
 
   const response = await fetch(`${invitationApiBaseUrl}/invitations?${queryParams}`, {
     method: 'GET',
@@ -145,13 +149,17 @@ export const listInvitations = async (
   return normalizeInvitationPage(invitationPage);
 };
 
-export const listAllInvitations = async (): Promise<InvitationResponse[]> => {
+const ALL_INVITATIONS_PAGE_SIZE = 100;
+
+export const listAllInvitations = async (
+  { label }: { label?: string } = {}
+): Promise<InvitationResponse[]> => {
   const invitations: InvitationResponse[] = [];
   let page = 0;
   let totalPages = 1;
 
   while (page < totalPages) {
-    const invitationPage = await listInvitations({ page });
+    const invitationPage = await listInvitations({ page, size: ALL_INVITATIONS_PAGE_SIZE, label });
     invitations.push(...invitationPage.items);
     totalPages = invitationPage.totalPages;
     page += 1;

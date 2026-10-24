@@ -216,17 +216,37 @@ class InvitationEndpointTest {
         val invitationPage = InvitationPage(
             items = listOf(brideFamilyInvitation, friendsInvitation),
             page = 0,
-            size = 20,
+            size = 10,
             totalItems = 2,
             totalPages = 1,
         )
 
         every { request.param("page") } returns Optional.empty()
         every { request.param("size") } returns Optional.empty()
-        every { invitationLister.list(InvitationListCriteria(page = 0, size = 20)) } returns invitationPage
+        every { request.param("label") } returns Optional.empty()
+        every { invitationLister.list(InvitationListCriteria(page = 0, size = 10)) } returns invitationPage
 
         assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.OK)
         verify(exactly = 1) { invitationRsvpLoader.load(invitationPage.items) }
+    }
+
+    @Test
+    fun `should list invitations filtered by trimmed label`() {
+        val request = mockk<ServerRequest>()
+        val invitationPage = InvitationPage(
+            items = listOf(brideFamilyInvitation),
+            page = 0,
+            size = 10,
+            totalItems = 1,
+            totalPages = 1,
+        )
+
+        every { request.param("page") } returns Optional.empty()
+        every { request.param("size") } returns Optional.empty()
+        every { request.param("label") } returns Optional.of("  family ")
+        every { invitationLister.list(InvitationListCriteria(page = 0, size = 10, label = "family")) } returns invitationPage
+
+        assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.OK)
     }
 
     @Test
