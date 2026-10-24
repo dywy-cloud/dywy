@@ -39,7 +39,7 @@ test.describe('Print stickers', () => {
 
     await page.goto('/invitations');
 
-    await expect(page.locator('[data-test="invitation-card"]')).toHaveCount(2, { timeout: UI_TIMEOUT_MS });
+    await expect(page.locator('[data-test="invitation-card"]')).toHaveCount(4, { timeout: UI_TIMEOUT_MS });
 
     requestedPages.length = 0;
 
@@ -71,7 +71,7 @@ test.describe('Print stickers', () => {
 
     await page.goto('/invitations');
 
-    await expect(page.locator('[data-test="invitation-card"]')).toHaveCount(2, { timeout: UI_TIMEOUT_MS });
+    await expect(page.locator('[data-test="invitation-card"]')).toHaveCount(4, { timeout: UI_TIMEOUT_MS });
 
     await page.locator('[data-test="print-stickers-cta"]').click();
     await expect(page.locator('[data-test="print-stickers-scope"]')).toHaveText('All 4 invitations will be printed.');

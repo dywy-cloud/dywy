@@ -63,11 +63,11 @@ class InvitationsExposedRepository(
 
     @Transactional(readOnly = true)
     override fun list(criteria: InvitationListCriteria): InvitationPage {
-        val totalItems = InvitationTable.selectAll().count()
+        val totalItems = filteredByLabel(criteria.label).count()
         val totalPages = if (totalItems == 0L) 0 else ((totalItems - 1) / criteria.size + 1).toInt()
         val offset = criteria.page.toLong() * criteria.size
 
-        val items = InvitationTable.selectAll()
+        val items = filteredByLabel(criteria.label)
             .orderBy(*listOrder)
             .limit(criteria.size)
             .offset(offset)
@@ -103,6 +103,11 @@ class InvitationsExposedRepository(
             .toList()
             .toInvitations()
             .firstOrNull()
+
+    private fun filteredByLabel(label: String?) =
+        InvitationTable.selectAll().let { query ->
+            if (label == null) query else query.where { labelContains(label) }
+        }
 
     private fun List<ResultRow>.toInvitations(): List<Invitation> {
         val rows = map { row -> row to row.data() }

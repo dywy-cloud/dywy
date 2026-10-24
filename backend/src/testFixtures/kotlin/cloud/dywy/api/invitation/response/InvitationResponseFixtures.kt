@@ -78,7 +78,7 @@ object InvitationResponseFixtures {
     val firstPage = InvitationPageResponse(
         items = listOf(brideFamily, friends),
         page = 0,
-        size = 20,
+        size = 10,
         totalItems = 2,
         totalPages = 1,
     )

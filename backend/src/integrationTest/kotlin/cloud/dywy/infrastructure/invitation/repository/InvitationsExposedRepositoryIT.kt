@@ -218,6 +218,18 @@ class InvitationsExposedRepositoryIT : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should filter invitations by label ignoring case and wildcards`() {
+        val label = bestManInvitation.label.take(4).uppercase()
+
+        val page = invitationsRepository.list(InvitationListCriteria(label = label))
+
+        assertThat(page.items.map { it.id }.contains(bestManInvitation.id)).isEqualTo(true)
+        assertThat(page.items.all { it.label.contains(label, ignoreCase = true) }).isEqualTo(true)
+        assertThat(page.totalItems).isEqualTo(page.items.size.toLong())
+        assertThat(invitationsRepository.list(InvitationListCriteria(label = "%")).items.size).isEqualTo(0)
+    }
+
+    @Test
     fun `should find assigned guest ids in batch`() {
         val unassignedGuestId = GuestId.fromString("019fa9fa-b235-75f8-a499-2c8ce31e1e6c")
 

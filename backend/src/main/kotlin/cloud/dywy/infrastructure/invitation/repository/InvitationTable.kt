@@ -29,6 +29,15 @@ internal fun accessTokenEquals(token: String): Op<Boolean> = object : Op<Boolean
     }
 }
 
+internal fun labelContains(text: String): Op<Boolean> = object : Op<Boolean>() {
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
+        val escaped = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        queryBuilder.append(InvitationTable.invitationData)
+        queryBuilder.append(" ->> 'label' ILIKE ")
+        queryBuilder.registerArgument(TextColumnType(), "%$escaped%")
+    }
+}
+
 internal fun guestIdsOverlap(guestIds: Collection<String>): Op<Boolean> = object : Op<Boolean>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) {
         queryBuilder.append("jsonb_exists_any(")

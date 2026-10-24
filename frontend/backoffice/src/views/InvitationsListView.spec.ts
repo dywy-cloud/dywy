@@ -595,4 +595,68 @@ describe('InvitationsListView', () => {
       expect(buildStickerPdfMock).toHaveBeenCalledWith([invitations[1], everyInvitation[2]], expect.any(String));
     });
   });
+
+  describe('paging and filtering', () => {
+    const page = (ids: string[], pageIndex: number, totalPages: number, totalItems: number) => ({
+      items: ids.map((id) => createInvitationResponse({ id, label: `Label ${id}` })),
+      page: pageIndex,
+      size: 10,
+      totalItems,
+      totalPages
+    });
+
+    it('requests pages of 10 invitations and appends the next page on demand', async () => {
+      listInvitationsMock
+        .mockResolvedValueOnce(page(['inv-1', 'inv-2'], 0, 2, 3))
+        .mockResolvedValueOnce(page(['inv-3'], 1, 2, 3));
+
+      const { wrapper } = await mountView();
+
+      expect(listInvitationsMock).toHaveBeenCalledWith({ page: 0, size: 10, label: '' });
+      expect(wrapper.findAll('[data-test="invitation-card"]')).toHaveLength(2);
+
+      await wrapper.get('[data-test="invitation-load-more"]').trigger('click');
+      await flushPromises();
+
+      expect(listInvitationsMock).toHaveBeenLastCalledWith({ page: 1, size: 10, label: '' });
+      expect(wrapper.findAll('[data-test="invitation-card"]')).toHaveLength(3);
+      expect(wrapper.find('[data-test="invitation-load-more-sentinel"]').exists()).toBe(false);
+    });
+
+    it('reloads the first page with the label filter after a debounce', async () => {
+      vi.useFakeTimers();
+
+      try {
+        listInvitationsMock.mockResolvedValue(page(['inv-1'], 0, 1, 1));
+        const { wrapper } = await mountView();
+
+        await wrapper.get('[data-test="invitation-label-filter"]').setValue('  fam ');
+        await vi.advanceTimersByTimeAsync(400);
+        await flushPromises();
+
+        expect(listInvitationsMock).toHaveBeenLastCalledWith({ page: 0, size: 10, label: 'fam' });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('shows a dedicated message when no invitation matches the filter', async () => {
+      vi.useFakeTimers();
+
+      try {
+        listInvitationsMock.mockResolvedValueOnce(page(['inv-1'], 0, 1, 1));
+        const { wrapper } = await mountView();
+
+        listInvitationsMock.mockResolvedValueOnce(page([], 0, 0, 0));
+        await wrapper.get('[data-test="invitation-label-filter"]').setValue('zzz');
+        await vi.advanceTimersByTimeAsync(400);
+        await flushPromises();
+
+        expect(wrapper.get('[data-test="empty-no-match"]').text()).toContain('zzz');
+        expect(wrapper.find('[data-test="invitation-label-filter"]').exists()).toBe(true);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
 });
