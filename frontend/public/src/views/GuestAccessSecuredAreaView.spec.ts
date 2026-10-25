@@ -75,6 +75,19 @@ describe('GuestAccessSecuredAreaView', () => {
     expect(wrapper.text()).toContain(`${t('securedArea.greeting')} Alice`);
   });
 
+  it('shows the wedding website link to the verified guest before any answer', async () => {
+    fetchGuestSessionMock.mockResolvedValue(verifiedSession);
+    const wrapper = mountView();
+
+    await flushPromises();
+
+    const link = wrapper.find('[data-test="wedding-website-link"]');
+    expect(link.attributes('href')).toBe('https://thecla-gregory.dywy.cloud');
+    expect(link.attributes('target')).toBe('_blank');
+    expect(link.attributes('rel')).toContain('noopener');
+    expect(link.text()).toContain(t('rsvp.weddingWebsite'));
+  });
+
   it('shows the individual form by default', async () => {
     fetchGuestSessionMock.mockResolvedValue(verifiedSession);
     const wrapper = mountView();
@@ -103,7 +116,7 @@ describe('GuestAccessSecuredAreaView', () => {
 
     await flushPromises();
 
-    expect(wrapper.find('a').exists()).toBe(false);
+    expect(wrapper.findAll('a:not([data-test="wedding-website-link"])')).toHaveLength(0);
   });
 
   it('applies the guest language to the active locale', async () => {
@@ -184,6 +197,4 @@ describe('GuestAccessSecuredAreaView', () => {
     expect(wrapper.text()).toContain(`${t('securedArea.greeting')} Alice`);
   });
 });
-
-
 

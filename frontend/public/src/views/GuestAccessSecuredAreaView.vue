@@ -17,6 +17,15 @@
           <p v-if="session" class="text-base font-semibold text-text">
             {{ t('securedArea.greeting') }} {{ session.firstName }}
           </p>
+          <a
+            class="rsvp-form rsvp-submit mt-5 mb-3 block w-full rounded-xl bg-accent/10 text-center font-semibold text-text ring-2 ring-inset ring-accent transition hover:bg-accent/20"
+            data-test="wedding-website-link"
+            :href="WEDDING_WEBSITE_URL"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ t('rsvp.weddingWebsite') }} →
+          </a>
           <GuestGroupRsvpForm v-if="groupMode" class="flex min-h-0 flex-1 flex-col" />
           <GuestRsvpForm v-else class="flex min-h-0 flex-1 flex-col" />
         </section>
@@ -57,6 +66,8 @@ import GuestRsvpForm from '../components/GuestRsvpForm.vue';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 import { fetchGuestSession, type GuestLanguage, type GuestSessionResponse } from '../services/guestAccessSecuredApi';
 import { useGuestAccessI18n, type GuestAccessLocale } from '../i18n/guestAccessI18n';
+
+const WEDDING_WEBSITE_URL = 'https://thecla-gregory.dywy.cloud';
 
 type SessionState = 'loading' | 'verified' | 'unverified' | 'error';
 
