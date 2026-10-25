@@ -1,6 +1,7 @@
 package cloud.dywy.domain.invitation.entity
 
 import cloud.dywy.domain.guest.entity.Guest
+import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.shared.Dates
 import java.time.LocalDateTime
 
@@ -16,6 +17,8 @@ data class Invitation(
     val guests: Set<Guest>,
     val accessToken: InvitationAccessToken = InvitationAccessToken.generate(),
 ) {
+    val guestIds: Set<GuestId> get() = guests.map { it.id }.toSet()
+
     init {
         require(guests.isNotEmpty()) { "An invitation must include at least one guest." }
         require(!(deliveryMethod == DeliveryMethod.POSTED && postalAddress == null)) {
