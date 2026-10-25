@@ -2,12 +2,12 @@ package cloud.dywy.domain.dashboard.entity
 
 import cloud.dywy.domain.guest.entity.GuestFixtures.emmaWilson
 import cloud.dywy.domain.invitation.entity.DeliveryMethod
-import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
+import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.janeDoeRsvpWithSameSyncedChoicesAsJohnDoe
-import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvpWithChoices
 import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvp
+import cloud.dywy.domain.rsvp.entity.GuestRsvpFixtures.johnDoeRsvpWithChoices
 import cloud.dywy.domain.rsvp.entity.Meal
 import cloud.dywy.domain.rsvp.entity.RsvpAttendance
 import cloud.dywy.domain.rsvp.entity.RsvpStatus
@@ -39,4 +39,3 @@ object DashboardStatisticsFixtures {
         deliveryMethodCounts = mapOf(DeliveryMethod.HAND_DELIVERED to 1, DeliveryMethod.POSTED to 2),
     )
 }
-

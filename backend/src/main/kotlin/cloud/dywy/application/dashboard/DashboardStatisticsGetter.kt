@@ -1,7 +1,6 @@
 package cloud.dywy.application.dashboard
 
 import cloud.dywy.domain.dashboard.entity.DashboardStatistics
-import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.invitation.entity.Invitation
 import cloud.dywy.domain.invitation.entity.InvitationListCriteria
 import cloud.dywy.domain.invitation.repository.Invitations
@@ -18,7 +17,7 @@ class DashboardStatisticsGetter(
         allInvitations().let { allInvitations ->
             DashboardStatistics.of(
                 invitations = allInvitations,
-                rsvps = guestRsvps.findByGuestIds(guestIdsOf(allInvitations)),
+                rsvps = guestRsvps.findByGuestIds(allInvitations.flatMap { it.guestIds }.toSet()),
             )
         }
 
@@ -31,11 +30,7 @@ class DashboardStatisticsGetter(
             }
         }.flatMap { it.items }.toList()
 
-    private fun guestIdsOf(invitations: Collection<Invitation>): Set<GuestId> =
-        invitations.flatMap { invitation -> invitation.guests.map { it.id } }.toSet()
-
     private companion object {
         const val PAGE_SIZE = 100
     }
 }
-

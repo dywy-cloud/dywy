@@ -41,11 +41,21 @@ class DashboardStatisticsGetterTest {
         verify(exactly = 1) { guestRsvps.findByGuestIds(invitations.flatMap { it.guests }.map { it.id }.toSet()) }
     }
 
-    private fun invitationPage(items: List<Invitation>, page: Int) = InvitationPage(
+    @Test
+    fun `should not request another page when everything fits in one`() {
+        every { invitationRepository.list(InvitationListCriteria(page = 0, size = 100)) } returns
+            invitationPage(items = invitations, page = 0, totalPages = 1)
+        every { guestRsvps.findByGuestIds(any()) } returns rsvps
+
+        assertThat(dashboardStatisticsGetter.get()).isEqualTo(statistics)
+        verify(exactly = 1) { invitationRepository.list(any()) }
+    }
+
+    private fun invitationPage(items: List<Invitation>, page: Int, totalPages: Int = 2) = InvitationPage(
         items = items,
         page = page,
         size = 100,
         totalItems = invitations.size.toLong(),
-        totalPages = 2,
+        totalPages = totalPages,
     )
 }

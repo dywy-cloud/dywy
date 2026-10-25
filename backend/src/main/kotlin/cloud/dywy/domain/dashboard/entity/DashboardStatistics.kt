@@ -19,10 +19,10 @@ data class DashboardStatistics(
     companion object {
 
         fun of(invitations: Collection<Invitation>, rsvps: Collection<GuestRsvp>): DashboardStatistics {
-            val guestIds = invitations.flatMap { invitation -> invitation.guests.map { it.id } }.toSet()
+            val guestIds = invitations.flatMap { it.guestIds }.toSet()
             val guestRsvps = rsvps.filter { it.guestId in guestIds }
             val summaries = invitations.map { invitation ->
-                RsvpSummary.of(invitation.guests.map { it.id }, guestRsvps)
+                RsvpSummary.of(invitation.guestIds, guestRsvps)
             }
             val attendances = guestIds.associateWith { RsvpAttendance.PENDING } +
                 guestRsvps.associate { it.guestId to it.attendance }
@@ -41,4 +41,3 @@ data class DashboardStatistics(
             keys.associateWith { key -> values.count { it == key } }
     }
 }
-

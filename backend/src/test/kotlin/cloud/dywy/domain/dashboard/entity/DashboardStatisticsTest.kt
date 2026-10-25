@@ -47,5 +47,3 @@ class DashboardStatisticsTest {
         assertThat(unrelated.guestsByAttendance.values.sum()).isEqualTo(0)
     }
 }
-
-
