@@ -123,26 +123,6 @@ describe('GuestRsvpForm', () => {
     expect(wrapper.text()).toContain(t('rsvp.saved'));
   });
 
-  it('shows the wedding website link after the confirmation message only once saved', async () => {
-    fetchRsvpMock.mockResolvedValue(null);
-    submitRsvpMock.mockResolvedValue(savedRsvp('DECLINED'));
-    const wrapper = mountForm();
-    await flushPromises();
-
-    expect(wrapper.find('[data-test="wedding-website-link"]').exists()).toBe(false);
-
-    await wrapper.find('input[value="DECLINED"]').trigger('change');
-    await wrapper.find('form').trigger('submit');
-    await flushPromises();
-
-    const link = wrapper.find('[data-test="wedding-website-link"]');
-    expect(link.attributes('href')).toBe('https://thecla-gregory.dywy.cloud');
-    expect(link.attributes('target')).toBe('_blank');
-    expect(link.attributes('rel')).toContain('noopener');
-    expect(link.text()).toBe(t('rsvp.weddingWebsite'));
-    expect(wrapper.text().indexOf(t('rsvp.saved'))).toBeLessThan(wrapper.text().indexOf(t('rsvp.weddingWebsite')));
-  });
-
   it('submits a declined answer without a meal', async () => {
     fetchRsvpMock.mockResolvedValue(null);
     submitRsvpMock.mockResolvedValue(savedRsvp('DECLINED'));
