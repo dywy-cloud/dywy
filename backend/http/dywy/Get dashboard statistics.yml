@@ -1,0 +1,30 @@
+info:
+  name: Get dashboard statistics
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{backend_url}}/api/dashboard"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Cookie
+      value: "{{backofficeSessionCookie}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const backofficeSessionCookie = bru.getEnvVar('backofficeSessionCookie');
+
+        if (!backofficeSessionCookie) {
+          throw new Error('backofficeSessionCookie is missing. Sign in to the backoffice with Google, then set it to "JSESSIONID=<value>" in the Bruno environment.');
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 5

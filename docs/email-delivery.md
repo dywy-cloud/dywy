@@ -18,7 +18,7 @@ Set:
 
 - `BREVO_API_KEY` — Brevo transactional API key (mandatory; keep it secret)
 - `APP_MAIL_FROM` — the From address; it must be a **verified sender/domain** in Brevo
-- `BREVO_SENDER_NAME` (optional, default `Wedding Plan`)
+- `BREVO_SENDER_NAME` (optional, default `Dywy`)
 - `BREVO_BASE_URL` (optional, default `https://api.brevo.com`)
 
 ## `APP_MAIL_PROVIDER=smtp`
