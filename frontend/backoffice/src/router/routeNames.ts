@@ -1,4 +1,5 @@
 export const BACKOFFICE_ROUTE_NAMES = {
+  dashboard: 'dashboard',
   invitationList: 'invitation-list',
   invitationAdd: 'invitation-add',
   invitationEdit: 'invitation-edit',

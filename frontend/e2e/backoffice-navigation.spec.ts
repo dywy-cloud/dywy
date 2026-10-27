@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { allowAdminSession } from './fixtures/authSetup';
-import { fulfillJson } from './fixtures/httpHelpers';
+import { allowAdminSession, allowReadOnlySession } from './fixtures/authSetup';
+import { dashboardStatistics } from './fixtures/dashboardFixtures';
+import { fulfillJson, mockEmptyGuestList } from './fixtures/httpHelpers';
 
 test.describe('Backoffice navigation', () => {
   test('add guest view shows success toast and returns to list after submit', async ({ page }) => {
@@ -153,4 +154,29 @@ test.describe('Unsaved changes confirmation dialog', () => {
   });
 });
 
+test.describe('Dashboard landing page', () => {
+  test('root lands on the dashboard and the sidebar leads to the lists', async ({ page }) => {
+    await allowAdminSession(page);
+    await page.route('**/api/dashboard', (route) => fulfillJson(route, dashboardStatistics));
+    await mockEmptyGuestList(page);
 
+    await page.goto('/');
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.locator('[data-test="dashboard-total-guests"]')).toHaveText('4');
+
+    await page.getByRole('navigation', { name: 'Backoffice navigation' }).getByRole('link', { name: 'Guests' }).click();
+
+    await expect(page).toHaveURL(/\/guests/);
+  });
+
+  test('read-only user opens the dashboard', async ({ page }) => {
+    await allowReadOnlySession(page);
+    await page.route('**/api/dashboard', (route) => fulfillJson(route, dashboardStatistics));
+
+    await page.goto('/dashboard');
+
+    await expect(page.locator('[data-test="dashboard-total-invitations"]')).toHaveText('3');
+  });
+});
