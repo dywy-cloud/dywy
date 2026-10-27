@@ -18,3 +18,17 @@ export const createDashboardStatisticsResponse = (
   ...overrides
 });
 
+export const createEmptyDashboardStatisticsResponse = (): DashboardStatisticsResponse => createDashboardStatisticsResponse({
+  totalInvitations: 0,
+  totalGuests: 0,
+  invitationsByRsvpStatus: {
+    ACCEPTED_ALL: 0,
+    PARTIALLY_ACCEPTED: 0,
+    DECLINED_ALL: 0,
+    PARTIALLY_ANSWERED: 0,
+    PENDING: 0
+  },
+  guestsByAttendance: { ATTENDING: 0, DECLINED: 0, PENDING: 0 },
+  mealCounts: { MEAT: 0, FISH: 0, VEGGIE: 0 },
+  deliveryMethodCounts: { HAND_DELIVERED: 0, POSTED: 0 }
+});
