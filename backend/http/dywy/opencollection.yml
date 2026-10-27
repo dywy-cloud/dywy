@@ -1,7 +1,7 @@
 opencollection: 1.0.0
 
 info:
-  name: Wedding Plan
+  name: dywy
 config:
   proxy:
     inherit: true

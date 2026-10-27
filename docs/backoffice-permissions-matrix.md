@@ -25,6 +25,21 @@ other type is a write and uses `POST`/`PUT`/`PATCH`/`DELETE`.
 
 ## Matrix — backoffice modules (`/api/**`)
 
+### Dashboard (`/api/dashboard`)
+
+| Action | Type | HTTP | Admin | Read-only | Unauthorized | Read-only intent |
+| --- | --- | --- | :---: | :---: | :---: | --- |
+| Show dashboard statistics | show | `GET /api/dashboard` | ✅ | ✅ | ❌ `403` | Allowed (read) |
+
+### Invitations (`/api/invitations`)
+
+| Action | Type | HTTP | Admin | Read-only | Unauthorized | Read-only intent |
+| --- | --- | --- | :---: | :---: | :---: | --- |
+| List invitations | list | `GET /api/invitations` | ✅ | ✅ | ❌ `403` | Allowed (read) |
+| Show invitation | show | `GET /api/invitations/{id}` | ✅ | ✅ | ❌ `403` | Allowed (read) |
+| Create invitation | create | `POST /api/invitations` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
+| Update invitation | update | `PUT /api/invitations/{id}` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
+
 ### Guests (`/api/guests`)
 
 | Action | Type | HTTP | Admin | Read-only | Unauthorized | Read-only intent |
@@ -35,15 +50,6 @@ other type is a write and uses `POST`/`PUT`/`PATCH`/`DELETE`.
 | Update guest | update | `PUT /api/guests/{id}` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
 | Archive guest | delete | `DELETE /api/guests/{id}` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
 | Restore guest | custom | `POST /api/guests/{id}/restoration` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
-
-### Invitations (`/api/invitations`)
-
-| Action | Type | HTTP | Admin | Read-only | Unauthorized | Read-only intent |
-| --- | --- | --- | :---: | :---: | :---: | --- |
-| List invitations | list | `GET /api/invitations` | ✅ | ✅ | ❌ `403` | Allowed (read) |
-| Show invitation | show | `GET /api/invitations/{id}` | ✅ | ✅ | ❌ `403` | Allowed (read) |
-| Create invitation | create | `POST /api/invitations` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
-| Update invitation | update | `PUT /api/invitations/{id}` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
 
 ## Ambiguous actions — explicit policy decisions
 

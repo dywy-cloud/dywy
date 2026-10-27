@@ -165,6 +165,7 @@ _Current exceptions: none._
 Sign in with a **read-only** account and confirm:
 
 - [ ] Every backoffice module's **list** and **detail** pages load.
+- [ ] `GET /api/dashboard` returns the dashboard statistics.
 - [ ] No **create / edit / delete / archive / restore** control is visible in any list, detail, or
       navigation menu.
 - [ ] Each mutating endpoint returns `403` when called directly (bypassing the UI), for every module —
@@ -178,7 +179,7 @@ Sign in with an **admin** account and confirm nothing regressed:
 
 Sign in with an **unauthorized** Google account (in neither list) and confirm:
 
-- [ ] `GET` on any backoffice module (e.g. `/api/invitations`, `/api/guests`) returns `403`.
+- [ ] `GET` on any backoffice module (e.g. `/api/invitations`, `/api/guests`, `/api/dashboard`) returns `403`.
 
 ## Release notes
 
