@@ -35,3 +35,13 @@ export const readCookie = (name: string): string | undefined => {
   return token ? decodeURIComponent(token.substring(name.length + 1)) : undefined;
 };
 
+export const csrfHeaders = (init?: HeadersInit): Headers => {
+  const headers = new Headers(init);
+  const csrfToken = readCookie('XSRF-TOKEN');
+
+  if (csrfToken) {
+    headers.set('X-XSRF-TOKEN', csrfToken);
+  }
+
+  return headers;
+};

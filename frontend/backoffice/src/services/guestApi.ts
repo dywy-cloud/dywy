@@ -1,4 +1,4 @@
-import { getApiBaseUrl, readCookie } from './http';
+import { csrfHeaders, getApiBaseUrl } from './http';
 
 export type GuestLanguage = 'FR' | 'EN';
 
@@ -72,15 +72,7 @@ export const listGuests = async (
 };
 
 export const addGuest = async (payload: AddGuestPayload): Promise<GuestResponse> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-
-  const headers = new Headers({
-    'Content-Type': 'application/json'
-  });
-
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders({ 'Content-Type': 'application/json' });
 
   const response = await fetch(`${guestApiBaseUrl}/guests`, {
     method: 'POST',
@@ -114,15 +106,7 @@ export const getGuestById = async (id: string): Promise<GuestResponse> => {
 };
 
 export const updateGuest = async (id: string, payload: EditGuestPayload): Promise<GuestResponse> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-
-  const headers = new Headers({
-    'Content-Type': 'application/json'
-  });
-
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders({ 'Content-Type': 'application/json' });
 
   const response = await fetch(`${guestApiBaseUrl}/guests/${id}`, {
     method: 'PUT',
@@ -147,12 +131,7 @@ export const updateGuest = async (id: string, payload: EditGuestPayload): Promis
 };
 
 export const archiveGuest = async (id: string): Promise<GuestResponse> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-
-  const headers = new Headers();
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders();
 
   const response = await fetch(`${guestApiBaseUrl}/guests/${id}`, {
     method: 'DELETE',
@@ -172,12 +151,7 @@ export const archiveGuest = async (id: string): Promise<GuestResponse> => {
 };
 
 export const restoreGuest = async (id: string): Promise<GuestResponse> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-
-  const headers = new Headers();
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders();
 
   const response = await fetch(`${guestApiBaseUrl}/guests/${id}/restoration`, {
     method: 'POST',
