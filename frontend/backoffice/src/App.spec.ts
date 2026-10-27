@@ -30,6 +30,7 @@ vi.mock('./services/guestApi', () => guestApiMock);
 vi.mock('./services/versionApi', () => versionApiMock);
 
 const globalStubs = {
+  DashboardView: true,
   GuestForm: true,
   GuestListView: true,
   InvitationsListView: true
@@ -117,21 +118,30 @@ describe('App auth states', () => {
     expect(wrapper.text()).toContain('Logout');
   });
 
-  it('redirects root route to invitations list for authorized users', async () => {
+  it('redirects root route to the dashboard for authorized users', async () => {
     mockAuthStatus();
 
     const { wrapper, router } = await mountApp({ route: '/' });
 
-    expect(router.currentRoute.value.name).toBe(BACKOFFICE_ROUTE_NAMES.invitationList);
-    expect(router.currentRoute.value.path).toBe('/invitations');
-    expect(wrapper.findComponent({ name: 'InvitationsListView' }).exists()).toBe(true);
-    expect(wrapper.findComponent({ name: 'GuestListView' }).exists()).toBe(false);
+    expect(router.currentRoute.value.name).toBe(BACKOFFICE_ROUTE_NAMES.dashboard);
+    expect(router.currentRoute.value.path).toBe('/dashboard');
+    expect(wrapper.findComponent({ name: 'DashboardView' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'InvitationsListView' }).exists()).toBe(false);
 
     await wrapper.get('[data-test="user-menu-toggle"]').trigger('click');
 
     expect(wrapper.text()).toContain('Signed in as');
     expect(wrapper.text()).toContain('allowed@example.com');
     expect(wrapper.text()).toContain('Logout');
+  });
+
+  it('lets read-only users open the dashboard', async () => {
+    mockAuthStatus(readOnlyAuthStatus);
+
+    const { wrapper, router } = await mountApp({ route: '/dashboard' });
+
+    expect(router.currentRoute.value.name).toBe(BACKOFFICE_ROUTE_NAMES.dashboard);
+    expect(wrapper.findComponent({ name: 'DashboardView' }).exists()).toBe(true);
   });
 
   it('renders left sidebar shell on protected routes while keeping routed content visible', async () => {
@@ -186,7 +196,7 @@ describe('App auth states', () => {
       .findAll('nav[aria-label="Backoffice navigation"] a')
       .map((link) => link.attributes('href'));
 
-    expect(navHrefs).toEqual(['/invitations', '/guests']);
+    expect(navHrefs).toEqual(['/dashboard', '/invitations', '/guests']);
   });
 
   it('redirects read-only users away from write routes to access denied', async () => {
