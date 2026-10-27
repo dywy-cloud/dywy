@@ -3,6 +3,20 @@
     <ul class="space-y-2">
       <li>
         <RouterLink
+          :aria-current="ariaCurrent('/dashboard')"
+          :class="linkClasses('/dashboard')"
+          to="/dashboard"
+        >
+          <span
+            aria-hidden="true"
+            class="sidebar-link-icon inline-flex h-5 w-5 shrink-0 [&>svg]:h-5 [&>svg]:w-5"
+            v-html="menuDashboardIcon"
+          ></span>
+          <span>Dashboard</span>
+        </RouterLink>
+      </li>
+      <li>
+        <RouterLink
           :aria-current="ariaCurrent('/invitations')"
           :class="linkClasses('/invitations')"
           to="/invitations"
@@ -35,6 +49,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
+import menuDashboardIcon from '../assets/icons/menu-dashboard.svg?raw';
 import menuGuestIcon from '../assets/icons/menu-guests.svg?raw';
 import menuInvitationIcon from '../assets/icons/menu-invitations.svg?raw';
 

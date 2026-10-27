@@ -7,6 +7,7 @@ const createSidebarWrapper = async (path: string) => {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
+      { path: '/dashboard', component: { template: '<div />' } },
       { path: '/invitations', component: { template: '<div />' } },
       { path: '/invitations/new', component: { template: '<div />' } },
       { path: '/guests', component: { template: '<div />' } },
@@ -31,61 +32,26 @@ describe('BackofficeSidebar', () => {
     const links = wrapper.findAll('a');
     const icons = wrapper.findAll('.sidebar-link-icon svg');
 
-    expect(links).toHaveLength(2);
-    expect(icons).toHaveLength(2);
-    expect(links[0].text()).toBe('Invitations');
-    expect(links[0].attributes('href')).toBe('/invitations');
-    expect(links[1].text()).toBe('Guests');
-    expect(links[1].attributes('href')).toBe('/guests');
+    expect(links).toHaveLength(3);
+    expect(icons).toHaveLength(3);
+    expect(links.map((link) => link.text())).toEqual(['Dashboard', 'Invitations', 'Guests']);
+    expect(links.map((link) => link.attributes('href'))).toEqual(['/dashboard', '/invitations', '/guests']);
   });
 
+  it.each([
+    ['/dashboard', 0],
+    ['/invitations', 1],
+    ['/invitations/new', 1],
+    ['/guests', 2],
+    ['/guests/new', 2]
+  ])('marks only the matching link as active on %s', async (path, activeIndex) => {
+    const wrapper = await createSidebarWrapper(path);
 
-  it('marks invitations link as active on invitations routes', async () => {
-    const wrapper = await createSidebarWrapper('/invitations');
+    wrapper.findAll('a').forEach((link, index) => {
+      const isActive = index === activeIndex;
 
-    const links = wrapper.findAll('a');
-
-    expect(links[0].classes()).toContain('bg-badge-gradient');
-    expect(links[0].classes()).toContain('text-white');
-    expect(links[0].attributes('aria-current')).toBe('page');
-    expect(links[1].classes()).not.toContain('bg-badge-gradient');
-    expect(links[1].attributes('aria-current')).toBeUndefined();
-  });
-
-  it('marks guests link as active on guests routes', async () => {
-    const wrapper = await createSidebarWrapper('/guests');
-
-    const links = wrapper.findAll('a');
-
-    expect(links[1].classes()).toContain('bg-badge-gradient');
-    expect(links[1].classes()).toContain('text-white');
-    expect(links[1].attributes('aria-current')).toBe('page');
-    expect(links[0].classes()).not.toContain('bg-badge-gradient');
-    expect(links[0].attributes('aria-current')).toBeUndefined();
-  });
-
-  it('marks invitations link as active on nested invitations routes', async () => {
-    const wrapper = await createSidebarWrapper('/invitations/new');
-
-    const links = wrapper.findAll('a');
-
-    expect(links[0].classes()).toContain('bg-badge-gradient');
-    expect(links[0].classes()).toContain('text-white');
-    expect(links[0].attributes('aria-current')).toBe('page');
-    expect(links[1].classes()).not.toContain('bg-badge-gradient');
-    expect(links[1].attributes('aria-current')).toBeUndefined();
-  });
-
-  it('marks guests link as active on nested guests routes', async () => {
-    const wrapper = await createSidebarWrapper('/guests/new');
-
-    const links = wrapper.findAll('a');
-
-    expect(links[1].classes()).toContain('bg-badge-gradient');
-    expect(links[1].classes()).toContain('text-white');
-    expect(links[1].attributes('aria-current')).toBe('page');
-    expect(links[0].classes()).not.toContain('bg-badge-gradient');
-    expect(links[0].attributes('aria-current')).toBeUndefined();
+      expect(link.classes().includes('bg-badge-gradient')).toBe(isActive);
+      expect(link.attributes('aria-current')).toBe(isActive ? 'page' : undefined);
+    });
   });
 });
-
