@@ -1,4 +1,4 @@
-import { getApiBaseUrl, readCookie } from './http';
+import { csrfHeaders, getApiBaseUrl } from './http';
 import type { PostalAddress } from './postalAddress';
 
 export type DeliveryMethod = 'HAND_DELIVERED' | 'POSTED';
@@ -87,12 +87,7 @@ const normalizeInvitationPage = (page: RawInvitationPageResponse): InvitationPag
 });
 
 export const getInvitationById = async (id: string): Promise<InvitationResponse> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-  const headers = new Headers();
-
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders();
 
   const response = await fetch(`${invitationApiBaseUrl}/invitations/${id}`, {
     method: 'GET',
@@ -118,12 +113,7 @@ const invitationApiBaseUrl = getApiBaseUrl({ includeApiPath: true });
 export const listInvitations = async (
   { page = 0, size = 10, label }: { page?: number; size?: number; label?: string } = {}
 ): Promise<InvitationPageResponse> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-  const headers = new Headers();
-
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders();
 
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -169,14 +159,7 @@ export const listAllInvitations = async (
 };
 
 export const createInvitation = async (payload: CreateInvitationPayload): Promise<InvitationResponse> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-  const headers = new Headers({
-    'Content-Type': 'application/json'
-  });
-
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders({ 'Content-Type': 'application/json' });
 
   const response = await fetch(`${invitationApiBaseUrl}/invitations`, {
     method: 'POST',
@@ -201,14 +184,7 @@ export const createInvitation = async (payload: CreateInvitationPayload): Promis
 };
 
 export const updateInvitation = async (id: string, payload: UpdateInvitationPayload): Promise<InvitationResponse> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-  const headers = new Headers({
-    'Content-Type': 'application/json'
-  });
-
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders({ 'Content-Type': 'application/json' });
 
   const response = await fetch(`${invitationApiBaseUrl}/invitations/${id}`, {
     method: 'PUT',
