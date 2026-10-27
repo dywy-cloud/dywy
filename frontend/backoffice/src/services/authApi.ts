@@ -1,4 +1,4 @@
-import { getApiBaseUrl, readCookie } from './http';
+import { csrfHeaders, getApiBaseUrl } from './http';
 
 export interface AuthStatus {
   isAuthenticated: boolean;
@@ -36,12 +36,7 @@ export const getAuthStatus = async (): Promise<AuthStatus> => {
 export const getGoogleLoginUrl = (): string => `${getApiBaseUrl()}/oauth2/authorization/google`;
 
 export const logout = async (): Promise<void> => {
-  const csrfToken = readCookie('XSRF-TOKEN');
-  const headers = new Headers();
-
-  if (csrfToken) {
-    headers.set('X-XSRF-TOKEN', csrfToken);
-  }
+  const headers = csrfHeaders();
 
   const response = await fetch(`${getApiBaseUrl()}/auth/logout`, {
     method: 'POST',

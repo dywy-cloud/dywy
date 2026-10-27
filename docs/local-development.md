@@ -108,7 +108,7 @@ Without `confirm`, or with a different value, nothing is written and the expecte
 ## Guest magic-link email delivery test scenario (Mailpit + Bruno)
 
 The guest-access magic-link flow is protected by CSRF. To test email delivery locally, use Mailpit
-plus the Bruno collection under `backend/http/Wedding Plan`.
+plus the Bruno collection under `backend/http/dywy`.
 
 ### Prerequisites
 
@@ -152,3 +152,19 @@ If step 2 is skipped, step 3 is expected to fail with `403` because CSRF/session
 - Verify that a message is received for the selected guest.
 - Verify body contains a guest-scoped link: `/api/guest-access/magic-links/{token}`
 
+## Backoffice requests (Bruno)
+
+Backoffice endpoints (`/api/**` other than `/api/guest-access/**`) require a Google-authenticated
+staff session. This login is a browser OAuth2 redirect and cannot be scripted in Bruno, and the
+guest-access requests above only create an anonymous guest session (`cookieHeader`), which the
+backoffice rejects.
+
+To run `Get dashboard statistics`:
+
+1. Sign in to the backoffice in your browser with an email listed in `APP_AUTH_ADMIN_EMAILS` or
+   `APP_AUTH_READ_ONLY_EMAILS`.
+2. Copy the `JSESSIONID` cookie value from the browser developer tools.
+3. In the Bruno environment, set `backofficeSessionCookie` to `JSESSIONID=<value>` (alongside
+   `backend_url`).
+4. Run `Get dashboard statistics`. It returns `200` with the statistics; without a valid session,
+   or with an email in neither list, it returns a redirect to Google login or `403`.

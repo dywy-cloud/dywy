@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { getApiBaseUrl, readCookie } from './http';
+import { csrfHeaders, getApiBaseUrl, readCookie } from './http';
 
 describe('http helpers', () => {
   const originalApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -39,6 +39,20 @@ describe('http helpers', () => {
     expect(readCookie('XSRF-TOKEN')).toBe('encoded value');
     expect(readCookie('missing')).toBeUndefined();
   });
+
+  it('adds the csrf header to the given headers when the csrf cookie is present', () => {
+    document.cookie = 'XSRF-TOKEN=csrf-value';
+
+    const headers = csrfHeaders({ 'Content-Type': 'application/json' });
+
+    expect(headers.get('X-XSRF-TOKEN')).toBe('csrf-value');
+    expect(headers.get('Content-Type')).toBe('application/json');
+  });
+
+  it('keeps the given headers untouched when no csrf cookie is present', () => {
+    const headers = csrfHeaders({ 'Content-Type': 'application/json' });
+
+    expect(headers.get('Content-Type')).toBe('application/json');
+    expect(headers.has('X-XSRF-TOKEN')).toBe(false);
+  });
 });
-
-

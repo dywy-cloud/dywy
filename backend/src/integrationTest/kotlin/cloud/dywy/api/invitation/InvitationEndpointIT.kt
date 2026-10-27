@@ -24,10 +24,12 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.jdbc.Sql
 import java.util.*
 import kotlin.test.Test
 import kotlin.uuid.toJavaUuid
 
+@Sql(statements = ["DELETE FROM guest_rsvp"], executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class InvitationEndpointIT : AbstractEndpointIntegrationTest() {
 
     @Autowired
