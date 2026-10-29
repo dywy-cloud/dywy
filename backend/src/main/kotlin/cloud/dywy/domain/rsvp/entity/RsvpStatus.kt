@@ -5,6 +5,10 @@ enum class RsvpStatus {
     DECLINED_ALL,
     PARTIALLY_ACCEPTED,
     PARTIALLY_ANSWERED,
-    PENDING,
-}
+    PENDING;
 
+    companion object {
+        fun parse(value: String?): RsvpStatus? =
+            value?.trim()?.uppercase()?.let { candidate -> entries.firstOrNull { it.name == candidate } }
+    }
+}

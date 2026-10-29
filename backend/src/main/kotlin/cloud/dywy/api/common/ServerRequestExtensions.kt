@@ -7,6 +7,7 @@ import cloud.dywy.domain.guest.entity.GuestMagicLinkAccessToken
 import cloud.dywy.domain.guest.entity.GuestSession
 import cloud.dywy.domain.invitation.entity.InvitationAccessToken
 import cloud.dywy.domain.invitation.entity.InvitationId
+import cloud.dywy.domain.rsvp.entity.RsvpStatus
 import org.springframework.security.core.Authentication
 import jakarta.validation.Validator
 import org.springframework.web.servlet.function.ServerRequest
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.function.ServerResponse
 
 private const val STATUS_PARAM_NAME = "status"
 private const val AVAILABILITY_PARAM_NAME = "availability"
+private const val RSVP_STATUS_PARAM_NAME = "rsvpStatus"
 
 internal fun ServerRequest.requireGuestSession(): GuestSession =
     guestSession() ?: error("A verified guest session is guaranteed by the guest-access security filter chain")
@@ -31,6 +33,14 @@ internal fun ServerRequest.statusQueryParam(): GuestStatus? =
 internal fun ServerRequest.availabilityQueryParam(): GuestAvailability? =
     queryParamOrNull(AVAILABILITY_PARAM_NAME)?.toGuestAvailability()
         ?: if (param(AVAILABILITY_PARAM_NAME).isEmpty) GuestAvailability.ALL else null
+
+internal fun ServerRequest.rsvpStatusQueryParam(): Result<RsvpStatus?> =
+    queryParamOrNull(RSVP_STATUS_PARAM_NAME)?.trim()?.takeIf { it.isNotEmpty() }
+        ?.let { raw ->
+            RsvpStatus.parse(raw)?.let { Result.success(it) }
+                ?: Result.failure(IllegalArgumentException("Unknown $RSVP_STATUS_PARAM_NAME: $raw"))
+        }
+        ?: Result.success(null)
 
 internal fun ServerRequest.guestIdPathParam(name: String = "id"): GuestId? =
     GuestId.fromStringOrNull(pathVariable(name))
