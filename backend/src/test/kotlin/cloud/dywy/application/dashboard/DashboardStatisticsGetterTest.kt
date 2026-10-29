@@ -2,6 +2,7 @@ package cloud.dywy.application.dashboard
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import cloud.dywy.application.invitation.InvitationRsvpLoader
 import cloud.dywy.domain.dashboard.entity.DashboardStatisticsFixtures.invitations
 import cloud.dywy.domain.dashboard.entity.DashboardStatisticsFixtures.rsvps
 import cloud.dywy.domain.dashboard.entity.DashboardStatisticsFixtures.statistics
@@ -26,7 +27,7 @@ class DashboardStatisticsGetterTest {
     fun setUp() {
         invitationRepository = mockk()
         guestRsvps = mockk()
-        dashboardStatisticsGetter = DashboardStatisticsGetter(invitationRepository, guestRsvps)
+        dashboardStatisticsGetter = DashboardStatisticsGetter(invitationRepository, InvitationRsvpLoader(guestRsvps))
     }
 
     @Test

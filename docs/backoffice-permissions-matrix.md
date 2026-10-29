@@ -35,7 +35,7 @@ other type is a write and uses `POST`/`PUT`/`PATCH`/`DELETE`.
 
 | Action | Type | HTTP | Admin | Read-only | Unauthorized | Read-only intent |
 | --- | --- | --- | :---: | :---: | :---: | --- |
-| List invitations | list | `GET /api/invitations` | ✅ | ✅ | ❌ `403` | Allowed (read) |
+| List invitations | list | `GET /api/invitations` (optional `label`, `rsvpStatus`, `page`, `size`) | ✅ | ✅ | ❌ `403` | Allowed (read) |
 | Show invitation | show | `GET /api/invitations/{id}` | ✅ | ✅ | ❌ `403` | Allowed (read) |
 | Create invitation | create | `POST /api/invitations` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
 | Update invitation | update | `PUT /api/invitations/{id}` | ✅ | ❌ `403` | ❌ `403` | Denied (write) |
