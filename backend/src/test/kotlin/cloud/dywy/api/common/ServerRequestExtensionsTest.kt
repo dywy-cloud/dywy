@@ -2,6 +2,9 @@ package cloud.dywy.api.common
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import io.mockk.every
 import io.mockk.mockk
 import cloud.dywy.domain.guest.entity.GuestStatus
@@ -10,6 +13,7 @@ import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.guest.entity.GuestSession
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
 import cloud.dywy.domain.invitation.entity.InvitationId
+import cloud.dywy.domain.rsvp.entity.RsvpStatus
 import cloud.dywy.infrastructure.guest.security.GuestSessionAuthenticationToken
 import org.springframework.web.servlet.function.ServerRequest
 import java.net.InetSocketAddress
@@ -104,6 +108,36 @@ class ServerRequestExtensionsTest {
 
         assertThat(request.statusQueryParam()).isEqualTo(GuestStatus.ACTIVE)
     }
+
+    @Test
+    fun `should parse rsvp status query param ignoring case and surrounding spaces`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("rsvpStatus") } returns Optional.of(" partially_accepted ")
+
+        assertThat(request.rsvpStatusQueryParam().getOrNull()).isEqualTo(RsvpStatus.PARTIALLY_ACCEPTED)
+    }
+
+    @Test
+    fun `should fail on an unknown rsvp status query param`() {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("rsvpStatus") } returns Optional.of("MAYBE")
+
+        assertThat(request.rsvpStatusQueryParam().isFailure).isEqualTo(true)
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = ["", "   "])
+    fun `should treat a missing or blank rsvp status query param as no filter`(value: String?) {
+        val request = mockk<ServerRequest>()
+
+        every { request.param("rsvpStatus") } returns Optional.ofNullable(value)
+
+        assertThat(request.rsvpStatusQueryParam()).isEqualTo(Result.success(null))
+    }
+
 
     @Test
     fun `should parse guest id path param`() {

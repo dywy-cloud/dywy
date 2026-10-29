@@ -1,10 +1,10 @@
 package cloud.dywy.api.invitation
 
 import cloud.dywy.api.common.bindOrBadRequest
-import cloud.dywy.api.common.intQueryParam
 import cloud.dywy.api.common.invitationIdPathParam
 import cloud.dywy.api.invitation.request.AddInvitationRequest
 import cloud.dywy.api.invitation.request.UpdateInvitationRequest
+import cloud.dywy.api.invitation.request.invitationSearchOrNull
 import cloud.dywy.api.invitation.response.AlreadyAssignedInvitationGuestsResponse
 import cloud.dywy.api.invitation.response.InvalidInvitationGuestsResponse
 import cloud.dywy.api.invitation.response.MissingInvitationGuestsResponse
@@ -19,7 +19,6 @@ import cloud.dywy.application.invitation.result.AddInvitationResult
 import cloud.dywy.application.invitation.result.UpdateInvitationResult
 import cloud.dywy.domain.guest.entity.GuestId
 import cloud.dywy.domain.invitation.entity.Invitation
-import cloud.dywy.domain.invitation.entity.InvitationListCriteria
 import jakarta.validation.Validator
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -36,15 +35,13 @@ class InvitationEndpoint(
     private val validator: Validator,
 ) {
     fun listInvitations(request: ServerRequest): ServerResponse =
-        request.intQueryParam("page", default = 0)?.takeIf { it >= 0 }?.let { page ->
-            request.intQueryParam("size", default = InvitationListCriteria.DEFAULT_SIZE)?.takeIf { it > 0 }?.let { size ->
-                val label = request.param("label").orElse(null)?.trim()?.takeIf { it.isNotEmpty() }
-                invitationLister.list(InvitationListCriteria(page = page, size = size, label = label)).let { invitationPage ->
-                    ServerResponse.ok()
-                        .body(invitationPage.toResponse(invitationRsvpLoader.load(invitationPage.items)))
-                }
+        request.invitationSearchOrNull()
+            ?.let(invitationLister::list)
+            ?.let { invitationPage ->
+                ServerResponse.ok()
+                    .body(invitationPage.toResponse(invitationRsvpLoader.load(invitationPage.items)))
             }
-        } ?: ServerResponse.badRequest().build()
+            ?: ServerResponse.badRequest().build()
 
     fun addInvitation(request: ServerRequest): ServerResponse =
         request.bindOrBadRequest<AddInvitationRequest>(validator) { payload ->
