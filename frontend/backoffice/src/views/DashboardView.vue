@@ -20,20 +20,20 @@
     <template v-else-if="statistics">
       <div class="grid gap-4 md:grid-cols-2">
         <DashboardStatCard
-          :rows="guestRows"
-          :total="statistics.totalGuests"
-          data-test="dashboard-guests-card"
-          row-test-prefix="dashboard-attendance"
-          title="Guests"
-          total-test="dashboard-total-guests"
-        />
-        <DashboardStatCard
           :rows="invitationRows"
           :total="statistics.totalInvitations"
           data-test="dashboard-invitations-card"
           row-test-prefix="dashboard-invitation-status"
           title="Invitations"
           total-test="dashboard-total-invitations"
+        />
+        <DashboardStatCard
+          :rows="guestRows"
+          :total="statistics.totalGuests"
+          data-test="dashboard-guests-card"
+          row-test-prefix="dashboard-attendance"
+          title="Guests"
+          total-test="dashboard-total-guests"
         />
       </div>
 
@@ -89,7 +89,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { getDashboardStatistics } from '../services/dashboardApi';
 import type { DashboardStatisticsResponse, RsvpAttendance } from '../services/dashboardApi';
-import type { RsvpStatus } from '../services/invitationApi';
+import { rsvpStatusLabel, RsvpStatus } from '../services/invitationApi';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import DashboardStatCard from '../components/DashboardStatCard.vue';
 
@@ -103,13 +103,7 @@ const attendanceRows: { key: RsvpAttendance; label: string; barClass: string }[]
   { key: 'PENDING', label: 'Pending', barClass: 'bg-secondary' }
 ];
 
-const invitationStatusRows: { key: RsvpStatus; label: string }[] = [
-  { key: 'ACCEPTED_ALL', label: 'Accepted' },
-  { key: 'PARTIALLY_ACCEPTED', label: 'Partially accepted' },
-  { key: 'DECLINED_ALL', label: 'Declined' },
-  { key: 'PARTIALLY_ANSWERED', label: 'Partially answered' },
-  { key: 'PENDING', label: 'Awaiting reply' }
-];
+const invitationStatusRows = Object.values(RsvpStatus).map((key) => ({ key, label: rsvpStatusLabel[key] }));
 
 const statistics = ref<DashboardStatisticsResponse | null>(null);
 const isLoading = ref(true);
@@ -124,7 +118,8 @@ const guestRows = computed(() => attendanceRows.map(({ key, label }) => ({
 const invitationRows = computed(() => invitationStatusRows.map(({ key, label }) => ({
   key,
   label,
-  count: statistics.value?.invitationsByRsvpStatus[key] ?? 0
+  count: statistics.value?.invitationsByRsvpStatus[key] ?? 0,
+  link: { name: BACKOFFICE_ROUTE_NAMES.invitationList, query: { rsvpStatus: key } }
 })));
 
 const progressSegments = computed(() => {

@@ -1,7 +1,7 @@
-import type { InvitationGuestResponse, InvitationResponse, RsvpSummary } from '../services/invitationApi';
+import { RsvpStatus, type InvitationGuestResponse, type InvitationResponse, type RsvpSummary } from '../services/invitationApi';
 
 export const createRsvpSummary = (overrides: Partial<RsvpSummary> = {}): RsvpSummary => ({
-  status: 'PENDING',
+  status: RsvpStatus.PENDING,
   attending: 0,
   declined: 0,
   pending: 3,

@@ -5,6 +5,7 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import InvitationsListView from './InvitationsListView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { applyCapabilities, resetCapabilities } from '../composables/useCapabilities';
+import { RsvpStatus } from '../services/rsvpStatus';
 import { createInvitationResponse, createRsvpSummary } from '../testFixtures/invitationFixtures';
 
 const listInvitationsMock = vi.hoisted(() => vi.fn());
@@ -12,10 +13,15 @@ const listAllInvitationsMock = vi.hoisted(() => vi.fn());
 const listGuestsMock = vi.hoisted(() => vi.fn());
 const buildStickerPdfMock = vi.hoisted(() => vi.fn());
 
-vi.mock('../services/invitationApi', () => ({
-  listInvitations: listInvitationsMock,
-  listAllInvitations: listAllInvitationsMock
-}));
+vi.mock('../services/invitationApi', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../services/invitationApi')>();
+
+  return {
+    ...original,
+    listInvitations: listInvitationsMock,
+    listAllInvitations: listAllInvitationsMock
+  };
+});
 
 vi.mock('../services/stickerPdf', () => ({
   buildStickerPdf: buildStickerPdfMock
@@ -40,7 +46,7 @@ describe('InvitationsListView', () => {
     resetCapabilities();
   });
 
-  const mountView = async () => {
+  const mountView = async (path = '/invitations') => {
     const router = createRouter({
       history: createMemoryHistory(),
       routes: [
@@ -80,7 +86,7 @@ describe('InvitationsListView', () => {
       ]
     });
 
-    await router.push('/invitations');
+    await router.push(path);
     await router.isReady();
 
     const wrapper = mount(defineComponent({
@@ -124,7 +130,7 @@ describe('InvitationsListView', () => {
             }
           ],
           guestCount: 2,
-          rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 2, total: 2 }
+          rsvpSummary: { status: RsvpStatus.PENDING, attending: 0, declined: 0, pending: 2, total: 2 }
         }
       ],
       page: 0,
@@ -164,11 +170,11 @@ describe('InvitationsListView', () => {
       items: [
         createInvitationResponse({
           id: 'inv-1',
-          rsvpSummary: createRsvpSummary({ status: 'ACCEPTED_ALL', attending: 3, pending: 0 })
+          rsvpSummary: createRsvpSummary({ status: RsvpStatus.ACCEPTED_ALL, attending: 3, pending: 0 })
         }),
         createInvitationResponse({
           id: 'inv-2',
-          rsvpSummary: createRsvpSummary({ status: 'DECLINED_ALL', declined: 3, pending: 0 })
+          rsvpSummary: createRsvpSummary({ status: RsvpStatus.DECLINED_ALL, declined: 3, pending: 0 })
         }),
         createInvitationResponse({ id: 'inv-3' })
       ],
@@ -181,7 +187,7 @@ describe('InvitationsListView', () => {
     const { wrapper } = await mountView();
     const badges = wrapper.findAll('[data-test="invitation-card"] [data-test="rsvp-status-badge"]');
 
-    expect(badges.map((badge) => badge.attributes('data-status'))).toEqual(['ACCEPTED_ALL', 'DECLINED_ALL', 'PENDING']);
+    expect(badges.map((badge) => badge.attributes('data-status'))).toEqual([RsvpStatus.ACCEPTED_ALL, RsvpStatus.DECLINED_ALL, RsvpStatus.PENDING]);
     expect(badges[0].text()).toContain('Accepted 3/3');
   });
 
@@ -274,7 +280,7 @@ describe('InvitationsListView', () => {
           description: 'ignored by card content',
           guests: [],
           guestCount: 0,
-          rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 0, total: 0 }
+          rsvpSummary: { status: RsvpStatus.PENDING, attending: 0, declined: 0, pending: 0, total: 0 }
         }
       ],
       page: 0,
@@ -582,6 +588,16 @@ describe('InvitationsListView', () => {
       expect(wrapper.findAll('[data-test="invitation-select"]').some((checkbox) => checkbox.attributes('disabled') !== undefined)).toBe(false);
     });
 
+    it('prints the invitations matching the active rsvp status filter', async () => {
+      const { wrapper } = await mountView();
+
+      await wrapper.get('[data-test="invitation-rsvp-status-filter"]').setValue(RsvpStatus.DECLINED_ALL);
+      await flushPromises();
+      await printWithDefaultColor(wrapper);
+
+      expect(listAllInvitationsMock).toHaveBeenCalledWith({ label: undefined, rsvpStatus: RsvpStatus.DECLINED_ALL });
+    });
+
     it('prints every invitation except the deselected ones after select all', async () => {
       const { wrapper } = await mountView();
 
@@ -612,13 +628,13 @@ describe('InvitationsListView', () => {
 
       const { wrapper } = await mountView();
 
-      expect(listInvitationsMock).toHaveBeenCalledWith({ page: 0, size: 10, label: '' });
+      expect(listInvitationsMock).toHaveBeenCalledWith({ page: 0, size: 10, label: '', rsvpStatus: '' });
       expect(wrapper.findAll('[data-test="invitation-card"]')).toHaveLength(2);
 
       await wrapper.get('[data-test="invitation-load-more"]').trigger('click');
       await flushPromises();
 
-      expect(listInvitationsMock).toHaveBeenLastCalledWith({ page: 1, size: 10, label: '' });
+      expect(listInvitationsMock).toHaveBeenLastCalledWith({ page: 1, size: 10, label: '', rsvpStatus: '' });
       expect(wrapper.findAll('[data-test="invitation-card"]')).toHaveLength(3);
       expect(wrapper.find('[data-test="invitation-load-more-sentinel"]').exists()).toBe(false);
     });
@@ -634,7 +650,7 @@ describe('InvitationsListView', () => {
         await vi.advanceTimersByTimeAsync(400);
         await flushPromises();
 
-        expect(listInvitationsMock).toHaveBeenLastCalledWith({ page: 0, size: 10, label: 'fam' });
+        expect(listInvitationsMock).toHaveBeenLastCalledWith({ page: 0, size: 10, label: 'fam', rsvpStatus: '' });
       } finally {
         vi.useRealTimers();
       }
@@ -652,11 +668,61 @@ describe('InvitationsListView', () => {
         await vi.advanceTimersByTimeAsync(400);
         await flushPromises();
 
-        expect(wrapper.get('[data-test="empty-no-match"]').text()).toContain('zzz');
+        expect(wrapper.get('[data-test="empty-no-match"]').text()).toContain('No invitations match the current filters.');
         expect(wrapper.find('[data-test="invitation-label-filter"]').exists()).toBe(true);
       } finally {
         vi.useRealTimers();
       }
+    });
+
+    it('requests only the selected rsvp status, keeps it in the url and falls back to every status once cleared', async () => {
+      listInvitationsMock.mockResolvedValue(page(['inv-1'], 0, 1, 1));
+
+      const { wrapper, router } = await mountView();
+
+      await wrapper.get('[data-test="invitation-rsvp-status-filter"]').setValue(RsvpStatus.ACCEPTED_ALL);
+      await flushPromises();
+
+      expect(listInvitationsMock).toHaveBeenLastCalledWith({ page: 0, size: 10, label: '', rsvpStatus: RsvpStatus.ACCEPTED_ALL });
+      expect(router.currentRoute.value.query.rsvpStatus).toBe(RsvpStatus.ACCEPTED_ALL);
+
+      await wrapper.get('[data-test="invitation-rsvp-status-filter"]').setValue('');
+      await flushPromises();
+
+      expect(listInvitationsMock).toHaveBeenLastCalledWith({ page: 0, size: 10, label: '', rsvpStatus: '' });
+      expect(router.currentRoute.value.query.rsvpStatus).toBeUndefined();
+      expect((wrapper.get('[data-test="invitation-rsvp-status-filter"]').element as HTMLSelectElement).value).toBe('');
+    });
+
+    it('opens the list with the rsvp status from the query', async () => {
+      listInvitationsMock.mockResolvedValue(page(['inv-1'], 0, 1, 1));
+
+      const { wrapper } = await mountView('/invitations?rsvpStatus=' + RsvpStatus.ACCEPTED_ALL);
+
+      expect(listInvitationsMock).toHaveBeenCalledWith({ page: 0, size: 10, label: '', rsvpStatus: RsvpStatus.ACCEPTED_ALL });
+      expect((wrapper.get('[data-test="invitation-rsvp-status-filter"]').element as HTMLSelectElement).value).toBe(RsvpStatus.ACCEPTED_ALL);
+    });
+
+    it('shows an unknown rsvp status in the query as every status', async () => {
+      listInvitationsMock.mockResolvedValue(page(['inv-1'], 0, 1, 1));
+
+      await mountView('/invitations?rsvpStatus=ALL_ACCEPTED');
+
+      expect(listInvitationsMock).toHaveBeenCalledWith({ page: 0, size: 10, label: '', rsvpStatus: '' });
+    });
+
+    it('keeps the status filter reachable and shows a no-match message when nothing matches it', async () => {
+      listInvitationsMock.mockResolvedValue(page(['inv-1'], 0, 1, 1));
+
+      const { wrapper } = await mountView();
+
+      listInvitationsMock.mockResolvedValueOnce(page([], 0, 0, 0));
+      await wrapper.get('[data-test="invitation-rsvp-status-filter"]').setValue(RsvpStatus.DECLINED_ALL);
+      await flushPromises();
+
+      expect(wrapper.get('[data-test="empty-no-match"]').text()).toContain('No invitations match the current filters.');
+      expect(wrapper.find('[data-test="invitation-rsvp-status-filter"]').exists()).toBe(true);
+      expect(listGuestsMock).not.toHaveBeenCalled();
     });
   });
 });

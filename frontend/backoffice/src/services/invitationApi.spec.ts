@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createInvitation, getInvitationById, listAllInvitations, listInvitations, updateInvitation } from './invitationApi';
+import { createInvitation, getInvitationById, listAllInvitations, listInvitations, RsvpStatus, updateInvitation } from './invitationApi';
 import { backofficeApiBaseUrl, clearCsrfCookie, expectCsrfHeader, getFirstRequest, mockFetchResponse, mockFetchResponseSequence, setCsrfCookie } from '../testFixtures/httpTestHelpers';
 
 const invitationNotFoundMessage = 'Invitation not found.';
@@ -15,7 +15,7 @@ const invitationResponse = {
   description: 'Main family table',
   guests: [],
   guestCount: 2,
-  rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 2, total: 2 }
+  rsvpSummary: { status: RsvpStatus.PENDING, attending: 0, declined: 0, pending: 2, total: 2 }
 };
 
 const updatedInvitationResponse = {
@@ -89,6 +89,19 @@ describe('invitationApi', () => {
     const [url] = getFirstRequest(fetchMock);
 
     expect(url).toBe(`${backofficeApiBaseUrl}/invitations?page=0&size=10&label=Family`);
+  });
+
+  it('sends the rsvpStatus filter in the query string', async () => {
+    const fetchMock = mockFetchResponse({
+      ok: true,
+      body: { items: [], page: 0, size: 10, totalItems: 0, totalPages: 0 }
+    });
+
+    await listInvitations({ rsvpStatus: RsvpStatus.PENDING });
+
+    const [url] = getFirstRequest(fetchMock);
+
+    expect(url).toBe(`${backofficeApiBaseUrl}/invitations?page=0&size=10&rsvpStatus=${RsvpStatus.PENDING}`);
   });
 
   it('calls backend invitation details endpoint with csrf header', async () => {
@@ -271,6 +284,20 @@ describe('invitationApi', () => {
 
       expect(invitations.map((invitation) => invitation.id)).toEqual(['inv-1', 'inv-2', 'inv-3', 'inv-4', 'inv-5']);
       expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([0, 1, 2].map((page) => `${backofficeApiBaseUrl}/invitations?page=${page}&size=100`));
+    });
+
+    it('passes the rsvpStatus filter to every page request', async () => {
+      const fetchMock = mockFetchResponseSequence([
+        pageResponse(['inv-1'], 0, 2),
+        pageResponse(['inv-2'], 1, 2)
+      ]);
+
+      const invitations = await listAllInvitations({ rsvpStatus: RsvpStatus.PENDING });
+
+      expect(invitations.map((invitation) => invitation.id)).toEqual(['inv-1', 'inv-2']);
+      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(
+        [0, 1].map((page) => `${backofficeApiBaseUrl}/invitations?page=${page}&size=100&rsvpStatus=${RsvpStatus.PENDING}`)
+      );
     });
 
     it('rejects with the error of a later page', async () => {

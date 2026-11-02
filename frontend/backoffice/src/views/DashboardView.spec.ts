@@ -4,6 +4,7 @@ import { defineComponent } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DashboardView from './DashboardView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
+import { RsvpStatus } from '../services/invitationApi';
 import { createDashboardStatisticsResponse, createEmptyDashboardStatisticsResponse } from '../testFixtures/dashboardFixtures';
 
 const getDashboardStatisticsMock = vi.hoisted(() => vi.fn());
@@ -52,7 +53,7 @@ describe('DashboardView', () => {
     ['dashboard-invitation-status-ACCEPTED_ALL', 'Accepted1'],
     ['dashboard-invitation-status-PARTIALLY_ACCEPTED', 'Partially accepted1'],
     ['dashboard-invitation-status-DECLINED_ALL', 'Declined1'],
-    ['dashboard-invitation-status-PARTIALLY_ANSWERED', 'Partially answered0'],
+    ['dashboard-invitation-status-PARTIALLY_ANSWERED', 'Partially replied0'],
     ['dashboard-invitation-status-PENDING', 'Awaiting reply0']
   ])('should show the breakdown row %s', async (dataTest, expectedText) => {
     const { wrapper } = await mountDashboard();
@@ -80,6 +81,14 @@ describe('DashboardView', () => {
 
     expect(wrapper.get('[data-test="dashboard-invitations-link"]').attributes('href')).toBe('/invitations');
     expect(wrapper.get('[data-test="dashboard-guests-link"]').attributes('href')).toBe('/guests');
+  });
+
+  it('should link the invitation status rows to the invitations list filtered by status', async () => {
+    const { wrapper } = await mountDashboard();
+
+    expect(wrapper.get('[data-test="dashboard-invitation-status-ACCEPTED_ALL-link"]').attributes('href')).toBe('/invitations?rsvpStatus=' + RsvpStatus.ACCEPTED_ALL);
+    expect(wrapper.get('[data-test="dashboard-invitation-status-PENDING-link"]').attributes('href')).toBe('/invitations?rsvpStatus=' + RsvpStatus.PENDING);
+    expect(wrapper.find('[data-test="dashboard-attendance-ATTENDING-link"]').exists()).toBe(false);
   });
 
   it('should show a loading message while the statistics are loading', async () => {
