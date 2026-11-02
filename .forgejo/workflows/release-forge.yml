@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - deploy/*
+
+env:
+  VERSION: ${{ github.event.milestone.title || github.ref_name }}
+
+jobs:
+
+  publish-image:
+    runs-on: ubuntu-latest-forge
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.VERSION }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+#        with:
+#          registry: ghcr.io
+#          username: ${{ github.actor }}
+#          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          build-args: |
+            APP_VERSION=${{ env.VERSION }}
+          tags: forgejo.la-forge-viens.freeddns.org/dywy:test
+
+#      - name: Check the image version matches the tag
+#        run: |
+#          set -o pipefail
+#          built=$(docker run --rm --entrypoint unzip "$IMAGE" -p /app/app.jar META-INF/build-info.properties \
+#            | sed -n 's/^build.version=//p')
+#          if [ "$built" != "$VERSION" ]; then
+#            echo "Image version '$built' does not match tag '$VERSION'" >&2
+#            exit 1
+#          fi
+#        env:
+#          IMAGE: forgejo.la-forge-viens.freeddns.org/dywy:test
+
+      - name: Push the image
+        run: docker push "$IMAGE"
+        env:
+          IMAGE: forgejo.la-forge-viens.freeddns.org/dywy:test
+
