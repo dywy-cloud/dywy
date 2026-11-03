@@ -258,7 +258,8 @@ import viewInvitationIcon from '../assets/icons/view.svg';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { buildGuestAccessUrl } from '../services/guestAccessUrl';
 import { listGuests } from '../services/guestApi';
-import { listAllInvitations, listInvitations, rsvpStatusLabel, RsvpStatus, type InvitationPageResponse, type InvitationResponse } from '../services/invitationApi';
+import { listAllInvitations, listInvitations, type InvitationPageResponse, type InvitationResponse } from '../services/invitationApi';
+import { rsvpStatusLabel, RsvpStatus } from '../services/rsvpStatus';
 import { formatDeliveryMethod } from '../services/deliveryMethod';
 
 const STICKERS_FILENAME = 'invitation-stickers.pdf';

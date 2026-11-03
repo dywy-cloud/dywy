@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import InvitationDetailsView from './InvitationDetailsView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { applyCapabilities, resetCapabilities } from '../composables/useCapabilities';
-import { RsvpStatus } from '../services/invitationApi';
+import { RsvpStatus } from '../services/rsvpStatus';
 import { createInvitationGuestResponse, createInvitationResponse, createRsvpSummary } from '../testFixtures/invitationFixtures';
 
 const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
