@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createInvitation, getInvitationById, listAllInvitations, listInvitations, RsvpStatus, updateInvitation } from './invitationApi';
+import { createInvitation, getInvitationById, listAllInvitations, listInvitations, updateInvitation } from './invitationApi';
+import { RsvpStatus } from './rsvpStatus';
 import { backofficeApiBaseUrl, clearCsrfCookie, expectCsrfHeader, getFirstRequest, mockFetchResponse, mockFetchResponseSequence, setCsrfCookie } from '../testFixtures/httpTestHelpers';
 
 const invitationNotFoundMessage = 'Invitation not found.';

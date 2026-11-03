@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
 import RsvpStatusBadge from './RsvpStatusBadge.vue';
-import { RsvpStatus, type RsvpSummary } from '../services/invitationApi';
+import { RsvpStatus } from '../services/rsvpStatus';
+import type { RsvpSummary } from '../services/invitationApi';
 import { createRsvpSummary } from '../testFixtures/invitationFixtures';
 
 const mountBadge = (summary: RsvpSummary) => mount(RsvpStatusBadge, { props: { summary } });

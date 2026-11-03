@@ -1,4 +1,4 @@
-import { RsvpStatus } from '../services/invitationApi';
+import { RsvpStatus } from '../services/rsvpStatus';
 import type { DashboardStatisticsResponse } from '../services/dashboardApi';
 
 export const createDashboardStatisticsResponse = (

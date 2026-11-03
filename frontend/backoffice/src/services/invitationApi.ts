@@ -1,8 +1,6 @@
 import { csrfHeaders, getApiBaseUrl } from './http';
 import type { PostalAddress } from './postalAddress';
-import { RsvpStatus, rsvpStatusLabel } from './rsvpStatus';
-
-export { RsvpStatus, rsvpStatusLabel };
+import { RsvpStatus } from './rsvpStatus';
 
 export type DeliveryMethod = 'HAND_DELIVERED' | 'POSTED';
 

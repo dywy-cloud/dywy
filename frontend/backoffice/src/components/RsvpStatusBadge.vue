@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { RsvpStatus } from '../services/invitationApi';
+import { RsvpStatus } from '../services/rsvpStatus';
 import type { RsvpSummary } from '../services/invitationApi';
 
 defineOptions({
