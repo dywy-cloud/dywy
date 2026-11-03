@@ -17,8 +17,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     permissions:
       contents: read
       checks: write
@@ -87,13 +85,12 @@ jobs:
           frontend/coverage/coverage-summary.json
     - name: Upload coverage to Codecov
       id: codecov_upload
-      if: ${{ always() && env.CODECOV_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
-      uses: codecov/codecov-action@v5
-      continue-on-error: true
+      if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
+      uses: codecov/codecov-action@f9fe539f5290016afa014f8ef31597d3a61c2dea
       with:
-        token: ${{ env.CODECOV_TOKEN }}
+        use_oidc: true
         files: backend/build/reports/jacoco/jacocoAllTestReport/jacocoAllTestReport.xml,frontend/coverage/cobertura-coverage.xml
-        fail_ci_if_error: false
+        fail_ci_if_error: true
         verbose: true
     - name: Publish coverage links
       if: ${{ always() && steps.codecov_upload.outcome == 'success' }}
