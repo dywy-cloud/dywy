@@ -1,9 +1,10 @@
 import { csrfHeaders, getApiBaseUrl } from './http';
 import type { PostalAddress } from './postalAddress';
+import { RsvpStatus, rsvpStatusLabel } from './rsvpStatus';
+
+export { RsvpStatus, rsvpStatusLabel };
 
 export type DeliveryMethod = 'HAND_DELIVERED' | 'POSTED';
-
-export type RsvpStatus = 'ACCEPTED_ALL' | 'PARTIALLY_ACCEPTED' | 'DECLINED_ALL' | 'PENDING' | 'PARTIALLY_ANSWERED';
 
 export interface RsvpSummary {
   status: RsvpStatus;
@@ -111,7 +112,7 @@ export const getInvitationById = async (id: string): Promise<InvitationResponse>
 const invitationApiBaseUrl = getApiBaseUrl({ includeApiPath: true });
 
 export const listInvitations = async (
-  { page = 0, size = 10, label }: { page?: number; size?: number; label?: string } = {}
+  { page = 0, size = 10, label, rsvpStatus }: { page?: number; size?: number; label?: string; rsvpStatus?: string } = {}
 ): Promise<InvitationPageResponse> => {
   const headers = csrfHeaders();
 
@@ -122,6 +123,10 @@ export const listInvitations = async (
 
   if (label?.trim()) {
     queryParams.set('label', label.trim());
+  }
+
+  if (rsvpStatus?.trim()) {
+    queryParams.set('rsvpStatus', rsvpStatus.trim());
   }
 
   const response = await fetch(`${invitationApiBaseUrl}/invitations?${queryParams}`, {
@@ -142,14 +147,14 @@ export const listInvitations = async (
 const ALL_INVITATIONS_PAGE_SIZE = 100;
 
 export const listAllInvitations = async (
-  { label }: { label?: string } = {}
+  { label, rsvpStatus }: { label?: string; rsvpStatus?: string } = {}
 ): Promise<InvitationResponse[]> => {
   const invitations: InvitationResponse[] = [];
   let page = 0;
   let totalPages = 1;
 
   while (page < totalPages) {
-    const invitationPage = await listInvitations({ page, size: ALL_INVITATIONS_PAGE_SIZE, label });
+    const invitationPage = await listInvitations({ page, size: ALL_INVITATIONS_PAGE_SIZE, label, rsvpStatus });
     invitations.push(...invitationPage.items);
     totalPages = invitationPage.totalPages;
     page += 1;
