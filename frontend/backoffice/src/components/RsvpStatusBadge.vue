@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { RsvpStatus } from '../services/rsvpStatus';
 import type { RsvpSummary } from '../services/invitationApi';
 
 defineOptions({
@@ -35,28 +36,28 @@ const badge = computed(() => {
   const { status, attending, declined, total } = props.summary;
 
   switch (status) {
-    case 'ACCEPTED_ALL':
+    case RsvpStatus.ACCEPTED_ALL:
       return {
         icon: '✓',
         counter: `${attending}/${total}`,
         label: `Accepted ${attending}/${total}`,
         classes: 'border-transparent bg-badge-gradient text-white'
       };
-    case 'PARTIALLY_ACCEPTED':
+    case RsvpStatus.PARTIALLY_ACCEPTED:
       return {
         icon: '◐',
         counter: `${attending}/${total}`,
         label: `Partially accepted ${attending}/${total}`,
         classes: 'border-primary bg-primary/15 text-text'
       };
-    case 'DECLINED_ALL':
+    case RsvpStatus.DECLINED_ALL:
       return {
         icon: '✕',
         counter: `${declined}/${total}`,
         label: 'Declined',
         classes: 'border-accent bg-accent/15 text-accent-dark'
       };
-    case 'PARTIALLY_ANSWERED':
+    case RsvpStatus.PARTIALLY_ANSWERED:
       return {
         icon: '…',
         counter: `${attending + declined}/${total}`,

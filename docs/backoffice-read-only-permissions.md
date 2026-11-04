@@ -166,6 +166,7 @@ Sign in with a **read-only** account and confirm:
 
 - [ ] Every backoffice module's **list** and **detail** pages load.
 - [ ] `GET /api/dashboard` returns the dashboard statistics.
+- [ ] `GET /api/invitations?rsvpStatus=PENDING` returns only the invitations in that RSVP status.
 - [ ] No **create / edit / delete / archive / restore** control is visible in any list, detail, or
       navigation menu.
 - [ ] Each mutating endpoint returns `403` when called directly (bypassing the UI), for every module —

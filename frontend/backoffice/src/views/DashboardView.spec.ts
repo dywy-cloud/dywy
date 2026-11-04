@@ -4,6 +4,7 @@ import { defineComponent } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import DashboardView from './DashboardView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
+import { RsvpStatus } from '../services/rsvpStatus';
 import { createDashboardStatisticsResponse, createEmptyDashboardStatisticsResponse } from '../testFixtures/dashboardFixtures';
 
 const getDashboardStatisticsMock = vi.hoisted(() => vi.fn());
@@ -38,26 +39,38 @@ describe('DashboardView', () => {
     return { wrapper, router };
   };
 
-  it('should show the guest and invitation totals', async () => {
+  it('should show the invitation and meal totals', async () => {
     const { wrapper } = await mountDashboard();
 
-    expect(wrapper.get('[data-test="dashboard-total-guests"]').text()).toBe('4');
     expect(wrapper.get('[data-test="dashboard-total-invitations"]').text()).toBe('3');
+    expect(wrapper.get('[data-test="dashboard-total-meals"]').text()).toBe('2');
   });
 
   it.each([
-    ['dashboard-attendance-ATTENDING', 'Attending2'],
-    ['dashboard-attendance-DECLINED', 'Declined2'],
-    ['dashboard-attendance-PENDING', 'Pending0'],
     ['dashboard-invitation-status-ACCEPTED_ALL', 'Accepted1'],
     ['dashboard-invitation-status-PARTIALLY_ACCEPTED', 'Partially accepted1'],
     ['dashboard-invitation-status-DECLINED_ALL', 'Declined1'],
-    ['dashboard-invitation-status-PARTIALLY_ANSWERED', 'Partially answered0'],
-    ['dashboard-invitation-status-PENDING', 'Awaiting reply0']
+    ['dashboard-invitation-status-PARTIALLY_ANSWERED', 'Partially replied0'],
+    ['dashboard-invitation-status-PENDING', 'Awaiting reply0'],
+    ['dashboard-meal-MEAT', 'Meat1'],
+    ['dashboard-meal-FISH', 'Fish1'],
+    ['dashboard-meal-VEGGIE', 'Veggie0']
   ])('should show the breakdown row %s', async (dataTest, expectedText) => {
     const { wrapper } = await mountDashboard();
 
     expect(wrapper.get(`[data-test="${dataTest}"]`).text()).toBe(expectedText);
+  });
+
+  it('should display custom meal counts and keep zeros', async () => {
+    getDashboardStatisticsMock.mockResolvedValue(createDashboardStatisticsResponse({
+      mealCounts: { MEAT: 5, FISH: 3, VEGGIE: 0 }
+    }));
+
+    const { wrapper } = await mountDashboard();
+
+    expect(wrapper.get('[data-test="dashboard-meal-MEAT"]').text()).toBe('Meat5');
+    expect(wrapper.get('[data-test="dashboard-meal-FISH"]').text()).toBe('Fish3');
+    expect(wrapper.get('[data-test="dashboard-meal-VEGGIE"]').text()).toBe('Veggie0');
   });
 
   it('should size the progress bar segments from the guest attendance', async () => {
@@ -82,13 +95,20 @@ describe('DashboardView', () => {
     expect(wrapper.get('[data-test="dashboard-guests-link"]').attributes('href')).toBe('/guests');
   });
 
+  it('should link the invitation status rows to the invitations list filtered by status', async () => {
+    const { wrapper } = await mountDashboard();
+
+    expect(wrapper.get('[data-test="dashboard-invitation-status-ACCEPTED_ALL-link"]').attributes('href')).toBe('/invitations?rsvpStatus=' + RsvpStatus.ACCEPTED_ALL);
+    expect(wrapper.get('[data-test="dashboard-invitation-status-PENDING-link"]').attributes('href')).toBe('/invitations?rsvpStatus=' + RsvpStatus.PENDING);
+  });
+
   it('should show a loading message while the statistics are loading', async () => {
     getDashboardStatisticsMock.mockReturnValue(new Promise(() => undefined));
 
     const { wrapper } = await mountDashboard();
 
     expect(wrapper.text()).toContain('Loading dashboard...');
-    expect(wrapper.find('[data-test="dashboard-guests-card"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="dashboard-invitations-card"]').exists()).toBe(false);
   });
 
   it('should show the error and retry loading', async () => {
@@ -102,7 +122,7 @@ describe('DashboardView', () => {
     await flushPromises();
 
     expect(wrapper.find('[role="alert"]').exists()).toBe(false);
-    expect(wrapper.get('[data-test="dashboard-total-guests"]').text()).toBe('4');
+    expect(wrapper.get('[data-test="dashboard-total-invitations"]').text()).toBe('3');
   });
 
   it('should hide the progress bar and keep the links when there is no guest', async () => {

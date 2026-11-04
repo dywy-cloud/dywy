@@ -2,31 +2,25 @@ package cloud.dywy.api.invitation
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import cloud.dywy.api.common.ServerRequestTestHelper.requestWithParams
 import cloud.dywy.api.invitation.request.AddInvitationRequest
 import cloud.dywy.api.invitation.request.UpdateInvitationRequest
 import cloud.dywy.api.invitation.response.toResponse
+import cloud.dywy.application.invitation.*
 import cloud.dywy.application.invitation.result.AddInvitationResult
-import cloud.dywy.application.invitation.InvitationAdder
-import cloud.dywy.application.invitation.InvitationGetter
-import cloud.dywy.application.invitation.InvitationLister
-import cloud.dywy.application.invitation.InvitationRsvpLoader
-import cloud.dywy.application.invitation.InvitationUpdater
 import cloud.dywy.application.invitation.result.UpdateInvitationResult
 import cloud.dywy.domain.guest.entity.GuestFixtures.johnDoe
-import cloud.dywy.domain.invitation.entity.DeliveryMethod
+import cloud.dywy.domain.invitation.entity.*
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
-import cloud.dywy.domain.invitation.entity.InvitationId
-import cloud.dywy.domain.invitation.entity.InvitationListCriteria
-import cloud.dywy.domain.invitation.entity.InvitationPage
+import cloud.dywy.domain.rsvp.entity.RsvpStatus
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import jakarta.validation.Validation
 import jakarta.validation.Validator
 import org.springframework.http.HttpStatus
 import org.springframework.web.servlet.function.ServerRequest
-import java.util.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -211,82 +205,31 @@ class InvitationEndpointTest {
     }
 
     @Test
-    fun `should list invitations with default pagination`() {
-        val request = mockk<ServerRequest>()
+    fun `should list the invitations matching the criteria built from the query params`() {
         val invitationPage = InvitationPage(
             items = listOf(brideFamilyInvitation, friendsInvitation),
-            page = 0,
-            size = 10,
-            totalItems = 2,
-            totalPages = 1,
+            page = 1,
+            size = 5,
+            totalItems = 7,
+            totalPages = 2,
         )
+        val request = requestWithParams("page" to "1", "size" to "5", "label" to "family", "rsvpStatus" to "PENDING")
 
-        every { request.param("page") } returns Optional.empty()
-        every { request.param("size") } returns Optional.empty()
-        every { request.param("label") } returns Optional.empty()
-        every { invitationLister.list(InvitationListCriteria(page = 0, size = 10)) } returns invitationPage
+        every {
+            invitationLister.list(
+                InvitationSearch(InvitationListCriteria(page = 1, size = 5, label = "family"), RsvpStatus.PENDING)
+            )
+        } returns invitationPage
 
         assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.OK)
         verify(exactly = 1) { invitationRsvpLoader.load(invitationPage.items) }
     }
 
     @Test
-    fun `should list invitations filtered by trimmed label`() {
-        val request = mockk<ServerRequest>()
-        val invitationPage = InvitationPage(
-            items = listOf(brideFamilyInvitation),
-            page = 0,
-            size = 10,
-            totalItems = 1,
-            totalPages = 1,
-        )
-
-        every { request.param("page") } returns Optional.empty()
-        every { request.param("size") } returns Optional.empty()
-        every { request.param("label") } returns Optional.of("  family ")
-        every { invitationLister.list(InvitationListCriteria(page = 0, size = 10, label = "family")) } returns invitationPage
-
-        assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.OK)
-    }
-
-    @Test
-    fun `should return bad request when page query parameter is not numeric`() {
-        val request = mockk<ServerRequest>()
-
-        every { request.param("page") } returns Optional.of("abc")
-        every { request.param("size") } returns Optional.empty()
-
-        assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
-    }
-
-    @Test
-    fun `should return bad request when size query parameter is not numeric`() {
-        val request = mockk<ServerRequest>()
-
-        every { request.param("page") } returns Optional.empty()
-        every { request.param("size") } returns Optional.of("abc")
-
-        assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
-    }
-
-    @Test
-    fun `should return bad request when page is negative`() {
-        val request = mockk<ServerRequest>()
-
-        every { request.param("page") } returns Optional.of("-1")
-        every { request.param("size") } returns Optional.of("20")
-
-        assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
-    }
-
-    @Test
-    fun `should return bad request when size is zero`() {
-        val request = mockk<ServerRequest>()
-
-        every { request.param("page") } returns Optional.of("0")
-        every { request.param("size") } returns Optional.of("0")
-
-        assertThat(invitationEndpoint.listInvitations(request).statusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
+    fun `should return bad request without listing when the query params are invalid`() {
+        assertThat(invitationEndpoint.listInvitations(requestWithParams("rsvpStatus" to "MAYBE")).statusCode())
+            .isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(exactly = 0) { invitationLister.list(any()) }
     }
 
     @Test

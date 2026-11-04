@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import InvitationDetailsView from './InvitationDetailsView.vue';
 import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { applyCapabilities, resetCapabilities } from '../composables/useCapabilities';
+import { RsvpStatus } from '../services/rsvpStatus';
 import { createInvitationGuestResponse, createInvitationResponse, createRsvpSummary } from '../testFixtures/invitationFixtures';
 
 const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
@@ -14,9 +15,14 @@ const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
 
 const getInvitationByIdMock = vi.hoisted(() => vi.fn());
 
-vi.mock('../services/invitationApi', () => ({
-  getInvitationById: getInvitationByIdMock
-}));
+vi.mock('../services/invitationApi', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../services/invitationApi')>();
+
+  return {
+    ...original,
+    getInvitationById: getInvitationByIdMock
+  };
+});
 
 describe('InvitationDetailsView', () => {
   beforeEach(() => {
@@ -121,18 +127,18 @@ describe('InvitationDetailsView', () => {
           firstName: 'Alice',
           lastName: 'Martin',
           email: 'alice@example.com',
-          rsvpSummary: { status: 'ACCEPTED_ALL', attending: 1, declined: 0, pending: 0, total: 1 }
+          rsvpSummary: { status: RsvpStatus.ACCEPTED_ALL, attending: 1, declined: 0, pending: 0, total: 1 }
         },
         {
           id: 'guest-2',
           firstName: 'Bob',
           lastName: 'Durand',
           email: 'bob@example.com',
-          rsvpSummary: { status: 'PENDING', attending: 0, declined: 0, pending: 1, total: 1 }
+          rsvpSummary: { status: RsvpStatus.PENDING, attending: 0, declined: 0, pending: 1, total: 1 }
         }
       ],
       guestCount: 2,
-      rsvpSummary: { status: 'PARTIALLY_ANSWERED', attending: 1, declined: 0, pending: 1, total: 2 }
+      rsvpSummary: { status: RsvpStatus.PARTIALLY_ANSWERED, attending: 1, declined: 0, pending: 1, total: 2 }
     });
 
     const { wrapper } = await mountView();
@@ -163,22 +169,22 @@ describe('InvitationDetailsView', () => {
       guests: [
         createInvitationGuestResponse({
           id: 'guest-1',
-          rsvpSummary: createRsvpSummary({ status: 'ACCEPTED_ALL', attending: 1, pending: 0, total: 1 })
+          rsvpSummary: createRsvpSummary({ status: RsvpStatus.ACCEPTED_ALL, attending: 1, pending: 0, total: 1 })
         }),
         createInvitationGuestResponse({
           id: 'guest-2',
           firstName: 'Bob',
-          rsvpSummary: createRsvpSummary({ status: 'DECLINED_ALL', declined: 1, pending: 0, total: 1 })
+          rsvpSummary: createRsvpSummary({ status: RsvpStatus.DECLINED_ALL, declined: 1, pending: 0, total: 1 })
         }),
         createInvitationGuestResponse({ id: 'guest-3', firstName: 'Carl' })
       ],
-      rsvpSummary: createRsvpSummary({ status: 'PARTIALLY_ACCEPTED', attending: 1, declined: 1, pending: 1, total: 3 })
+      rsvpSummary: createRsvpSummary({ status: RsvpStatus.PARTIALLY_ACCEPTED, attending: 1, declined: 1, pending: 1, total: 3 })
     }));
 
     const { wrapper } = await mountView();
 
     expect(wrapper.get('[data-test="invitation-details-rsvp"]').text()).toContain('Partially accepted 1/3');
-    expect(wrapper.get('[data-test="invitation-details-rsvp"]').attributes('data-status')).toBe('PARTIALLY_ACCEPTED');
+    expect(wrapper.get('[data-test="invitation-details-rsvp"]').attributes('data-status')).toBe(RsvpStatus.PARTIALLY_ACCEPTED);
 
     const labelRow = wrapper.get('[data-test="invitation-details-label"]').element.parentElement;
 
@@ -187,9 +193,9 @@ describe('InvitationDetailsView', () => {
     const guestBadges = wrapper.findAll('[data-test="invitation-details-guest-rsvp"]');
 
     expect(guestBadges.map((badge) => badge.attributes('data-status'))).toEqual([
-      'ACCEPTED_ALL',
-      'DECLINED_ALL',
-      'PENDING'
+      RsvpStatus.ACCEPTED_ALL,
+      RsvpStatus.DECLINED_ALL,
+      RsvpStatus.PENDING
     ]);
   });
 

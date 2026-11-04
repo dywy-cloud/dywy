@@ -164,7 +164,7 @@ test.describe('Dashboard landing page', () => {
 
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-    await expect(page.locator('[data-test="dashboard-total-guests"]')).toHaveText('4');
+    await expect(page.locator('[data-test="dashboard-total-invitations"]')).toHaveText('3');
 
     await page.getByRole('navigation', { name: 'Backoffice navigation' }).getByRole('link', { name: 'Guests' }).click();
 

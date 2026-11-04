@@ -1,5 +1,6 @@
 import { csrfHeaders, getApiBaseUrl } from './http';
-import type { DeliveryMethod, RsvpStatus } from './invitationApi';
+import type { DeliveryMethod } from './invitationApi';
+import type { RsvpStatus } from './rsvpStatus';
 
 export type RsvpAttendance = 'ATTENDING' | 'DECLINED' | 'PENDING';
 

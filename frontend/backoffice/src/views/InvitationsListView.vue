@@ -45,7 +45,7 @@
       @print="printStickers"
     />
 
-    <div v-if="showFilter" class="mb-4">
+    <div v-if="showFilter" class="mb-4 flex items-center gap-2">
       <label class="sr-only" for="invitation-label-filter">Filter invitations by label</label>
       <input
         id="invitation-label-filter"
@@ -55,6 +55,17 @@
         placeholder="Filter by label"
         type="search"
       />
+      <label class="sr-only" for="invitation-rsvp-status-filter">Filter invitations by RSVP status</label>
+      <select
+        :value="selectedRsvpStatus"
+        class="rounded-md border border-secondary/40 bg-white px-3 py-2 text-sm text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        data-test="invitation-rsvp-status-filter"
+        id="invitation-rsvp-status-filter"
+        @change="onRsvpStatusChange"
+      >
+        <option value="">All statuses</option>
+        <option v-for="status in Object.values(RsvpStatus)" :key="status" :value="status">{{ rsvpStatusLabel[status] }}</option>
+      </select>
     </div>
 
     <p v-if="isLoading" class="py-8 text-center text-sm" aria-live="polite">Loading invitations...</p>
@@ -71,11 +82,11 @@
     </div>
 
     <p
-      v-else-if="invitationPage.items.length === 0 && trimmedFilter"
+      v-else-if="invitationPage.items.length === 0 && (trimmedFilter || selectedRsvpStatus)"
       class="py-8 text-center text-sm text-text/80"
       data-test="empty-no-match"
     >
-      No invitations match "{{ trimmedFilter }}".
+      No invitations match the current filters.
     </p>
 
     <div
@@ -234,7 +245,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import InvitationQrCodePanel from '../components/InvitationQrCodePanel.vue';
 import PrintStickersDialog from '../components/PrintStickersDialog.vue';
 import RsvpStatusBadge from '../components/RsvpStatusBadge.vue';
@@ -247,6 +259,7 @@ import { BACKOFFICE_ROUTE_NAMES } from '../router/routeNames';
 import { buildGuestAccessUrl } from '../services/guestAccessUrl';
 import { listGuests } from '../services/guestApi';
 import { listAllInvitations, listInvitations, type InvitationPageResponse, type InvitationResponse } from '../services/invitationApi';
+import { rsvpStatusLabel, RsvpStatus } from '../services/rsvpStatus';
 import { formatDeliveryMethod } from '../services/deliveryMethod';
 
 const STICKERS_FILENAME = 'invitation-stickers.pdf';
@@ -265,7 +278,39 @@ const isLoading = ref(false);
 const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const loadMoreErrorMessage = ref('');
+const route = useRoute();
+const router = useRouter();
 const filterText = ref('');
+
+const rsvpStatusValues = Object.values(RsvpStatus);
+
+const parseRsvpStatus = (value: unknown): RsvpStatus | '' => {
+  const status = String(value ?? '');
+
+  return rsvpStatusValues.find((candidate) => candidate === status) ?? '';
+};
+
+const selectedRsvpStatus = computed(() => parseRsvpStatus(route.query.rsvpStatus));
+
+const selectRsvpStatus = async (status: RsvpStatus | '') => {
+  if (selectedRsvpStatus.value === status) {
+    return;
+  }
+
+  const query = { ...route.query };
+
+  if (status === '') {
+    delete query.rsvpStatus;
+  } else {
+    query.rsvpStatus = status;
+  }
+
+  await router.push({ query });
+};
+
+const onRsvpStatusChange = (event: Event) => {
+  void selectRsvpStatus((event.target as HTMLSelectElement).value as RsvpStatus | '');
+};
 const sentinel = ref<HTMLElement | null>(null);
 const isPrintDialogOpen = ref(false);
 const isPrinting = ref(false);
@@ -278,7 +323,7 @@ let latestRequestId = 0;
 
 const trimmedFilter = computed(() => filterText.value.trim());
 const hasMore = computed(() => invitationPage.value.page + 1 < invitationPage.value.totalPages);
-const showFilter = computed(() => trimmedFilter.value !== '' || invitationPage.value.totalItems > 0);
+const showFilter = computed(() => trimmedFilter.value !== '' || selectedRsvpStatus.value !== '' || invitationPage.value.totalItems > 0);
 
 const selectedCount = computed(() => allSelected.value
   ? invitationPage.value.totalItems - excludedIds.value.size
@@ -340,6 +385,7 @@ const snapshotPrintSelection = () => {
 const loadData = async () => {
   const requestId = ++latestRequestId;
   const label = trimmedFilter.value;
+  const rsvpStatus = selectedRsvpStatus.value;
 
   isLoading.value = true;
   isLoadingMore.value = false;
@@ -347,7 +393,7 @@ const loadData = async () => {
   loadMoreErrorMessage.value = '';
 
   try {
-    const invitations = await listInvitations({ page: 0, size: PAGE_SIZE, label });
+    const invitations = await listInvitations({ page: 0, size: PAGE_SIZE, label, rsvpStatus });
 
     if (requestId !== latestRequestId) {
       return;
@@ -355,7 +401,7 @@ const loadData = async () => {
 
     invitationPage.value = invitations;
 
-    if (invitations.items.length === 0 && !label) {
+    if (invitations.items.length === 0 && !label && !rsvpStatus) {
       const guests = await listGuests({ page: 0, size: 1, status: 'active' });
 
       guestTotalItems.value = guests.totalItems;
@@ -389,7 +435,8 @@ const loadMore = async () => {
     const nextPage = await listInvitations({
       page: invitationPage.value.page + 1,
       size: PAGE_SIZE,
-      label: trimmedFilter.value
+      label: trimmedFilter.value,
+      rsvpStatus: selectedRsvpStatus.value
     });
 
     if (requestId !== latestRequestId) {
@@ -451,6 +498,11 @@ watch(trimmedFilter, () => {
   }, FILTER_DEBOUNCE_MS);
 });
 
+watch(selectedRsvpStatus, () => {
+  clearSelection();
+  void loadData();
+}, { immediate: true });
+
 onBeforeUnmount(() => {
   clearTimeout(filterTimer);
   observer?.disconnect();
@@ -465,12 +517,13 @@ const printStickers = async (color: string) => {
 
   const selectInvitationsToPrint = snapshotPrintSelection();
   const printLabel = trimmedFilter.value || undefined;
+  const printRsvpStatus = selectedRsvpStatus.value || undefined;
 
   isPrinting.value = true;
   printErrorMessage.value = '';
 
   try {
-    const invitations = await listAllInvitations({ label: printLabel });
+    const invitations = await listAllInvitations({ label: printLabel, rsvpStatus: printRsvpStatus });
     const invitationsToPrint = selectInvitationsToPrint(invitations);
     const { buildStickerPdf } = await import('../services/stickerPdf');
     const pdf = await buildStickerPdf(invitationsToPrint, color);
@@ -484,9 +537,5 @@ const printStickers = async (color: string) => {
     isPrinting.value = false;
   }
 };
-
-onMounted(() => {
-  void loadData();
-});
 </script>
 
