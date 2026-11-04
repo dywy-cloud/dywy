@@ -2,7 +2,6 @@ package cloud.dywy.application.invitation
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import cloud.dywy.domain.dashboard.entity.DashboardStatisticsFixtures
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.brideFamilyInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.bridesMaidInvitation
 import cloud.dywy.domain.invitation.entity.InvitationFixtures.friendsInvitation
@@ -11,7 +10,6 @@ import cloud.dywy.domain.invitation.entity.InvitationPage
 import cloud.dywy.domain.invitation.entity.InvitationSearch
 import cloud.dywy.domain.invitation.repository.Invitations
 import cloud.dywy.domain.rsvp.entity.RsvpStatus
-import cloud.dywy.domain.rsvp.repository.GuestRsvps
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -21,14 +19,12 @@ import kotlin.test.Test
 class InvitationListerTest {
 
     private lateinit var invitations: Invitations
-    private lateinit var guestRsvps: GuestRsvps
     private lateinit var invitationLister: InvitationLister
 
     @BeforeTest
     fun setUp() {
         invitations = mockk()
-        guestRsvps = mockk()
-        invitationLister = InvitationLister(invitations, InvitationRsvpLoader(guestRsvps))
+        invitationLister = InvitationLister(invitations)
     }
 
     @Test
@@ -64,7 +60,22 @@ class InvitationListerTest {
 
     @Test
     fun `should only list invitations in the requested rsvp status`() {
-        givenSeededInvitations()
+        every { invitations.listByRsvpStatus(any(), RsvpStatus.ACCEPTED_ALL) } returns
+            InvitationPage(
+                items = listOf(brideFamilyInvitation, bridesMaidInvitation),
+                page = 0,
+                size = 10,
+                totalItems = 2,
+                totalPages = 1,
+            )
+        every { invitations.listByRsvpStatus(any(), RsvpStatus.PARTIALLY_ANSWERED) } returns
+            InvitationPage(
+                items = listOf(friendsInvitation),
+                page = 0,
+                size = 10,
+                totalItems = 1,
+                totalPages = 1,
+            )
 
         assertThat(invitationLister.list(InvitationSearch(rsvpStatus = RsvpStatus.ACCEPTED_ALL))).isEqualTo(
             InvitationPage(
@@ -81,7 +92,8 @@ class InvitationListerTest {
 
     @Test
     fun `should list no invitation when none is in the requested rsvp status`() {
-        givenSeededInvitations()
+        every { invitations.listByRsvpStatus(any(), RsvpStatus.DECLINED_ALL) } returns
+            InvitationPage(items = emptyList(), page = 0, size = 10, totalItems = 0, totalPages = 0)
 
         assertThat(invitationLister.list(InvitationSearch(rsvpStatus = RsvpStatus.DECLINED_ALL))).isEqualTo(
             InvitationPage(items = emptyList(), page = 0, size = 10, totalItems = 0, totalPages = 0)
@@ -90,7 +102,14 @@ class InvitationListerTest {
 
     @Test
     fun `should paginate the invitations in the requested rsvp status`() {
-        givenSeededInvitations()
+        every { invitations.listByRsvpStatus(InvitationListCriteria(page = 1, size = 1), RsvpStatus.ACCEPTED_ALL) } returns
+            InvitationPage(
+                items = listOf(bridesMaidInvitation),
+                page = 1,
+                size = 1,
+                totalItems = 2,
+                totalPages = 2,
+            )
 
         assertThat(
             invitationLister.list(InvitationSearch(InvitationListCriteria(page = 1, size = 1), RsvpStatus.ACCEPTED_ALL))
@@ -107,46 +126,12 @@ class InvitationListerTest {
 
     @Test
     fun `should combine the label with the requested rsvp status`() {
-        every { invitations.list(InvitationListCriteria(page = 0, size = 100, label = "Bride")) } returns
-            InvitationPage(items = listOf(brideFamilyInvitation), page = 0, size = 100, totalItems = 1, totalPages = 1)
-        every { guestRsvps.findByGuestIds(any()) } returns DashboardStatisticsFixtures.rsvps
+        every { invitations.listByRsvpStatus(InvitationListCriteria(label = "Bride"), RsvpStatus.ACCEPTED_ALL) } returns
+            InvitationPage(items = listOf(brideFamilyInvitation), page = 0, size = 10, totalItems = 1, totalPages = 1)
 
         assertThat(
             invitationLister.list(InvitationSearch(InvitationListCriteria(label = "Bride"), RsvpStatus.ACCEPTED_ALL)).items
         ).isEqualTo(listOf(brideFamilyInvitation))
-        verify(exactly = 1) { invitations.list(InvitationListCriteria(page = 0, size = 100, label = "Bride")) }
-    }
-
-    @Test
-    fun `should find the requested rsvp status page across several repository batches`() {
-        every { invitations.list(InvitationListCriteria(page = 0, size = 100)) } returns
-            InvitationPage(items = listOf(friendsInvitation), page = 0, size = 100, totalItems = 3, totalPages = 2)
-        every { invitations.list(InvitationListCriteria(page = 1, size = 100)) } returns
-            InvitationPage(
-                items = listOf(brideFamilyInvitation, bridesMaidInvitation),
-                page = 1,
-                size = 100,
-                totalItems = 3,
-                totalPages = 2,
-            )
-        every { guestRsvps.findByGuestIds(any()) } returns DashboardStatisticsFixtures.rsvps
-
-        assertThat(
-            invitationLister.list(InvitationSearch(InvitationListCriteria(page = 1, size = 1), RsvpStatus.ACCEPTED_ALL))
-        ).isEqualTo(
-            InvitationPage(items = listOf(bridesMaidInvitation), page = 1, size = 1, totalItems = 2, totalPages = 2)
-        )
-    }
-
-    private fun givenSeededInvitations() {
-        every { invitations.list(InvitationListCriteria(page = 0, size = 100)) } returns
-            InvitationPage(
-                items = DashboardStatisticsFixtures.invitations,
-                page = 0,
-                size = 100,
-                totalItems = 3,
-                totalPages = 1,
-            )
-        every { guestRsvps.findByGuestIds(any()) } returns DashboardStatisticsFixtures.rsvps
+        verify(exactly = 1) { invitations.listByRsvpStatus(InvitationListCriteria(label = "Bride"), RsvpStatus.ACCEPTED_ALL) }
     }
 }

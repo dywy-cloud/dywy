@@ -6,6 +6,7 @@ import cloud.dywy.domain.invitation.entity.InvitationAccessToken
 import cloud.dywy.domain.invitation.entity.InvitationId
 import cloud.dywy.domain.invitation.entity.InvitationListCriteria
 import cloud.dywy.domain.invitation.entity.InvitationPage
+import cloud.dywy.domain.rsvp.entity.RsvpStatus
 
 interface Invitations {
 
@@ -13,6 +14,7 @@ interface Invitations {
     fun update(invitation: Invitation): Invitation?
     fun findById(id: InvitationId): Invitation?
     fun list(criteria: InvitationListCriteria): InvitationPage
+    fun listByRsvpStatus(criteria: InvitationListCriteria, rsvpStatus: RsvpStatus): InvitationPage
     fun findAssignedGuestIds(guestIds: Set<GuestId>): Set<GuestId>
     fun findInvitationByAccessToken(token: InvitationAccessToken): Invitation?
 }
