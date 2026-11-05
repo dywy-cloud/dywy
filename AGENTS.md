@@ -93,6 +93,9 @@ Frontend apps require `.env.development` files:
   - `spring.datasource.username=admin`
   - `spring.datasource.password=<REPLACE_WITH_LOCAL_PASSWORD>` (set locally via env/secret config)
 
+## Skills
+Project-specific skills are located in `.agents/skills/`. Each skill is a directory with a `SKILL.md` file containing instructions for a specific task domain (backend testing, code review, database changes, issue planning, release branches, Vue.js best practices, etc.). Agents should read the relevant skill documentation before starting work that falls within its scope.
+
 ## Important constraints
 - Never create local commits in this repository, whether you are a human contributor or an automated agent.
 - Automated agents must stop before any history-changing Git action (`git commit`, `git merge`, `git rebase`, `git push`, `git cherry-pick`, `git reset` that would discard user work) unless the user explicitly asks for that exact Git operation.
