@@ -74,12 +74,19 @@ export default defineConfig({
     },
   ],
 
-  // Run local dev server before tests
+  // Run local dev server before tests — choose the script for the app under test
+  // For the guest-facing public app:
   webServer: {
-    command: 'npm run dev',
+    command: 'pnpm run dev:public',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
   },
+  // For the backoffice app:
+  // webServer: {
+  //   command: 'pnpm run dev:backoffice',
+  //   url: 'http://localhost:5174',
+  //   reuseExistingServer: !process.env.CI,
+  // },
 })
 ```
 

@@ -62,9 +62,14 @@ const loading = ref(false)
 // Watch for param changes - handles both initial load and navigation
 watch(
   () => route.params.id,
-  async (newId) => {
+  async (newId, _, onCleanup) => {
     loading.value = true
-    user.value = await fetchUser(newId)
+    let canceled = false
+    onCleanup(() => { canceled = true })
+    const result = await fetchUser(newId)
+    if (!canceled) {
+      user.value = result
+    }
     loading.value = false
   },
   { immediate: true }  // Run immediately for initial load
@@ -128,18 +133,28 @@ export function useRouteData(paramName, fetcher) {
 
   watch(
     () => route.params[paramName],
-    async (id) => {
+    async (id, _, onCleanup) => {
       if (!id) return
 
       loading.value = true
       error.value = null
 
+      let canceled = false
+      onCleanup(() => { canceled = true })
+
       try {
-        data.value = await fetcher(id)
+        const result = await fetcher(id)
+        if (!canceled) {
+          data.value = result
+        }
       } catch (e) {
-        error.value = e
+        if (!canceled) {
+          error.value = e
+        }
       } finally {
-        loading.value = false
+        if (!canceled) {
+          loading.value = false
+        }
       }
     },
     { immediate: true }
