@@ -29,9 +29,8 @@ jobs:
         with:
           context: .
           load: true
-          cache: false
           build-args: |
-            APP_VERSION=${{ env.VERSION }}
+            APP_VERSION=test-cache
           tags: forgejo.la-forge-viens.freeddns.org/dywy:test
 
 #      - name: Check the image version matches the tag
