@@ -31,7 +31,7 @@ jobs:
           load: true
           build-args: |
             APP_VERSION=test-cache
-          tags: forgejo.la-forge-viens.freeddns.org/dywy:test
+          tags: forgejo.la-forge-viens.freeddns.org/dywy.cloud/dywy:test
 
 #      - name: Check the image version matches the tag
 #        run: |
@@ -48,5 +48,5 @@ jobs:
       - name: Push the image
         run: docker push "$IMAGE"
         env:
-          IMAGE: forgejo.la-forge-viens.freeddns.org/dywy:test
+          IMAGE: forgejo.la-forge-viens.freeddns.org/dywy.cloud/dywy:test
 
