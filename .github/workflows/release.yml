@@ -90,3 +90,17 @@ jobs:
         env:
           IMAGE: ghcr.io/${{ github.repository }}:${{ env.VERSION }}
 
+      - name: Trigger dywy-platform deployment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: 'dywy-cloud',
+              repo: 'dywy-platform',
+              event_type: 'deploy-app',
+              client_payload: {
+                version: '${{ github.ref_name }}'
+              }
+            })
+
